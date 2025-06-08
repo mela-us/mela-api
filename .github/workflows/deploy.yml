@@ -6,15 +6,15 @@ on:
       image_name:
         required: true
         type: string
+      environment:
+        required: true
+        type: string
 
 jobs:
   deploy:
+    environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - name: Debug ENV
-        run: env | grep AZURE_
-        shell: bash
-
       - name: Azure Login
         uses: azure/login@v2
         with:

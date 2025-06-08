@@ -18,4 +18,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       image_name: ${{ needs.build-image.outputs.image }}
+      environment: uat
     secrets: inherit

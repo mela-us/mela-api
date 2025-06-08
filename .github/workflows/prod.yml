@@ -1,8 +1,14 @@
-name: prod.yml
+name: Build and deploy to Prod
+
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 
 jobs:
   build-image:
@@ -12,4 +18,5 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       image_name: ${{ needs.build-image.outputs.image }}
+      environment: prod
     secrets: inherit
