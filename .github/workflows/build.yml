@@ -1,0 +1,37 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      build-container-extra-args:
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.kaniko.outputs.image }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract short SHA
+        id: short-sha
+        run: echo "short-sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Kaniko build
+        id: kaniko
+        uses: aevea/action-kaniko@v0.14.0
+        with:
+          image: ${{ github.repository.name }}
+          tag: ${{ steps.short-sha.outputs.short-sha }}
+          registry: ghcr.io
+          password: ${{ github.token }}
+          cache: true
+          extra_args: ${{ inputs.build-container-extra-args }}
+
+      - name: Show Image
+        run: |
+          echo "Image: ${{ steps.kaniko.outputs.image }}"
