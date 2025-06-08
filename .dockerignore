@@ -1,0 +1,17 @@
+# Ignore everything in target folder except the jar you need
+target/*
+!target/mela-0.0.1-SNAPSHOT.jar
+
+# Ignore source code if you don’t build inside the container
+src/
+pom.xml
+
+# Ignore unnecessary files and folders
+.git
+.gitignore
+README.md
+*.md
+*.log
+.DS_Store
+.idea/
+.vscode/
