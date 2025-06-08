@@ -1,4 +1,15 @@
-#name: prod.yml
-#on:
-#
-#jobs:
+name: prod.yml
+on:
+    push:
+        branches:
+        - main
+
+jobs:
+  build-image:
+    uses: ./.github/workflows/build.yml
+  deploy:
+    needs: build-image
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image_name: ${{ needs.build-image.outputs.image }}
+    secrets: inherit
