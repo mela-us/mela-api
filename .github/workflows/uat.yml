@@ -14,6 +14,7 @@ jobs:
   build-image:
     uses: ./.github/workflows/build.yml
   deploy:
+    needs: build-image
     uses: ./.github/workflows/deploy.yml
     with:
-      image_name: ${{ jobs.build-image.outputs.image }}
+      image_name: ${{ needs.build-image.outputs.image }}

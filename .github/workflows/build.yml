@@ -7,6 +7,10 @@ on:
         required: false
         type: string
         default: ""
+    outputs:
+      image:
+        description: "Built image name"
+        value: ${{ jobs.build-image.outputs.image }} 
 
 jobs:
   build-image:
