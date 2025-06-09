@@ -1,0 +1,22 @@
+name: Build and deploy to UAT
+
+on:
+  push:
+    branches:
+      - uat
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build-image:
+    uses: ./.github/workflows/build.yml
+  deploy:
+    needs: build-image
+    uses: ./.github/workflows/deploy.yml
+    with:
+      image_name: ${{ needs.build-image.outputs.image }}
+      environment: uat
+    secrets: inherit

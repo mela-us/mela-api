@@ -1,6 +1,6 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.common.utils.GeneralMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.LectureOfSectionDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
@@ -35,6 +35,17 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    public Integer getLectureOrdinalNumber(UUID lectureId) {
+        Lecture lecture = lectureRepository.findByLectureId(lectureId);
+
+        if (lecture == null) {
+            return -1;
+        }
+
+        return lecture.getOrdinalNumber();
+    }
+
+    @Override
     public GetLectureSectionsResponse getLectureSections(UUID lectureId) {
         Lecture lecture = lectureRepository.findByLectureId(lectureId);
         if (lecture == null) {
@@ -65,5 +76,16 @@ public class LectureServiceImpl implements LectureService {
                 lectureInfo,
                 sectionDtoList
         );
+    }
+
+    @Override
+    public LectureDto getLectureByTopicIdAndLevelIdAndOrdinalNumber(UUID topicId, UUID levelId, Integer ordinalNumber) {
+        Lecture lecture = lectureRepository.findByTopicIdAndLevelIdAndOrdinalNumber(topicId, levelId, ordinalNumber);
+
+        if (lecture == null) {
+            return null;
+        }
+
+        return LectureMapper.INSTANCE.lectureToLectureDto(lecture);
     }
 }

@@ -1,0 +1,41 @@
+name: Promote Image
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      new_tag:
+        required: true
+        type: string
+    outputs:
+      image:
+        description: "Promoted image name"
+        value: ${{ jobs.promote-image.outputs.image }}
+
+jobs:
+  promote-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.promote.outputs.image }}
+    steps:
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull Image
+        run: docker pull ${{ inputs.image_name }}
+
+      - name: Tag Image
+        id: promote
+        run: |
+          VERSION=${{ inputs.new_tag#release/ }}
+          NEW_IMAGE=ghcr.io/${{ github.repository }}:$VERSION
+          docker tag ${{ inputs.image_name }} $NEW_IMAGE
+          echo "image=$NEW_IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Push Promoted Image
+        run: |
+          VERSION=${{ inputs.new_tag#release/ }}
+          NEW_IMAGE=ghcr.io/${{ github.repository }}:$VERSION
+          docker push $NEW_IMAGE

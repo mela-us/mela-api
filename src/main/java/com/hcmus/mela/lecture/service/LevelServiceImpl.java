@@ -1,6 +1,6 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.common.utils.GeneralMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
@@ -43,5 +43,10 @@ public class LevelServiceImpl implements LevelService {
     @Override
     public Level findLevelByLevelId(UUID id) {
         return levelRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public Level findLevelByLevelTitle(String title) {
+        return levelRepository.findByName(title);
     }
 }

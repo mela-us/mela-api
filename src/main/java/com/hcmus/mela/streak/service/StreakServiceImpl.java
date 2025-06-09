@@ -1,8 +1,7 @@
 package com.hcmus.mela.streak.service;
 
-import com.hcmus.mela.common.exception.BadRequestException;
-import com.hcmus.mela.common.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.common.utils.GeneralMessageAccessor;
+import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.streak.dto.response.GetStreakResponse;
 import com.hcmus.mela.streak.dto.response.UpdateStreakResponse;
 import com.hcmus.mela.streak.model.Streak;
@@ -41,8 +40,17 @@ public class StreakServiceImpl implements StreakService {
         Streak streak = streakRepository.findByUserId(userId);
 
         if (streak == null) {
-            final String userNotFound = exceptionMessageAccessor.getMessage(null, USER_NOT_FOUND);
-            throw new BadRequestException(userNotFound);
+            streak = new Streak(userId, 0, new Date(), new Date(), 0);
+            streakRepository.save(streak);
+
+            final String getStreakSuccessMessage = generalMessageAccessor.getMessage(null, STREAK_FOUND, userId);
+
+            log.info(getStreakSuccessMessage);
+
+            return new GetStreakResponse(streak.getStreakDays(),
+                    streak.getUpdatedAt(),
+                    streak.getLongestStreak(),
+                    getStreakSuccessMessage);
         }
 
         if (ChronoUnit.DAYS.between(
@@ -50,8 +58,6 @@ public class StreakServiceImpl implements StreakService {
                 (new Date()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate()) > 1) {
 
             streak.setStreakDays(0);
-            streak.setUpdatedAt(new Date());
-            streak.setStartedAt(new Date());
             streakRepository.updateStreak(streak);
         }
 
@@ -70,8 +76,14 @@ public class StreakServiceImpl implements StreakService {
         Streak streak = streakRepository.findByUserId(userId);
 
         if (streak == null) {
-            final String userNotFound = exceptionMessageAccessor.getMessage(null, USER_NOT_FOUND);
-            throw new BadRequestException(userNotFound);
+            streak = new Streak(userId, 1, new Date(), new Date(), 1);
+            streakRepository.save(streak);
+
+            final String updateStreakSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_STREAK_SUCCESS, userId);
+
+            log.info(updateStreakSuccessMessage);
+
+            return new UpdateStreakResponse(updateStreakSuccessMessage);
         }
 
         if (ChronoUnit.DAYS.between(

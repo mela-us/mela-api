@@ -1,6 +1,6 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.common.utils.GeneralMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,5 +47,16 @@ public class TopicServiceImpl implements TopicService {
         return topics.isEmpty()
                 ? Collections.emptyList()
                 : topics.stream().map(TopicMapper.INSTANCE::topicToTopicDto).toList();
+    }
+
+    @Override
+    public TopicDto getTopicById(UUID topicId) {
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+
+        if (topic == null) {
+            return null;
+        }
+
+        return TopicMapper.INSTANCE.topicToTopicDto(topic);
     }
 }
