@@ -36,6 +36,6 @@ jobs:
     needs: promote-image
     uses: ./.github/workflows/deploy.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ github.ref_name#release/ }}
+      image_name: ${{ needs.promote-image.outputs.image }}
       environment: prod
     secrets: inherit
