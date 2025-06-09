@@ -15,6 +15,18 @@ permissions:
     id-token: write
 
 jobs:
+  wait-for-uat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for UAT to complete
+        uses: WyriHaximus/github-action-wait-for-status@v1.8
+        with:
+          workflow: 'Build and deploy to UAT'
+          expected-conclusion: success
+          timeout: 600
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   extract-image-name:
     runs-on: ubuntu-latest
     outputs:
@@ -46,15 +58,21 @@ jobs:
 
   tag-release:
     runs-on: ubuntu-latest
-    needs: promote-image
+    needs: [promote-image, extract-version]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Git
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
 
       - name: Create Git Tag
         run: |
-            git tag ${{ needs.extract-version.outputs.version }} ${{ github.sha }}
-            git push origin ${{ needs.extract-version.outputs.version }}
+            VERSION="${{ needs.extract-version.outputs.version }}"
+            echo "Creating tag $VERSION for commit ${{ github.sha }}"
+            git tag "$VERSION" "${{ github.sha }}"
+            git push origin "$VERSION"
+
 
