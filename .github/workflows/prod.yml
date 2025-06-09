@@ -11,10 +11,25 @@ permissions:
   id-token: write
 
 jobs:
+  get-latest-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      latest_tag: ${{ steps.get.outputs.latest_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
   deploy:
-    needs: promote-image
+    needs: get-latest-tag
     uses: ./.github/workflows/deploy.yml
     with:
-      image_name: ${{ needs.promote-image.outputs.image }}
+      image_name: "ghcr.io/${{ github.repository }}:${{ needs.get-latest-tag.outputs.latest_tag }}"
       environment: prod
     secrets: inherit
