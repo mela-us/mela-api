@@ -24,6 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   extract-image-name:
+    needs: wait-for-uat
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.extract.outputs.image }}
@@ -37,6 +38,7 @@ jobs:
         run: echo "image=ghcr.io/${{ github.repository }}:${{ steps.short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
   
   extract-version:
+    needs: wait-for-uat
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract.outputs.version }}
