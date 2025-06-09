@@ -2,7 +2,7 @@ name: Release
 
 on:
     workflow_run:
-        workflows: ["Build and Test"]
+        workflows: ["Build and deploy to UAT"]
         types:
         - completed
     push:
@@ -27,13 +27,22 @@ jobs:
       - name: Extract Image Name
         id: extract
         run: echo "image=ghcr.io/${{ github.repository }}:${{ steps.short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+  
+  extract-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - name: Extract Version
+        id: extract
+        run: echo "version=${GITHUB_REF_NAME#release/}" >> $GITHUB_OUTPUT
 
   promote-image:
-    needs: extract-image-name
+    needs: [extract-image-name, extract-version]
     uses: ./.github/workflows/promote-image.yml
     with:
       image_name: ${{ needs.extract-image-name.outputs.image }}
-      new_tag: ${{ github.ref_name }}
+      new_tag: ${{ jobs.extract-version.outputs.version }}
 
   tag-release:
     runs-on: ubuntu-latest
@@ -46,6 +55,6 @@ jobs:
 
       - name: Create Git Tag
         run: |
-          VERSION=${GITHUB_REF_NAME#release/}
-          git tag $VERSION ${{ github.sha }}
-          git push origin $VERSION
+            git tag ${{ needs.extract-version.outputs.version }} ${{ github.sha }}
+            git push origin ${{ needs.extract-version.outputs.version }}
+
