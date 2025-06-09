@@ -42,7 +42,7 @@ jobs:
     uses: ./.github/workflows/promote-image.yml
     with:
       image_name: ${{ needs.extract-image-name.outputs.image }}
-      new_tag: ${{ jobs.extract-version.outputs.version }}
+      new_tag: ${{ needs.extract-version.outputs.version }}
 
   tag-release:
     runs-on: ubuntu-latest
