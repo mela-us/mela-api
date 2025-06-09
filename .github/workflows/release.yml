@@ -16,6 +16,11 @@ jobs:
     outputs:
       match: ${{ steps.check.outputs.match }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
       - name: Fetch uat branch commit
         id: check
         run: |
