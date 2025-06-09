@@ -11,20 +11,27 @@ permissions:
     id-token: write
 
 jobs:
-  wait-for-uat:
+  check-commit-match-uat:
     runs-on: ubuntu-latest
+    outputs:
+      match: ${{ steps.check.outputs.match }}
     steps:
-      - name: Wait for UAT to complete
-        uses: WyriHaximus/github-action-wait-for-status@v1.8
-        with:
-          workflow: 'Build and deploy to UAT'
-          expected-conclusion: success
-          timeout: 600
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Fetch uat branch commit
+        id: check
+        run: |
+          git fetch origin uat
+          UAT_HEAD=$(git rev-parse origin/uat)
+          echo "UAT_HEAD=$UAT_HEAD"
+          echo "RELEASE_HEAD=${GITHUB_SHA}"
+          if [ "$UAT_HEAD" = "${GITHUB_SHA}" ]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+          else
+            echo "match=false" >> $GITHUB_OUTPUT
+            echo "Release commit does NOT match latest commit on uat. Failing."
+            exit 1
+          fi
   extract-image-name:
-    needs: wait-for-uat
+    needs: check-commit-match-uat
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.extract.outputs.image }}
@@ -38,7 +45,7 @@ jobs:
         run: echo "image=ghcr.io/${{ github.repository }}:${{ steps.short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
   
   extract-version:
-    needs: wait-for-uat
+    needs: check-commit-match-uat
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract.outputs.version }}
