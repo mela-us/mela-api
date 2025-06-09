@@ -19,23 +19,23 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.promote.outputs.image }}
+    env:
+        VERSION: ${{ inputs.new_tag }}
+        IMAGE_NAME: ${{ inputs.image_name }}
+        NEW_IMAGE: ghcr.io/${{ github.repository }}:${{ inputs.new_tag }}
     steps:
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Pull Image
-        run: docker pull ${{ inputs.image_name }}
+        run: docker pull ${{ vars.IMAGE_NAME }}
 
       - name: Tag Image
         id: promote
         run: |
-          VERSION=${{ inputs.new_tag#release/ }}
-          NEW_IMAGE=ghcr.io/${{ github.repository }}:$VERSION
-          docker tag ${{ inputs.image_name }} $NEW_IMAGE
-          echo "image=$NEW_IMAGE" >> $GITHUB_OUTPUT
+          docker tag ${{ inputs.image_name }} ${{ vars.NEW_IMAGE }}
+          echo "image=${{ vars.NEW_IMAGE }}" >> $GITHUB_OUTPUT
 
       - name: Push Promoted Image
         run: |
-          VERSION=${{ inputs.new_tag#release/ }}
-          NEW_IMAGE=ghcr.io/${{ github.repository }}:$VERSION
-          docker push $NEW_IMAGE
+          docker push ${{ vars.NEW_IMAGE }}
