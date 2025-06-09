@@ -11,10 +11,24 @@ permissions:
   id-token: write
 
 jobs:
+  extract-image-name:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.extract.outputs.image }}
+    steps:
+      - name: Extract short SHA
+        id: short-sha
+        run: echo "short-sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract Image Name
+        id: extract
+        run: echo "image=ghcr.io/${{ github.repository }}:${{ steps.short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
+
   promote-image:
+    needs: extract-image-name
     uses: ./.github/workflows/promote-image.yml
     with:
-      image_name: ghcr.io/${{ github.repository }}:${{ github.sha }}
+      image_name: ${{ needs.extract-image-name.outputs.image }}
       new_tag: ${{ github.ref_name }}
 
   tag-release:
