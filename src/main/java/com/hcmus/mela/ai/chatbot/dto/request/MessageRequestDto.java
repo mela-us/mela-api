@@ -21,7 +21,7 @@ public class MessageRequestDto {
             content.put("text", text);
         }
         if(imageUrl != null && !imageUrl.isEmpty()) {
-            content.put("imageUrl", imageUrl);
+            content.put("image_url", imageUrl);
         }
         return content;
     }
