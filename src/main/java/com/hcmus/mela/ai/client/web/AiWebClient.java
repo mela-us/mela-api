@@ -24,14 +24,6 @@ public class AiWebClient {
     private final AiClientProperties aiClientProperties;
     private final AiResponseFilter aiResponseFilter;
 
-    public WebClient getWebClientForChatBot() {
-        return createWebClient(aiClientProperties.getChatBot().getProvider());
-    }
-
-    public WebClient getWebClientForQuestionHint() {
-        return createWebClient(aiClientProperties.getQuestionHint().getProvider());
-    }
-
     /**
      * Makes an API request to the AI provider and fetches the response.
      *
@@ -44,9 +36,10 @@ public class AiWebClient {
         Class<?> responseType = aiResponseFilter.getResponseType(provider);
         ObjectMapper objectMapper = new ObjectMapper();
 
+        WebClient webClient = createWebClient(provider);
         // Make the API request
         try {
-            return getWebClientForChatBot()
+            return webClient
                     .post()
                     .uri(aiFeatureProperties.getPath())
                     .bodyValue(requestBody)

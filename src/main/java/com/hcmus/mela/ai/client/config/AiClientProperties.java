@@ -20,6 +20,7 @@ public class AiClientProperties {
     private Map<String, Provider> providers;
     private ChatBot chatBot;
     private QuestionHint questionHint;
+    private AiGrader aiGrader;
 
     @Setter
     @Getter
@@ -44,4 +45,11 @@ public class AiClientProperties {
         private String path;
     }
 
+    @Setter
+    @Getter
+    public static class AiGrader implements AiFeatureProperties{
+        private String provider;
+        private String model;
+        private String path;
+    }
 }
