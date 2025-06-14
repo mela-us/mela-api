@@ -29,7 +29,7 @@ public class AiResponseContent {
     }
 
     public Map<String, Object> getIdentifyProblemResponse() {
-        return getSafeResponse("analysis", "solutionMethod", "steps", "advice", "relativeTerms");
+        return getSafeResponse("analysis", "solution_method", "steps", "advice", "relative_terms");
     }
 
     public Map<String, Object> getResolveConfusionResponse() {
@@ -37,11 +37,11 @@ public class AiResponseContent {
     }
 
     public Map<String, Object> getReviewSubmissionResponse() {
-        return getSafeResponse("submissionSummary", "status", "areasForImprovement", "guidance", "encouragement");
+        return getSafeResponse("submission_summary", "status", "areas_for_improvement", "guidance", "encouragement");
     }
 
     public Map<String, Object> getSolution() {
-        return getSafeResponse("finalAnswer", "steps", "advice", "problemSummary");
+        return getSafeResponse("final_answer", "steps", "advice", "problem_summary");
     }
 
     public Map<String, Object> getTitleConversation() {

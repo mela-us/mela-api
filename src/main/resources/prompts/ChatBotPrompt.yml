@@ -13,7 +13,7 @@ prompt:
           "context": "Sao chép đầy đủ nội dung bài toán từ học sinh, không được lược bỏ dữ kiện nào.",
           "title": "Tiêu đề ngắn gọn mô tả bài toán, ví dụ: 'Tính diện tích tam giác' hoặc 'Giải phương trình bậc nhất'.",
           "analysis": "Phân tích dạng bài toán (ví dụ: hình học, đại số, số học), yêu cầu của đề bài (cần tìm gì?), và các yếu tố liên quan (các công thức, định lý có thể áp dụng).",
-          "solutionMethod": "Mô tả cách tiếp cận bài toán một cách tổng quát và các công thức, định lý cụ thể sẽ áp dụng. Giải thích tại sao cách tiếp cận này phù hợp.",
+          "solution_method": "Mô tả cách tiếp cận bài toán một cách tổng quát và các công thức, định lý cụ thể sẽ áp dụng. Giải thích tại sao cách tiếp cận này phù hợp.",
           "steps": [
             {
               "title": "Bước 1: [Tên bước]",
@@ -29,7 +29,7 @@ prompt:
             }
           ],
           "advice": "Lời động viên/hướng dẫn ngắn gọn để khuyến khích học sinh tự làm và kiểm tra lại kết quả. Ví dụ: 'Bạn thử thay số vào công thức xem có đúng không nhé!'",
-          "relativeTerms": [
+          "relative_terms": [
             "Thuật ngữ 1 là gì?",
             "Thuật ngữ 2 là gì?",
             "Thuật ngữ 3 là gì?",
@@ -37,7 +37,7 @@ prompt:
           ]
         }
         Lưu ý quan trọng:
-        - relativeTerms: Danh sách các thuật ngữ liên quan đến bài toán mà học sinh có thể chưa biết.
+        - relative_terms: Danh sách các thuật ngữ liên quan đến bài toán mà học sinh có thể chưa biết.
           Nếu không có thuật ngữ nào, hãy để trống danh sách này.
           Nếu có nhiều thuật ngữ, hãy chọn 3 đến 5 thuật ngữ phổ biến nhất liên quan đến bài toán.
         - steps: Không giới hạn số lượng bước, linh hoạt tùy thuộc vào độ phức tạp của bài toán.
@@ -130,10 +130,10 @@ prompt:
         - Khuyến khích học sinh tự sửa lỗi.
         Phản hồi dưới định dạng JSON sau:
         {
-        "submissionSummary": "Tóm tắt ngắn gọn bài làm bao gồm lỗi sai nếu có và kết quả của học sinh.",
+        "submission_summary": "Tóm tắt ngắn gọn bài làm bao gồm lỗi sai nếu có và kết quả của học sinh.",
         "status": "[CORRECT / INCORRECT]", // Chọn một trạng thái,
-        "positiveFeedback": "Lời khen hoặc ghi nhận phần làm tốt (nếu có).",
-        "areasForImprovement": "Mô tả cụ thể điểm cần xem lại (cải thiện) hoặc lỗi sai (nếu có)."
+        "positive_feedback": "Lời khen hoặc ghi nhận phần làm tốt (nếu có).",
+        "areas_for_improvement": "Mô tả cụ thể điểm cần xem lại (cải thiện) hoặc lỗi sai (nếu có)."
         "guidance": "Câu hỏi gợi ý hoặc hướng dẫn cụ thể để học sinh tự tìm ra lỗi và sửa chữa. Nếu bài làm đúng hoàn toàn, có thể là lời khuyên kiểm tra lại hoặc khám phá thêm.",
         "encouragement": "Lời động viên để học sinh tiếp tục. Ví dụ: 'Đừng nản lòng nhé, xem kỹ lại là ra ngay thôi!' hoặc 'Làm tốt lắm, tiếp tục phát huy nhé!'"
         }
@@ -177,7 +177,7 @@ prompt:
         Đưa ra một lời khuyên ngắn gọn về việc xem lại để hiểu rõ cách giải, không chỉ chép đáp án.
         Phản hồi dưới định dạng JSON sau:
         {
-          "problemSummary": "Nhắc lại đề bài hoặc mục tiêu của bài toán.",
+          "problem_summary": "Nhắc lại đề bài hoặc mục tiêu của bài toán.",
           "steps": [
             {
               "title": "Bước 1: [Tên bước]",
@@ -195,7 +195,7 @@ prompt:
               "calculation": "..."
             }
           ],
-          "finalAnswer": "Nêu kết quả cuối cùng của bài toán.",
+          "final_answer": "Nêu kết quả cuối cùng của bài toán.",
           "advice": "Lời khuyên ngắn gọn. Ví dụ: 'Bạn hãy xem kỹ từng bước giải để hiểu rõ cách làm nhé. Nếu có chỗ nào chưa hiểu, đừng ngần ngại hỏi lại mình!' hoặc 'Quan trọng là hiểu được cách suy luận đó bạn!'"
         }
         **Yêu cầu chung:**
