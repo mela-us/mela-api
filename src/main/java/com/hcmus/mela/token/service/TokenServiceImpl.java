@@ -74,19 +74,19 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public IncreaseUserTokenResponse increaseUserToken(UUID userId) {
-        Token token = tokenRepository.findByUserId(userId);
+    public IncreaseUserTokenResponse increaseUserToken(UUID userId, int token) {
+        Token userToken = tokenRepository.findByUserId(userId);
 
-        if (token == null) {
-            token = new Token(userId, 5);
+        if (userToken == null) {
+            userToken = new Token(userId, 5);
         }
 
-        token.setToken(token.getToken() + 1);
+        userToken.setToken(userToken.getToken() + token);
 
-        tokenRepository.save(token);
+        tokenRepository.save(userToken);
 
         String increaseTokenMessage = generalMessageAccessor.getMessage(null, INCREASE_TOKEN_SUCCESS, userId);
 
-        return new IncreaseUserTokenResponse(increaseTokenMessage, token.getToken());
+        return new IncreaseUserTokenResponse(increaseTokenMessage, userToken.getToken());
     }
 }

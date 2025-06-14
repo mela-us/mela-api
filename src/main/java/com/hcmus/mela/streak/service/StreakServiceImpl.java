@@ -6,6 +6,7 @@ import com.hcmus.mela.streak.dto.response.GetStreakResponse;
 import com.hcmus.mela.streak.dto.response.UpdateStreakResponse;
 import com.hcmus.mela.streak.model.Streak;
 import com.hcmus.mela.streak.repository.StreakRepository;
+import com.hcmus.mela.token.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class StreakServiceImpl implements StreakService {
     private final GeneralMessageAccessor generalMessageAccessor;
 
     private final ExceptionMessageAccessor exceptionMessageAccessor;
+    private final TokenService tokenService;
 
     @Override
     public GetStreakResponse getStreak(UUID userId) {
@@ -104,6 +106,8 @@ public class StreakServiceImpl implements StreakService {
         }
 
         streakRepository.updateStreak(streak);
+
+        tokenService.increaseUserToken(userId, streak.getStreakDays() / 3);
 
         final String updateStreakSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_STREAK_SUCCESS, userId);
 

@@ -1,6 +1,7 @@
 package com.hcmus.mela.token.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
+import com.hcmus.mela.token.dto.request.IncreaseUserTokenRequest;
 import com.hcmus.mela.token.dto.response.GetUserTokenResponse;
 import com.hcmus.mela.token.dto.response.IncreaseUserTokenResponse;
 import com.hcmus.mela.token.service.TokenService;
@@ -44,12 +45,13 @@ public class TokenController {
             summary = "Increase tokens by user ID",
             description = "Increase the token amount of the user with given user ID."
     )
-    public ResponseEntity<IncreaseUserTokenResponse> increaseUserToken(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<IncreaseUserTokenResponse> increaseUserToken(@RequestHeader("Authorization") String authorizationHeader,
+                                                                       @RequestBody IncreaseUserTokenRequest request) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
         log.info("Increase tokens for user {}.", userId);
 
-        IncreaseUserTokenResponse response = tokenService.increaseUserToken(userId);
+        IncreaseUserTokenResponse response = tokenService.increaseUserToken(userId, request.getToken());
 
         return ResponseEntity.ok(response);
     }

@@ -12,5 +12,7 @@ public interface TokenService {
 
     boolean validateUserToken(UUID userId);
 
-    IncreaseUserTokenResponse increaseUserToken(UUID userId);
+    IncreaseUserTokenResponse increaseUserToken(UUID userId, int token);
+
+
 }
