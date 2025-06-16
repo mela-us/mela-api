@@ -14,6 +14,8 @@ spring:
       - classpath:prompts/ExerciseHintPrompt.yml
       - classpath:prompts/ChatBotPrompt.yml
       - classpath:prompts/AiGrader.yml
+      - classpath:prompts/QuestionConfusion.yml
+      - classpath:prompts/LectureConfusion.yml
       
 
 logging:

@@ -1,6 +1,6 @@
 package com.hcmus.mela.ai.client.builder;
 
-import com.hcmus.mela.ai.chatbot.model.Message;
+import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
 import org.springframework.stereotype.Component;
 
@@ -55,5 +55,25 @@ public class AiRequestBodyFactory {
         }
 
         return builder.buildRequestBodyForAiGrader(prompt, questionText, questionImageUrls, assignmentText, barem, assignmentImageUrls, aiFeatureProperties);
+    }
+
+    public Object buildRequestBodyForQuestionConfusion(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
+        AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
+
+        if (builder == null) {
+            throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
+        }
+
+        return builder.buildRequestBodyForQuestionConfusion(prompt, textData, imageUrls, aiFeatureProperties);
+    }
+
+    public Object buildRequestBodyForLectureConfusion(String prompt, String textData, String imageUrl, String fileUrl, Integer currentPage, AiFeatureProperties aiFeatureProperties) {
+        AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
+
+        if (builder == null) {
+            throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
+        }
+
+        return builder.buildRequestBodyForLectureConfusion(prompt, textData, imageUrl, fileUrl, currentPage, aiFeatureProperties);
     }
 }

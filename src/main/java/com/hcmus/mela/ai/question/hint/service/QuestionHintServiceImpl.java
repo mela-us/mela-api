@@ -5,7 +5,7 @@ import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
 import com.hcmus.mela.ai.question.hint.dto.response.HintResponseDto;
-import com.hcmus.mela.ai.client.prompts.QuestionHint;
+import com.hcmus.mela.ai.client.prompts.QuestionHintPrompt;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 @Service
 public class QuestionHintServiceImpl implements QuestionHintService {
 
-    private final QuestionHint questionHint;
+    private final QuestionHintPrompt questionHintPrompt;
 
     private final QuestionService questionService;
 
@@ -47,7 +47,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     private final AiResponseFilter aiResponseFilter;
 
-    public QuestionHintServiceImpl(QuestionHint questionHint,
+    public QuestionHintServiceImpl(QuestionHintPrompt questionHintPrompt,
                                    QuestionService questionService,
                                    ExerciseService exerciseService,
                                    LectureService lectureService,
@@ -56,7 +56,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
                                    AiClientProperties aiClientProperties,
                                    AiRequestBodyFactory aiRequestBodyFactory,
                                    AiResponseFilter aiResponseFilter) {
-        this.questionHint = questionHint;
+        this.questionHintPrompt = questionHintPrompt;
         this.questionService = questionService;
         this.exerciseService = exerciseService;
         this.lectureService = lectureService;
@@ -136,9 +136,9 @@ public class QuestionHintServiceImpl implements QuestionHintService {
         if (question.getTerms() == null || question.getTerms().isEmpty()) {
             List<String> keys = generateKeys(questionId);
 
-            Map<String, String> instruction = questionHint.getTerms().get("instruction");
+            Map<String, String> instruction = questionHintPrompt.getTerms().get("instruction");
 
-            Map<String, String> userMessage = questionHint.getTerms().get("userMessage");
+            Map<String, String> userMessage = questionHintPrompt.getTerms().get("userMessage");
 
             List<String> termRequest = generateTemplate(instruction, userMessage, keys);
 
@@ -181,9 +181,9 @@ public class QuestionHintServiceImpl implements QuestionHintService {
         if (question.getGuide() == null || question.getGuide().isEmpty()) {
             List<String> keys = generateKeys(questionId);
 
-            Map<String, String> instruction = questionHint.getGuide().get("instruction");
+            Map<String, String> instruction = questionHintPrompt.getGuide().get("instruction");
 
-            Map<String, String> userMessage = questionHint.getGuide().get("userMessage");
+            Map<String, String> userMessage = questionHintPrompt.getGuide().get("userMessage");
 
             List<String> guideRequest = generateTemplate(instruction, userMessage, keys);
 
