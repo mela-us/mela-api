@@ -1,4 +1,4 @@
-package com.hcmus.mela.ai.client.web;
+package com.hcmus.mela.ai.client.webclient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,4 +82,6 @@ public class AiWebClient {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
+
+
 }

@@ -1,4 +1,4 @@
-package com.hcmus.mela.ai.client.dto.request.azure;
+package com.hcmus.mela.ai.client.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class AzureRequestBody {
     private String model;
-    private List<Message> messages;
+    private List<AzureMessage> messages;
 }

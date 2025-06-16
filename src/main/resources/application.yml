@@ -13,6 +13,7 @@ spring:
       - classpath:configuration/AiClient.properties
       - classpath:prompts/ExerciseHintPrompt.yml
       - classpath:prompts/ChatBotPrompt.yml
+      - classpath:prompts/AiGrader.yml
       
 
 logging:

@@ -27,33 +27,33 @@ public class AiRequestBodyFactory {
         this.requestBodyBuilders = requestBodyBuilders;
     }
 
-    public Object createRequestBodyForQuestionHint(String instruction, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForQuestionHint(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForQuestionHint(instruction, textData, imageUrls, aiFeatureProperties);
+        return builder.buildRequestBodyForQuestionHint(prompt, textData, imageUrls, aiFeatureProperties);
     }
 
-    public Object createRequestBodyForChatBot(String instruction, List<Message> messages, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForChatBot(String prompt, List<Message> messages, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForChatBot(instruction, messages, aiFeatureProperties);
+        return builder.buildRequestBodyForChatBot(prompt, messages, aiFeatureProperties);
     }
 
-    public Object createRequestBodyForAiGrader(String instruction, String textAssignment, List<String> imageUrlsAssignment, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForAiGrader(String prompt, String questionText, List<String> questionImageUrls, String barem, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForAiGrader(instruction, textAssignment, imageUrlsAssignment, aiFeatureProperties);
+        return builder.buildRequestBodyForAiGrader(prompt, questionText, questionImageUrls, assignmentText, barem, assignmentImageUrls, aiFeatureProperties);
     }
 }
