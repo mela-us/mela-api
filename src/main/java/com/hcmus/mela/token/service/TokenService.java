@@ -8,9 +8,9 @@ import java.util.UUID;
 public interface TokenService {
     GetUserTokenResponse getUserToken(UUID userId);
 
-    int reduceUserToken(UUID userId);
+    Integer reduceUserToken(UUID userId, Integer cost);
 
-    boolean validateUserToken(UUID userId);
+    Boolean validateUserToken(UUID userId);
 
     IncreaseUserTokenResponse increaseUserToken(UUID userId, int token);
 
