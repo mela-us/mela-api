@@ -1,4 +1,4 @@
-package com.hcmus.mela.ai.question.hint.model;
+package com.hcmus.mela.ai.client.prompts;
 
 import lombok.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;

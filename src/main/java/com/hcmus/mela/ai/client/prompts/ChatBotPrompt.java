@@ -1,4 +1,4 @@
-package com.hcmus.mela.ai.chatbot.model;
+package com.hcmus.mela.ai.client.prompts;
 
 import lombok.Getter;
 import lombok.Setter;
