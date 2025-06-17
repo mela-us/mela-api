@@ -14,6 +14,7 @@ import com.hcmus.mela.ai.client.webclient.AiWebClient;
 import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.shared.exception.BadRequestException;
+import com.hcmus.mela.shared.utils.SnakeToCamelConverter;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -103,7 +104,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto userMessageResponseDto = new MessageResponseDto(
                 userMessageId,
                 Role.USER.getRole(),
-                messageRequestDto.getContent(),
+                SnakeToCamelConverter.convert(messageRequestDto.getContent()),
                 userMessageDate
         );
 
@@ -152,7 +153,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto aiMessageResponseDto = new MessageResponseDto(
                 aiMessageId,
                 "assistant",
-                aiMessageContent,
+                SnakeToCamelConverter.convert(aiMessageContent),
                 aiMessageDate
         );
 
@@ -176,7 +177,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto userMessageResponseDto = new MessageResponseDto(
                 userMessageId,
                 Role.USER.getRole(),
-                messageRequestDto.getContent(),
+                SnakeToCamelConverter.convert(messageRequestDto.getContent()),
                 userMessageDate
         );
 
@@ -229,7 +230,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto aiMessageResponseDto = new MessageResponseDto(
                 aiMessageId,
                 "assistant",
-                aiMessageContent,
+                SnakeToCamelConverter.convert(aiMessageContent),
                 aiMessageDate
         );
 
@@ -270,7 +271,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto userMessageResponseDto = new MessageResponseDto(
                 userMessageId,
                 Role.USER.getRole(),
-                messageRequestDto.getContent(),
+                SnakeToCamelConverter.convert(messageRequestDto.getContent()),
                 userMessageDate
         );
 
@@ -371,7 +372,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto aiMessageResponseDto = new MessageResponseDto(
                 aiMessageId,
                 "assistant",
-                aiMessageContent,
+                SnakeToCamelConverter.convert(aiMessageContent),
                 aiMessageDate
         );
 
@@ -392,7 +393,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto userMessageResponseDto = new MessageResponseDto(
                 userMessageId,
                 Role.USER.getRole(),
-                createConversationRequestDto.getMessage().getContent(),
+                SnakeToCamelConverter.convert(createConversationRequestDto.getMessage().getContent()),
                 userMessageDate
         );
 
@@ -479,7 +480,7 @@ public class ConversationServiceImpl implements ConversationService {
         MessageResponseDto aiMessageResponseDto = new MessageResponseDto(
                 aiMessageId,
                 "assistant",
-                aiMessageContent,
+                SnakeToCamelConverter.convert(aiMessageContent),
                 aiMessageDate
         );
 
