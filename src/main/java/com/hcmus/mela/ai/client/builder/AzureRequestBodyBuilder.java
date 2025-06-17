@@ -2,8 +2,9 @@ package com.hcmus.mela.ai.client.builder;
 
 
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
-import com.hcmus.mela.ai.client.dto.request.AzureRequestBody;
 import com.hcmus.mela.ai.client.dto.request.AzureMessage;
+import com.hcmus.mela.ai.client.dto.request.AzureRequestBody;
+import com.hcmus.mela.shared.utils.TextUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -56,8 +57,8 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
             Map<String, Object> imgContent;
 
             StringBuilder textContentBuilder = new StringBuilder();
-            for(Map.Entry<String, Object> entry : content.entrySet()) {
-                if(entry.getKey().equals("imageUrl")) {
+            for (Map.Entry<String, Object> entry : content.entrySet()) {
+                if (entry.getKey().equals("imageUrl")) {
                     imgContent = Map.of("type", "image_url", "image_url", Map.of("url", entry.getValue()));
                     inputContents.add(imgContent);
                 } else {
@@ -78,35 +79,49 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
     }
 
     @Override
-    public Object buildRequestBodyForAiGrader(String prompt, String questionText, List<String> questionImageUrls, String barem, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
-        List<Map<String, Object>> userMessage = new ArrayList<>();
+    public Object buildRequestBodyForAiGrader(String prompt, String question, String solution, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
+        List<Map<String, Object>> questionUserMessage = new ArrayList<>();
+        List<Map<String, Object>> guideUserMessage = new ArrayList<>();
+        List<Map<String, Object>> answerUserMessage = new ArrayList<>();
+
+        questionUserMessage.add(Map.of("type", "text", "text", "Đây là nội dung câu hỏi (có thể gồm text và hình ảnh)."));
         // Add text content if provided
-        if (questionText != null && !questionText.isBlank()) {
-            userMessage.add(Map.of("type", "text", "text", "Đây là nội dung câu hỏi: " + questionText));
+        if (question != null && !question.isBlank()) {
+            questionUserMessage.add(Map.of("type", "text", "text", "Nội dung câu hỏi: " + question));
         }
-
-        if (barem != null && !barem.isBlank()) {
-            userMessage.add(Map.of("type", "text", "text", "Đây là barem chấm bài: " + questionText));
-        }
-
+        List<String> questionImageUrls = TextUtils.extractImageSources(question);
         // Add image URLs if provided
-        if (questionImageUrls != null && !questionImageUrls.isEmpty()) {
+        if (!questionImageUrls.isEmpty()) {
             for (String imageUrl : questionImageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    userMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    questionUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
 
-        if (assignmentText != null && !assignmentText.isBlank()) {
-            userMessage.add(Map.of("type", "text", "text", "Đây là bài làm dạng text: " + assignmentText));
+        guideUserMessage.add(Map.of("type", "text", "text", "Đây là nội dung hướng dẫn trả lời (có thể gồm text và hình ảnh)."));
+        if (solution != null && !solution.isBlank()) {
+            guideUserMessage.add(Map.of("type", "text", "text", "Nội dung câu trả lời: " + solution));
+        }
+        List<String> solutionImageUrls = TextUtils.extractImageSources(solution);
+        // Add image URLs if provided
+        if (!solutionImageUrls.isEmpty()) {
+            for (String imageUrl : solutionImageUrls) {
+                if (imageUrl != null && !imageUrl.isBlank()) {
+                    guideUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                }
+            }
         }
 
+        answerUserMessage.add(Map.of("type", "text", "text", "Đây là lời giải học sinh cung cấp (có thể gồm text và hình ảnh)."));
+        if (assignmentText != null && !assignmentText.isBlank()) {
+            answerUserMessage.add(Map.of("type", "text", "text", "Dạng text: " + assignmentText));
+        }
         // Add image URLs if provided
         if (assignmentImageUrls != null && !assignmentImageUrls.isEmpty()) {
             for (String imageUrl : assignmentImageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    userMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    answerUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
@@ -116,7 +131,9 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
                 aiFeatureProperties.getModel(),
                 List.of(
                         new AzureMessage("developer", prompt),
-                        new AzureMessage("user", userMessage)
+                        new AzureMessage("user", questionUserMessage),
+                        new AzureMessage("user", guideUserMessage),
+                        new AzureMessage("user", answerUserMessage)
                 )
         );
     }

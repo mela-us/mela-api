@@ -1,8 +1,9 @@
 package com.hcmus.mela.history.service;
 
-import com.hcmus.mela.shared.utils.ProjectConstants;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
+import com.hcmus.mela.exercise.service.ExerciseGradeService;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
+import com.hcmus.mela.history.dto.dto.AnswerResultDto;
 import com.hcmus.mela.history.dto.dto.ExerciseHistoryDto;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
@@ -15,10 +16,12 @@ import com.hcmus.mela.history.model.ExercisesCountByLecture;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,26 +31,41 @@ import java.util.stream.Collectors;
 public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
 
     private final ExerciseHistoryRepository exerciseHistoryRepository;
-
     private final LectureService lectureService;
-
     private final ExerciseInfoService exerciseInfoService;
+    private final ExerciseGradeService exerciseGradeService;
 
     @Override
     public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
-        saveExercise(exerciseResultRequest, userId);
+        List<ExerciseAnswer> exerciseAnswerList = exerciseGradeService.gradeExercise(
+                exerciseResultRequest.getExerciseId(),
+                exerciseResultRequest.getAnswers()
+        );
+        saveExerciseHistory(
+                userId,
+                exerciseResultRequest.getStartedAt(),
+                exerciseResultRequest.getCompletedAt(),
+                exerciseResultRequest.getExerciseId(),
+                exerciseAnswerList
+        );
         log.info("Exercise result saved successfully for user: {}", userId);
 
-        return new ExerciseResultResponse("Exercise result saved successfully for user: " + userId);
+        List<AnswerResultDto> answerResults = exerciseAnswerList.stream()
+                .map(ExerciseAnswerMapper.INSTANCE::convertToAnswerResultDto)
+                .toList();
+        return new ExerciseResultResponse(
+                "Exercise result submit successfully for user: " + userId,
+                answerResults);
     }
 
-    private void saveExercise(ExerciseResultRequest exerciseResultRequest, UUID userId) {
-        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseId(exerciseResultRequest.getExerciseId());
+    private void saveExerciseHistory(
+            UUID userId,
+            LocalDateTime startedAt,
+            LocalDateTime completedAt,
+            UUID exerciseId,
+            List<ExerciseAnswer> answers) {
+        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseId(exerciseId);
         LectureDto lectureInfo = lectureService.getLectureById(exerciseInfo.getLectureId());
-
-        List<ExerciseAnswer> answers = exerciseResultRequest.getAnswers().stream()
-                .map(ExerciseAnswerMapper.INSTANCE::convertToExerciseAnswer)
-                .toList();
 
         Double score = answers.stream()
                 .filter(ExerciseAnswer::getIsCorrect)
@@ -61,8 +79,8 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .levelId(lectureInfo.getLevelId())
                 .topicId(lectureInfo.getTopicId())
                 .score(score)
-                .startedAt(exerciseResultRequest.getStartedAt())
-                .completedAt(exerciseResultRequest.getCompletedAt())
+                .startedAt(startedAt)
+                .completedAt(completedAt)
                 .answers(answers)
                 .build();
 

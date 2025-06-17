@@ -1,6 +1,12 @@
 package com.hcmus.mela.history.dto.response;
 
-import lombok.*;
+import com.hcmus.mela.history.dto.dto.AnswerResultDto;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -9,4 +15,6 @@ import lombok.*;
 public class ExerciseResultResponse {
 
     private String message;
+
+    private List<AnswerResultDto> answers;
 }

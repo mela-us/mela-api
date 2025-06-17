@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -12,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document
+@ToString
 public class ExerciseAnswer {
 
     @Field("question_id")
@@ -25,4 +27,10 @@ public class ExerciseAnswer {
 
     @Field("selected_option")
     private Integer selectedOption;
+
+    @Field("images")
+    private List<String> images;
+
+    @Field("feedback")
+    private String feedback;
 }
