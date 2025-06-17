@@ -47,14 +47,14 @@ public class AiRequestBodyFactory {
         return builder.buildRequestBodyForChatBot(prompt, messages, aiFeatureProperties);
     }
 
-    public Object createRequestBodyForAiGrader(String prompt, String questionText, List<String> questionImageUrls, String barem, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForAiGrader(String prompt, String question, String solution, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForAiGrader(prompt, questionText, questionImageUrls, assignmentText, barem, assignmentImageUrls, aiFeatureProperties);
+        return builder.buildRequestBodyForAiGrader(prompt, question, solution, assignmentText, assignmentImageUrls, aiFeatureProperties);
     }
 
     public Object buildRequestBodyForQuestionConfusion(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
