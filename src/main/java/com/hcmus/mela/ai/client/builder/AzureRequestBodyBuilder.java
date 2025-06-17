@@ -60,7 +60,7 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
 
             StringBuilder textContentBuilder = new StringBuilder();
             for (Map.Entry<String, Object> entry : content.entrySet()) {
-                if (entry.getKey().equals("imageUrl")) {
+                if (entry.getKey().equals("image_url")) {
                     imgContent = Map.of("type", "image_url", "image_url", Map.of("url", entry.getValue()));
                     inputContents.add(imgContent);
                 } else {
