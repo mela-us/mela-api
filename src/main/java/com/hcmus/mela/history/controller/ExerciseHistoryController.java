@@ -4,12 +4,15 @@ import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
 import com.hcmus.mela.history.service.ExerciseHistoryService;
+import com.hcmus.mela.shared.storage.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +22,8 @@ import java.util.UUID;
 public class ExerciseHistoryController {
 
     private final ExerciseHistoryService exerciseHistoryService;
+
+    private final StorageService storageService;
 
     private final JwtTokenService jwtTokenService;
 
@@ -37,5 +42,16 @@ public class ExerciseHistoryController {
         ExerciseResultResponse response = exerciseHistoryService.getExerciseResultResponse(userId, exerciseResultRequest);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/files/upload-url")
+    public ResponseEntity<Map<String, String>> getUploadUrl(@RequestHeader("Authorization") String authorizationHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        String path = String.format("exercises/%s-%s-%s", LocalDate.now().toString(), userId.toString().substring(3), UUID.randomUUID().toString().substring(5));
+        Map<String, String> urls = storageService.getUploadUserFilePreSignedUrl(path);
+
+        return ResponseEntity.ok().body(
+                Map.of("preSignedUrl", urls.get("preSignedUrl"), "fileUrl", urls.get("storedUrl"))
+        );
     }
 }
