@@ -7,6 +7,8 @@ import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import lombok.RequiredArgsConstructor;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -44,6 +46,28 @@ public class AzureStorageServiceImpl implements StorageService {
         String blobName = azureStorageProperties.getContainer().getConversations().getFiles() + fileName;
         String preSignedUrl = generateUploadPreSignedUrl(containerName, blobName);
         String storedUrl = getStoredUrl(containerName, blobName);
+        return Map.of(
+                "preSignedUrl", preSignedUrl,
+                "storedUrl", storedUrl
+        );
+    }
+
+    @Override
+    public Map<String, String> getUploadUserFilePreSignedUrl(String fileName) {
+        String containerName = azureStorageProperties.getContainer().getUserUpload().getName();
+        String preSignedUrl = generateUploadPreSignedUrl(containerName, fileName);
+        String storedUrl = getStoredUrl(containerName, fileName);
+        return Map.of(
+                "preSignedUrl", preSignedUrl,
+                "storedUrl", storedUrl
+        );
+    }
+
+    @Override
+    public Map<String, String> getUploadAdminFilePreSignedUrl(String fileName) {
+        String containerName = azureStorageProperties.getContainer().getAdminUpload().getName();
+        String preSignedUrl = generateUploadPreSignedUrl(containerName, fileName);
+        String storedUrl = getStoredUrl(containerName, fileName);
         return Map.of(
                 "preSignedUrl", preSignedUrl,
                 "storedUrl", storedUrl
