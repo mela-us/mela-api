@@ -1,15 +1,10 @@
 package com.hcmus.mela.exercise.service;
 
-import com.hcmus.mela.ai.chatbot.dto.response.AiResponseContent;
-import com.hcmus.mela.ai.chatbot.repository.ConversationRepository;
 import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
 import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.prompts.AiGraderPrompt;
-import com.hcmus.mela.ai.client.prompts.ChatBotPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
-import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
-import com.hcmus.mela.exercise.mapper.ExerciseMapper;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
@@ -20,9 +15,7 @@ import com.hcmus.mela.history.mapper.ExerciseAnswerMapper;
 import com.hcmus.mela.history.model.ExerciseAnswer;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.utils.TextUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -42,12 +35,12 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
     private final AsyncCustomService asyncService;
 
     public ExerciseGradeServiceImpl(AiWebClient aiWebClient,
-                                   AiClientProperties aiClientProperties,
-                                   AiGraderPrompt aiGraderPrompt,
-                                   AiRequestBodyFactory aiRequestBodyFactory,
-                                   ExerciseRepository exerciseRepository,
-                                   AiResponseFilter aiResponseFilter,
-                                   AsyncCustomService asyncService) {
+                                    AiClientProperties aiClientProperties,
+                                    AiGraderPrompt aiGraderPrompt,
+                                    AiRequestBodyFactory aiRequestBodyFactory,
+                                    ExerciseRepository exerciseRepository,
+                                    AiResponseFilter aiResponseFilter,
+                                    AsyncCustomService asyncService) {
         this.aiWebClient = aiWebClient;
         this.aiGraderProperties = aiClientProperties.getAiGrader();
         this.aiGraderPrompt = aiGraderPrompt;
@@ -147,7 +140,7 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
 
         Object responseObject = aiWebClient.fetchAiResponse(aiGraderProperties, requestBody);
         String responseText = aiResponseFilter.getMessage(responseObject);
-        Map<String, Object> jsonResponse  = TextUtils.extractResponseFromJsonText(responseText, "score", "feedback");
+        Map<String, Object> jsonResponse = TextUtils.extractResponseFromJsonText(responseText, "score", "feedback");
         if (jsonResponse.get("score") != null) {
             float score = Float.parseFloat(jsonResponse.get("score").toString());
             String feedback = jsonResponse.get("feedback") != null ? jsonResponse.get("feedback").toString() : "";

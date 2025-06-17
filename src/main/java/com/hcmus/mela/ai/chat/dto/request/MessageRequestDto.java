@@ -15,12 +15,12 @@ public class MessageRequestDto {
 
     private String imageUrl;
 
-    public Map<String , Object> getContent() {
-        Map<String , Object> content = new HashMap<>();
-        if(text != null && !text.isEmpty()) {
+    public Map<String, Object> getContent() {
+        Map<String, Object> content = new HashMap<>();
+        if (text != null && !text.isEmpty()) {
             content.put("text", text);
         }
-        if(imageUrl != null && !imageUrl.isEmpty()) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             content.put("image_url", imageUrl);
         }
         return content;

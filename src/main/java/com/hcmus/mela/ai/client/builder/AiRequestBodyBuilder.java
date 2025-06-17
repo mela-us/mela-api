@@ -14,7 +14,10 @@ public interface AiRequestBodyBuilder {
     Object buildRequestBodyForQuestionHint(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties);
 
     Object buildRequestBodyForChatBot(String prompt, List<Message> message, AiFeatureProperties aiFeatureProperties);
+
     Object buildRequestBodyForAiGrader(String prompt, String question, String solution, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties);
+
     Object buildRequestBodyForQuestionConfusion(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties);
+
     Object buildRequestBodyForLectureConfusion(String prompt, String textData, String imageUrl, String fileUrl, Integer currentPage, AiFeatureProperties aiFeatureProperties);
 }

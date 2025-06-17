@@ -4,8 +4,8 @@ package com.hcmus.mela.ai.client.builder;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
 import com.hcmus.mela.ai.client.dto.request.AzureMessage;
 import com.hcmus.mela.ai.client.dto.request.AzureRequestBody;
-import com.hcmus.mela.shared.utils.TextUtils;
 import com.hcmus.mela.shared.utils.PdfExtractor;
+import com.hcmus.mela.shared.utils.TextUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;

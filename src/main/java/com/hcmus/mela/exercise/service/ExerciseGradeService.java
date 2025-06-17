@@ -1,6 +1,5 @@
 package com.hcmus.mela.exercise.service;
 
-import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.history.dto.dto.ExerciseAnswerDto;
 import com.hcmus.mela.history.model.ExerciseAnswer;
