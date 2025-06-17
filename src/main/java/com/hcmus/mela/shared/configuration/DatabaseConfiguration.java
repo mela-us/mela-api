@@ -22,7 +22,7 @@ import org.springframework.lang.NonNull;
 @EnableMongoRepositories(basePackages = {
         "com.hcmus.mela.exercise.repository",
         "com.hcmus.mela.lecture.repository",
-        "com.hcmus.mela.ai.chatbot.repository",
+        "com.hcmus.mela.ai.chat.repository",
         "com.hcmus.mela.history.repository",
         "com.hcmus.mela.auth.repository",
         "com.hcmus.mela.user.repository",
