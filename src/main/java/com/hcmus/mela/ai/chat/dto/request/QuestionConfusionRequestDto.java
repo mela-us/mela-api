@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class QuestionConfusionRequestDto {
     String text;
-    
+
     String imageUrl;
 
     @NotNull(message = "Type must not be null")
