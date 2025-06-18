@@ -7,6 +7,7 @@ import com.hcmus.mela.ai.chat.model.Conversation;
 import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.chat.repository.ConversationRepository;
 import com.hcmus.mela.ai.client.exception.ApiException;
+import com.hcmus.mela.shared.utils.SnakeToCamelConverter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -122,7 +123,7 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
                 .map(message -> MessageResponseDto.builder()
                         .messageId(message.getMessageId())
                         .role(message.getRole())
-                        .content(message.getContent())
+                        .content(SnakeToCamelConverter.convert(message.getContent()))
                         .timestamp(message.getTimestamp())
                         .build())
                 .toList();
