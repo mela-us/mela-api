@@ -1,8 +1,5 @@
 package com.hcmus.mela.exercise.service;
 
-import com.hcmus.mela.shared.async.AsyncCustomService;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
-import com.hcmus.mela.shared.utils.ProjectConstants;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.dto.dto.ExerciseResultDto;
 import com.hcmus.mela.exercise.dto.dto.ExerciseStatDetailDto;
@@ -18,6 +15,9 @@ import com.hcmus.mela.exercise.repository.ExerciseRepository;
 import com.hcmus.mela.history.service.ExerciseHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.shared.async.AsyncCustomService;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

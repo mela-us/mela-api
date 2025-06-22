@@ -27,4 +27,12 @@ public class AsyncCustomService {
                 });
     }
 
+    public <T> CompletableFuture<T> runComplexAsync(Supplier<T> supplier, T fallback) {
+        return CompletableFuture.supplyAsync(supplier, customExecutor)
+                .completeOnTimeout(fallback, 30, TimeUnit.SECONDS)
+                .exceptionally(ex -> {
+                    log.error("Complex async error: {}", ex.getMessage());
+                    return fallback;
+                });
+    }
 }

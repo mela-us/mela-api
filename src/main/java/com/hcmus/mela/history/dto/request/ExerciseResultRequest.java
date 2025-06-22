@@ -2,7 +2,10 @@ package com.hcmus.mela.history.dto.request;
 
 import com.hcmus.mela.history.dto.dto.ExerciseAnswerDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;

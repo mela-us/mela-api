@@ -1,6 +1,6 @@
 package com.hcmus.mela.ai.client.builder;
 
-import com.hcmus.mela.ai.chatbot.model.Message;
+import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
 import org.springframework.stereotype.Component;
 
@@ -27,43 +27,53 @@ public class AiRequestBodyFactory {
         this.requestBodyBuilders = requestBodyBuilders;
     }
 
-    /**
-     * Creates a request body for the question hint feature.
-     *
-     * @param instruction System instruction for the AI
-     * @param textData Text content of the question
-     * @param imageUrls List of image URLs to include in the request
-     * @param aiFeatureProperties Configuration properties for the AI feature
-     * @return A request body object formatted for the specific AI provider
-     * @throws IllegalArgumentException if the provider is not supported
-     */
-    public Object createRequestBodyForQuestionHint(String instruction, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForQuestionHint(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForQuestionHint(instruction, textData, imageUrls, aiFeatureProperties);
+        return builder.buildRequestBodyForQuestionHint(prompt, textData, imageUrls, aiFeatureProperties);
     }
 
-    /**
-     * Creates a request body for the chatbot feature.
-     *
-     * @param instruction System instruction for the AI
-     * @param messages List of messages to include in the request
-     * @param aiFeatureProperties Configuration properties for the AI feature
-     * @return A request body object formatted for the specific AI provider
-     * @throws IllegalArgumentException if the provider is not supported
-     */
-    public Object createRequestBodyForChatBot(String instruction, List<Message> messages, AiFeatureProperties aiFeatureProperties) {
+    public Object createRequestBodyForChatBot(String prompt, List<Message> messages, AiFeatureProperties aiFeatureProperties) {
         AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
 
         if (builder == null) {
             throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
         }
 
-        return builder.buildRequestBodyForChatBot(instruction, messages, aiFeatureProperties);
+        return builder.buildRequestBodyForChatBot(prompt, messages, aiFeatureProperties);
     }
 
+    public Object createRequestBodyForAiGrader(String prompt, String question, String solution, String assignmentText, List<String> assignmentImageUrls, AiFeatureProperties aiFeatureProperties) {
+        AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
+
+        if (builder == null) {
+            throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
+        }
+
+        return builder.buildRequestBodyForAiGrader(prompt, question, solution, assignmentText, assignmentImageUrls, aiFeatureProperties);
+    }
+
+    public Object buildRequestBodyForQuestionConfusion(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
+        AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
+
+        if (builder == null) {
+            throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
+        }
+
+        return builder.buildRequestBodyForQuestionConfusion(prompt, textData, imageUrls, aiFeatureProperties);
+    }
+
+    public Object buildRequestBodyForLectureConfusion(String prompt, String textData, String imageUrl, String fileUrl, Integer currentPage, AiFeatureProperties aiFeatureProperties) {
+        AiRequestBodyBuilder builder = requestBodyBuilders.get(aiFeatureProperties.getProvider() + "RequestBodyBuilder");
+
+        if (builder == null) {
+            throw new IllegalArgumentException("Unknown provider: " + aiFeatureProperties.getProvider() + ". Available providers: " + requestBodyBuilders.keySet());
+        }
+
+        return builder.buildRequestBodyForLectureConfusion(prompt, textData, imageUrl, fileUrl, currentPage, aiFeatureProperties);
+    }
 }

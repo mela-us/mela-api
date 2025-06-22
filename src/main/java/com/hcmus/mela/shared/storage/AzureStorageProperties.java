@@ -20,6 +20,8 @@ public class AzureStorageProperties {
     public static class Container {
         private Users users;
         private Conversations conversations;
+        private UserUpload userUpload;
+        private AdminUpload adminUpload;
     }
 
     @Setter
@@ -34,5 +36,17 @@ public class AzureStorageProperties {
     public static class Conversations {
         private String name; // "conversations"
         private String files; // "files"
+    }
+
+    @Setter
+    @Getter
+    public static class UserUpload {
+        private String name; // "user-upload"
+    }
+
+    @Setter
+    @Getter
+    public static class AdminUpload {
+        private String name; // "admin-upload"
     }
 }

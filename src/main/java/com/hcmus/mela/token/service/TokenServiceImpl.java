@@ -18,10 +18,11 @@ public class TokenServiceImpl implements TokenService {
 
     private final TokenRepository tokenRepository;
 
-
     private final GeneralMessageAccessor generalMessageAccessor;
 
     private final String TOKEN_FOUND = "token_found_successful";
+
+    private final Integer DEFAULT_TOKENS = 5;
 
     private final String INCREASE_TOKEN_SUCCESS = "increase_token_successful";
 
@@ -31,7 +32,7 @@ public class TokenServiceImpl implements TokenService {
         Token token = tokenRepository.findByUserId(userId);
 
         if (token == null) {
-            token = new Token(userId, 5);
+            token = new Token(userId, DEFAULT_TOKENS);
 
             tokenRepository.save(token);
         }
@@ -43,14 +44,14 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public int reduceUserToken(UUID userId) {
+    public Integer reduceUserToken(UUID userId, Integer cost) {
         Token token = tokenRepository.findByUserId(userId);
 
         if (token == null) {
-            token = new Token(userId, 5);
+            token = new Token(userId, DEFAULT_TOKENS);
         }
 
-        token.setToken(token.getToken() - 1);
+        token.setToken(token.getToken() - cost);
 
         tokenRepository.save(token);
 
@@ -58,35 +59,31 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public boolean validateUserToken(UUID userId) {
+    public Boolean validateUserToken(UUID userId) {
         Token token = tokenRepository.findByUserId(userId);
 
         if (token == null) {
-            token = new Token(userId, 5);
+            token = new Token(userId, DEFAULT_TOKENS);
             tokenRepository.save(token);
         }
 
-        if (token.getToken() <= 0) {
-            return false;
-        }
-
-        return true;
+        return token.getToken() > 0;
     }
 
     @Override
-    public IncreaseUserTokenResponse increaseUserToken(UUID userId) {
-        Token token = tokenRepository.findByUserId(userId);
+    public IncreaseUserTokenResponse increaseUserToken(UUID userId, int token) {
+        Token userToken = tokenRepository.findByUserId(userId);
 
-        if (token == null) {
-            token = new Token(userId, 5);
+        if (userToken == null) {
+            userToken = new Token(userId, DEFAULT_TOKENS);
         }
 
-        token.setToken(token.getToken() + 1);
+        userToken.setToken(userToken.getToken() + token);
 
-        tokenRepository.save(token);
+        tokenRepository.save(userToken);
 
         String increaseTokenMessage = generalMessageAccessor.getMessage(null, INCREASE_TOKEN_SUCCESS, userId);
 
-        return new IncreaseUserTokenResponse(increaseTokenMessage, token.getToken());
+        return new IncreaseUserTokenResponse(increaseTokenMessage, userToken.getToken());
     }
 }

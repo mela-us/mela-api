@@ -4,7 +4,7 @@ import com.hcmus.mela.auth.dto.dto.EmailDetailsDto;
 
 public interface EmailService {
 
-    public String generateOtpNotify(String username, String otpCode);
+    String generateOtpNotify(String username, String otpCode);
 
-    public void sendSimpleMail(EmailDetailsDto details);
+    void sendSimpleMail(EmailDetailsDto details);
 }
