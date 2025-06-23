@@ -1,5 +1,6 @@
 package com.hcmus.mela.auth.configuration;
 
+import com.hcmus.mela.auth.security.jwt.JwtAccessDeniedHandler;
 import com.hcmus.mela.auth.security.jwt.JwtAuthenticationEntryPoint;
 import com.hcmus.mela.auth.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CorsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -16,13 +18,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = true)
+
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    @Bean
+	private final JwtAccessDeniedHandler accessDeniedHandler;
+
+	@Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
@@ -49,7 +55,9 @@ public class SecurityConfiguration {
 													   .anyRequest()
 													   .authenticated())
 				.sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.exceptionHandling(handler -> handler.authenticationEntryPoint(unauthorizedHandler))
+				.exceptionHandling(handler -> handler
+						.authenticationEntryPoint(unauthorizedHandler)
+						.accessDeniedHandler(accessDeniedHandler))
 				.build();
 
 		//@formatter:on
