@@ -9,6 +9,7 @@ import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
 import com.hcmus.mela.lecture.strategy.TopicFilterStrategy;
+import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,28 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request) {
         strategy.updateTopic(userId, topicId, request);
+    }
+
+    @Override
+    public void denyTopic(UUID topicId, String reason) {
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new BadRequestException("Topic not found"));
+        if (topic.getStatus() == ContentStatus.VERIFIED || topic.getStatus() == ContentStatus.DELETED) {
+            throw new BadRequestException("Topic cannot be denied");
+        }
+        topic.setRejectedReason(reason);
+        topic.setStatus(ContentStatus.DENIED);
+        topicRepository.save(topic);
+    }
+
+    @Override
+    public void approveTopic(UUID topicId) {
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new BadRequestException("Topic not found"));
+        if (topic.getStatus() == ContentStatus.DELETED) {
+            throw new BadRequestException("Topic cannot be approved");
+        }
+        topic.setRejectedReason(null);
+        topic.setStatus(ContentStatus.VERIFIED);
+        topicRepository.save(topic);
     }
 
     @Override

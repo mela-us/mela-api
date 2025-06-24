@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.lecture.dto.request.CreateLevelRequest;
+import com.hcmus.mela.lecture.dto.request.DenyLevelRequest;
 import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.dto.response.CreateLevelResponse;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
@@ -72,6 +73,26 @@ public class LevelController {
 
         return ResponseEntity.ok(
                 Map.of("message", "Level updated successfully")
+        );
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{levelId}/deny")
+    public ResponseEntity<Map<String, String>> denyLevelRequest(@PathVariable UUID levelId, @RequestBody DenyLevelRequest denyLevelRequest) {
+        log.info("Deny level");
+        levelService.denyLevel(levelId, denyLevelRequest.getReason());
+        return ResponseEntity.ok(
+                Map.of("message", "Level denied successfully")
+        );
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{levelId}/approve")
+    public ResponseEntity<Map<String, String>> approveLevelRequest(@PathVariable UUID levelId) {
+        log.info("Approve level");
+        levelService.approveLevel(levelId);
+        return ResponseEntity.ok(
+                Map.of("message", "Level approved successfully")
         );
     }
 }

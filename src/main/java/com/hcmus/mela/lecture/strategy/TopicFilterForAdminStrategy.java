@@ -5,6 +5,7 @@ import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
+import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,9 +33,9 @@ public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
     @Override
     public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
         Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
+                .orElseThrow(() -> new BadRequestException("Topic not found"));
         if (topic.getStatus() == ContentStatus.DELETED) {
-            throw new IllegalArgumentException("Cannot update a deleted topic");
+            throw new BadRequestException("Cannot update a deleted topic");
         }
         if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
             topic.setName(updateTopicRequest.getName());

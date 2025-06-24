@@ -17,6 +17,10 @@ public interface LevelService {
 
     void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request);
 
+    void denyLevel(UUID levelId, String reason);
+
+    void approveLevel(UUID levelId);
+
     Level findLevelByLevelId(UUID id);
 
     Level findLevelByLevelTitle(String title);

@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.lecture.dto.request.CreateTopicRequest;
+import com.hcmus.mela.lecture.dto.request.DenyTopicRequest;
 import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.dto.response.CreateTopicResponse;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
@@ -72,6 +73,26 @@ public class TopicController {
 
         return ResponseEntity.ok(
                 Map.of("message", "Topic updated successfully")
+        );
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{topicId}/deny")
+    public ResponseEntity<Map<String, String>> denyTopicRequest(@PathVariable UUID topicId, @RequestBody DenyTopicRequest denyTopicRequest) {
+        log.info("Deny topic");
+        topicService.denyTopic(topicId, denyTopicRequest.getReason());
+        return ResponseEntity.ok(
+                Map.of("message", "Topic denied successfully")
+        );
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{topicId}/approve")
+    public ResponseEntity<Map<String, String>> approveTopicRequest(@PathVariable UUID topicId) {
+        log.info("Approve topic");
+        topicService.approveTopic(topicId);
+        return ResponseEntity.ok(
+                Map.of("message", "Topic approved successfully")
         );
     }
 }

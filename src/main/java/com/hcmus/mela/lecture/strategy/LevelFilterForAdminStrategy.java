@@ -5,6 +5,7 @@ import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
+import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,9 +33,9 @@ public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
     @Override
     public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
         Level level = levelRepository.findById(levelId)
-                .orElseThrow(() -> new IllegalArgumentException("Level not found"));
+                .orElseThrow(() -> new BadRequestException("Level not found"));
         if (level.getStatus() == ContentStatus.DELETED) {
-            throw new IllegalArgumentException("Cannot update a deleted level");
+            throw new BadRequestException("Cannot update a deleted level");
         }
         if (updateLevelRequest.getName() != null && !updateLevelRequest.getName().isEmpty()) {
             level.setName(updateLevelRequest.getName());

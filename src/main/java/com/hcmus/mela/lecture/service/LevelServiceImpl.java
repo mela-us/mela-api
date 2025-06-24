@@ -9,6 +9,7 @@ import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
 import com.hcmus.mela.lecture.strategy.LevelFilterStrategy;
+import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +57,7 @@ public class LevelServiceImpl implements LevelService {
         LevelDto levelDto = LevelMapper.INSTANCE.levelToLevelDto(savedLevel);
 
         return new CreateLevelResponse(
-                "Create topic successfully",
+                "Create level successfully",
                 levelDto
         );
     }
@@ -64,6 +65,28 @@ public class LevelServiceImpl implements LevelService {
     @Override
     public void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request) {
         strategy.updateLevel(userId, levelId, request);
+    }
+
+    @Override
+    public void denyLevel(UUID levelId, String reason) {
+        Level level = levelRepository.findById(levelId).orElseThrow(() -> new BadRequestException("Level not found"));
+        if (level.getStatus() == ContentStatus.VERIFIED || level.getStatus() == ContentStatus.DELETED) {
+            throw new BadRequestException("Level cannot be denied");
+        }
+        level.setRejectedReason(reason);
+        level.setStatus(ContentStatus.DENIED);
+        levelRepository.save(level);
+    }
+
+    @Override
+    public void approveLevel(UUID levelId) {
+        Level level = levelRepository.findById(levelId).orElseThrow(() -> new BadRequestException("Level not found"));
+        if (level.getStatus() == ContentStatus.DELETED) {
+            throw new BadRequestException("Level cannot be approved");
+        }
+        level.setRejectedReason(null);
+        level.setStatus(ContentStatus.VERIFIED);
+        levelRepository.save(level);
     }
 
     @Override

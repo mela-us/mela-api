@@ -18,6 +18,10 @@ public interface TopicService {
 
     void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request);
 
+    void denyTopic(UUID topicId, String reason);
+
+    void approveTopic(UUID topicId);
+
     List<TopicDto> getTopics();
 
     TopicDto getTopicById(UUID topicId);

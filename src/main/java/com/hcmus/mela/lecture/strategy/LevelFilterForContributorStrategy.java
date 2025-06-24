@@ -5,6 +5,7 @@ import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
+import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -37,9 +38,9 @@ public class LevelFilterForContributorStrategy implements LevelFilterStrategy {
     @Override
     public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
         Level level = levelRepository.findByLevelIdAndCreatedBy(levelId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Level of the contributor not found"));
+                .orElseThrow(() -> new BadRequestException("Level of the contributor not found"));
         if (level.getStatus() == ContentStatus.DELETED || level.getStatus() == ContentStatus.VERIFIED) {
-            throw new IllegalArgumentException("Contributor cannot update a deleted or verified level");
+            throw new BadRequestException("Contributor cannot update a deleted or verified level");
         }
         if (updateLevelRequest.getName() != null && !updateLevelRequest.getName().isEmpty()) {
             level.setName(updateLevelRequest.getName());
