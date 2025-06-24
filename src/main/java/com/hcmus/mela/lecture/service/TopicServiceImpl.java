@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.service;
 
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
 import com.hcmus.mela.lecture.dto.request.CreateTopicRequest;
+import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.dto.response.CreateTopicResponse;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
@@ -58,6 +59,11 @@ public class TopicServiceImpl implements TopicService {
                 "Create topic successfully",
                 topicDto
         );
+    }
+
+    @Override
+    public void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request) {
+        strategy.updateTopic(userId, topicId, request);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.strategy;
 
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
@@ -26,5 +27,10 @@ public class TopicFilterForUserStrategy implements TopicFilterStrategy {
         return topics.stream()
                 .map(TopicMapper.INSTANCE::topicToTopicDto)
                 .toList();
+    }
+
+    @Override
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+
     }
 }

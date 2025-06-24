@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.strategy;
 
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
@@ -26,5 +27,21 @@ public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
         return topics.stream()
                 .map(TopicMapper.INSTANCE::topicToTopicDto)
                 .toList();
+    }
+
+    @Override
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+        Topic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new IllegalArgumentException("Topic not found"));
+        if (topic.getStatus() == ContentStatus.DELETED) {
+            throw new IllegalArgumentException("Cannot update a deleted topic");
+        }
+        if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
+            topic.setName(updateTopicRequest.getName());
+        }
+        if (updateTopicRequest.getImageUrl() != null && !updateTopicRequest.getImageUrl().isEmpty()) {
+            topic.setImageUrl(updateTopicRequest.getImageUrl());
+        }
+        topicRepository.save(topic);
     }
 }

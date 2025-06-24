@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.strategy;
 
 import com.hcmus.mela.lecture.dto.dto.LevelDto;
+import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
@@ -31,5 +32,23 @@ public class LevelFilterForContributorStrategy implements LevelFilterStrategy {
         return verifiedLevels.stream()
                 .map(LevelMapper.INSTANCE::levelToLevelDto)
                 .toList();
+    }
+
+    @Override
+    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
+        Level level = levelRepository.findByLevelIdAndCreatedBy(levelId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Level of the contributor not found"));
+        if (level.getStatus() == ContentStatus.DELETED || level.getStatus() == ContentStatus.VERIFIED) {
+            throw new IllegalArgumentException("Contributor cannot update a deleted or verified level");
+        }
+        if (updateLevelRequest.getName() != null && !updateLevelRequest.getName().isEmpty()) {
+            level.setName(updateLevelRequest.getName());
+        }
+        if (updateLevelRequest.getImageUrl() != null && !updateLevelRequest.getImageUrl().isEmpty()) {
+            level.setImageUrl(updateLevelRequest.getImageUrl());
+        }
+        level.setStatus(ContentStatus.PENDING);
+        level.setRejectedReason(null);
+        levelRepository.save(level);
     }
 }

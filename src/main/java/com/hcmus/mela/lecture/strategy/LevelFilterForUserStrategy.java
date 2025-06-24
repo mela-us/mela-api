@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.strategy;
 
 import com.hcmus.mela.lecture.dto.dto.LevelDto;
+import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
@@ -26,5 +27,10 @@ public class LevelFilterForUserStrategy implements LevelFilterStrategy {
         return levels.stream()
                 .map(LevelMapper.INSTANCE::levelToLevelDto)
                 .toList();
+    }
+
+    @Override
+    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
+
     }
 }

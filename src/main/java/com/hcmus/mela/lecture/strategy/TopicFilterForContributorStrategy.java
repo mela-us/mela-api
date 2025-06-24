@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.strategy;
 
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
@@ -31,5 +32,23 @@ public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
         return verifiedTopics.stream()
                 .map(TopicMapper.INSTANCE::topicToTopicDto)
                 .toList();
+    }
+
+    @Override
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+        Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Topic of the contributor not found"));
+        if (topic.getStatus() == ContentStatus.DELETED || topic.getStatus() == ContentStatus.VERIFIED) {
+            throw new IllegalArgumentException("Contributor cannot update a deleted or verified topic");
+        }
+        if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
+            topic.setName(updateTopicRequest.getName());
+        }
+        if (updateTopicRequest.getImageUrl() != null && !updateTopicRequest.getImageUrl().isEmpty()) {
+            topic.setImageUrl(updateTopicRequest.getImageUrl());
+        }
+        topic.setStatus(ContentStatus.PENDING);
+        topic.setRejectedReason(null);
+        topicRepository.save(topic);
     }
 }

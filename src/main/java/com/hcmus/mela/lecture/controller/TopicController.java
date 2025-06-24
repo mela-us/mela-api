@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.lecture.dto.request.CreateTopicRequest;
+import com.hcmus.mela.lecture.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.lecture.dto.response.CreateTopicResponse;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
 import com.hcmus.mela.lecture.service.TopicService;
@@ -55,5 +56,22 @@ public class TopicController {
         CreateTopicResponse response = topicService.getCreateTopicResponse(creatorId, createTopicRequest);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PutMapping("/{topicId}")
+    public ResponseEntity<Map<String, String>> updateTopicRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody UpdateTopicRequest updateTopicRequest,
+            @PathVariable UUID topicId) {
+        log.info("Updating topic");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        topicService.updateTopic(strategy, userId, topicId, updateTopicRequest);
+
+        return ResponseEntity.ok(
+                Map.of("message", "Topic updated successfully")
+        );
     }
 }

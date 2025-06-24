@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.lecture.dto.request.CreateLevelRequest;
+import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.dto.response.CreateLevelResponse;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
 import com.hcmus.mela.lecture.service.LevelService;
@@ -55,5 +56,22 @@ public class LevelController {
         CreateLevelResponse response = levelService.getCreateLevelResponse(creatorId, createLevelRequest);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PutMapping("/{levelId}")
+    public ResponseEntity<Map<String, String>> updateLevelRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody UpdateLevelRequest updateLevelRequest,
+            @PathVariable UUID levelId) {
+        log.info("Updating level");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        LevelFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        levelService.updateLevel(strategy, userId, levelId, updateLevelRequest);
+
+        return ResponseEntity.ok(
+                Map.of("message", "Level updated successfully")
+        );
     }
 }

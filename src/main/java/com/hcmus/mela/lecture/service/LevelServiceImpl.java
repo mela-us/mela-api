@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.service;
 
 import com.hcmus.mela.lecture.dto.dto.LevelDto;
 import com.hcmus.mela.lecture.dto.request.CreateLevelRequest;
+import com.hcmus.mela.lecture.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.lecture.dto.response.CreateLevelResponse;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
 import com.hcmus.mela.lecture.mapper.LevelMapper;
@@ -58,6 +59,11 @@ public class LevelServiceImpl implements LevelService {
                 "Create topic successfully",
                 levelDto
         );
+    }
+
+    @Override
+    public void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request) {
+        strategy.updateLevel(userId, levelId, request);
     }
 
     @Override
