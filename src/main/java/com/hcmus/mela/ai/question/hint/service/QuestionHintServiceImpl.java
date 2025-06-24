@@ -12,9 +12,9 @@ import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.exercise.service.ExerciseService;
 import com.hcmus.mela.exercise.service.QuestionService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
-import com.hcmus.mela.lecture.model.Level;
+import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.lecture.service.LectureService;
-import com.hcmus.mela.lecture.service.LevelService;
+import com.hcmus.mela.level.service.LevelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

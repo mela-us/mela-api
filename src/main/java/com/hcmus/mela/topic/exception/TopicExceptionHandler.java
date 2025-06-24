@@ -1,10 +1,8 @@
-package com.hcmus.mela.lecture.exception;
+package com.hcmus.mela.topic.exception;
 
+import com.hcmus.mela.topic.controller.TopicController;
 import com.hcmus.mela.shared.configuration.RequestIdFilter;
 import com.hcmus.mela.shared.exception.ApiErrorResponse;
-import com.hcmus.mela.lecture.controller.LectureController;
-import com.hcmus.mela.level.controller.LevelController;
-import com.hcmus.mela.topic.controller.TopicController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +14,12 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @RestControllerAdvice(basePackageClasses = {
-        LevelController.class,
         TopicController.class,
-        LectureController.class
 })
-public class LectureExceptionHandler {
+public class TopicExceptionHandler {
 
-    @ExceptionHandler(LectureException.class)
-    ResponseEntity<ApiErrorResponse> handleMathContentException(LectureException exception, WebRequest request) {
+    @ExceptionHandler(TopicException.class)
+    ResponseEntity<ApiErrorResponse> handleMathContentException(TopicException exception, WebRequest request) {
 
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),

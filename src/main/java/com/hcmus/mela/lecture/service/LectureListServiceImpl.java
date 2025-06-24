@@ -5,15 +5,16 @@ import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.LectureStatDetailDto;
 import com.hcmus.mela.lecture.dto.dto.LecturesByTopicDto;
 import com.hcmus.mela.lecture.dto.response.GetLecturesByLevelResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesResponse;
+import com.hcmus.mela.lecture.dto.response.GetLecturesWithStatsResponse;
 import com.hcmus.mela.lecture.mapper.LectureMapper;
-import com.hcmus.mela.lecture.mapper.TopicMapper;
+import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.model.LectureActivity;
 import com.hcmus.mela.lecture.repository.LectureCustomRepositoryImpl;
 import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.topic.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +73,7 @@ public class LectureListServiceImpl implements LectureListService {
     }
 
     @Override
-    public GetLecturesResponse getLecturesByKeyword(UUID userId, String keyword) {
+    public GetLecturesWithStatsResponse getLecturesByKeyword(UUID userId, String keyword) {
         CompletableFuture<List<Lecture>> lecturesFuture = asyncService.runAsync(
                 () -> lectureRepository.findLecturesByKeyword(keyword),
                 Collections.emptyList());
@@ -86,7 +87,7 @@ public class LectureListServiceImpl implements LectureListService {
         List<Lecture> lectures = lecturesFuture.join();
 
         if (lectures == null || lectures.isEmpty()) {
-            return new GetLecturesResponse(
+            return new GetLecturesWithStatsResponse(
                     generalMessageAccessor.getMessage(null, "search_lectures_success"),
                     0,
                     Collections.emptyList()
@@ -96,7 +97,7 @@ public class LectureListServiceImpl implements LectureListService {
     }
 
     @Override
-    public GetLecturesResponse getLecturesByRecent(UUID userId, Integer size) {
+    public GetLecturesWithStatsResponse getLecturesByRecent(UUID userId, Integer size) {
         CompletableFuture<List<LectureActivity>> exerciseHistoryFuture = asyncService.runAsync(
                 () -> lectureRepository.findRecentLectureByUserExerciseHistory(userId, size),
                 Collections.emptyList());
@@ -113,7 +114,7 @@ public class LectureListServiceImpl implements LectureListService {
 
         List<LectureActivity> recentLectures = mergeActivity(exerciseHistory, sectionHistory);
         if (recentLectures.isEmpty()) {
-            return new GetLecturesResponse(
+            return new GetLecturesWithStatsResponse(
                     generalMessageAccessor.getMessage(null, "get_recent_lectures_success"),
                     0,
                     Collections.emptyList()
@@ -178,11 +179,11 @@ public class LectureListServiceImpl implements LectureListService {
         return recentLecture;
     }
 
-    private GetLecturesResponse getLectureStatListResponse(Map<UUID, Integer> passExerciseTotalsMap, List<Lecture> lectures) {
+    private GetLecturesWithStatsResponse getLectureStatListResponse(Map<UUID, Integer> passExerciseTotalsMap, List<Lecture> lectures) {
         List<LectureStatDetailDto> lectureStatDetailDtoList = convertLecturesToLectureStatList(
                 passExerciseTotalsMap,
                 lectures);
-        return new GetLecturesResponse(
+        return new GetLecturesWithStatsResponse(
                 "Get lectures success!",
                 lectureStatDetailDtoList.size(),
                 lectureStatDetailDtoList);

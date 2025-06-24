@@ -3,17 +3,22 @@ package com.hcmus.mela.lecture.controller;
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.lecture.dto.response.GetLectureSectionsResponse;
 import com.hcmus.mela.lecture.dto.response.GetLecturesByLevelResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesResponse;
+import com.hcmus.mela.lecture.dto.response.GetLecturesWithStatsResponse;
+import com.hcmus.mela.level.dto.response.GetLevelsResponse;
 import com.hcmus.mela.lecture.exception.LectureException;
 import com.hcmus.mela.lecture.service.LectureListService;
 import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
+import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +28,24 @@ import java.util.UUID;
 public class LectureController {
 
     private final LectureListService lectureListService;
+
     private final LectureService lectureService;
+
     private final JwtTokenService jwtTokenService;
+
+    private final Map<String, LectureFilterStrategy> strategies;
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    public ResponseEntity<GetAllLecturesResponse> getAllLecturesRequest(@RequestHeader("Authorization") String authorizationHeader) {
+        log.info("Getting lectures in system");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
+        GetLevelsResponse response = lectureService.getLecturesResponse(strategy, userId);
+
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping
     @Operation(
@@ -51,14 +72,14 @@ public class LectureController {
             summary = "Search lectures by keyword",
             description = "Searches for lectures that match the given keyword in title or content."
     )
-    public ResponseEntity<GetLecturesResponse> getLecturesByKeywordRequest(
+    public ResponseEntity<GetLecturesWithStatsResponse> getLecturesByKeywordRequest(
             @Parameter(description = "Search keyword", example = "math")
             @RequestParam(value = "q") String keyword,
             @RequestHeader("Authorization") String authorizationHeader) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
         log.info("Searching lectures with keyword: '{}' for user: {}", keyword, userId);
-        GetLecturesResponse response = lectureListService.getLecturesByKeyword(userId, keyword);
+        GetLecturesWithStatsResponse response = lectureListService.getLecturesByKeyword(userId, keyword);
 
         return ResponseEntity.ok(response);
     }
@@ -69,7 +90,7 @@ public class LectureController {
             summary = "Get recent lectures",
             description = "Retrieves the most recent lectures up to the specified size limit."
     )
-    public ResponseEntity<GetLecturesResponse> getLecturesByRecentRequest(
+    public ResponseEntity<GetLecturesWithStatsResponse> getLecturesByRecentRequest(
             @Parameter(description = "Number of recent lectures to retrieve", example = "5")
             @RequestParam(value = "size") Integer size,
             @RequestHeader("Authorization") String authorizationHeader) {
@@ -79,7 +100,7 @@ public class LectureController {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
         log.info("Getting {} recent lectures for user: {}", size, userId);
-        GetLecturesResponse response = lectureListService.getLecturesByRecent(userId, size);
+        GetLecturesWithStatsResponse response = lectureListService.getLecturesByRecent(userId, size);
 
         return ResponseEntity.ok(response);
     }
