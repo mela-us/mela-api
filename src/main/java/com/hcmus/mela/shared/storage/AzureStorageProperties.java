@@ -22,6 +22,7 @@ public class AzureStorageProperties {
         private Conversations conversations;
         private UserUpload userUpload;
         private AdminUpload adminUpload;
+        private CommonUpload commonUpload;
     }
 
     @Setter
@@ -48,5 +49,11 @@ public class AzureStorageProperties {
     @Getter
     public static class AdminUpload {
         private String name; // "admin-upload"
+    }
+
+    @Setter
+    @Getter
+    public static class CommonUpload {
+        private String name; // "mela"
     }
 }
