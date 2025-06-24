@@ -131,8 +131,9 @@ public class AuthServiceImpl implements AuthService {
 
         final String accessToken = jwtTokenService.generateAccessToken(user);
         final String refreshToken = jwtTokenService.generateRefreshToken(user);
+        final String role = user.getUserRole().toString();
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, role);
     }
 
     @Override

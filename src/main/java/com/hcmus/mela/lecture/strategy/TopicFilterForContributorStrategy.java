@@ -1,0 +1,35 @@
+package com.hcmus.mela.lecture.strategy;
+
+import com.hcmus.mela.lecture.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.mapper.TopicMapper;
+import com.hcmus.mela.lecture.model.Topic;
+import com.hcmus.mela.lecture.repository.TopicRepository;
+import com.hcmus.mela.shared.type.ContentStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.UUID;
+
+@Component("TOPIC_CONTRIBUTOR")
+@RequiredArgsConstructor
+public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
+
+    private final TopicRepository topicRepository;
+
+    @Override
+    public List<TopicDto> getTopics(UUID userId) {
+        List<Topic> verifiedTopics = topicRepository.findAllByStatus(ContentStatus.VERIFIED);
+        List<Topic> pendingTopics = topicRepository.findAllByStatusAndCreatedBy(ContentStatus.PENDING, userId);
+        List<Topic> deniedTopics = topicRepository.findAllByStatusAndCreatedBy(ContentStatus.DENIED, userId);
+        // Combine all topics
+        verifiedTopics.addAll(pendingTopics);
+        verifiedTopics.addAll(deniedTopics);
+        if (verifiedTopics.isEmpty()) {
+            return List.of();
+        }
+        return verifiedTopics.stream()
+                .map(TopicMapper.INSTANCE::topicToTopicDto)
+                .toList();
+    }
+}

@@ -1,11 +1,12 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
 import com.hcmus.mela.lecture.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Topic;
 import com.hcmus.mela.lecture.repository.TopicRepository;
+import com.hcmus.mela.lecture.strategy.TopicFilterStrategy;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +22,9 @@ public class TopicServiceImpl implements TopicService {
 
     private final GeneralMessageAccessor generalMessageAccessor;
 
-    public GetTopicsResponse getTopicsResponse() {
-        List<Topic> topics = topicRepository.findAll();
+    public GetTopicsResponse getTopicsResponse(TopicFilterStrategy topicFilterStrategy, UUID userId) {
+
+        List<TopicDto> topics = topicFilterStrategy.getTopics(userId);
 
         if (topics.isEmpty()) {
             return new GetTopicsResponse(
@@ -35,9 +37,7 @@ public class TopicServiceImpl implements TopicService {
         return new GetTopicsResponse(
                 generalMessageAccessor.getMessage(null, "get_topics_success"),
                 topics.size(),
-                topics.stream()
-                        .map(TopicMapper.INSTANCE::topicToTopicDto)
-                        .toList()
+                topics
         );
     }
 

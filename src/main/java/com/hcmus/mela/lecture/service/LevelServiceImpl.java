@@ -1,17 +1,17 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.lecture.dto.dto.LevelDto;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
-import com.hcmus.mela.lecture.mapper.LevelMapper;
 import com.hcmus.mela.lecture.model.Level;
 import com.hcmus.mela.lecture.repository.LevelRepository;
+import com.hcmus.mela.lecture.strategy.LevelFilterStrategy;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +21,10 @@ public class LevelServiceImpl implements LevelService {
 
     private final GeneralMessageAccessor generalMessageAccessor;
 
-    public GetLevelsResponse getLevelsResponse() {
-        List<Level> levels = levelRepository.findAll();
+    public GetLevelsResponse getLevelsResponse(LevelFilterStrategy levelFilterStrategy, UUID userId) {
+
+        List<LevelDto> levels = levelFilterStrategy.getLevels(userId);
+
         if (levels.isEmpty()) {
             return new GetLevelsResponse(
                     generalMessageAccessor.getMessage(null, "get_levels_empty"),
@@ -34,9 +36,7 @@ public class LevelServiceImpl implements LevelService {
         return new GetLevelsResponse(
                 generalMessageAccessor.getMessage(null, "get_levels_success"),
                 levels.size(),
-                levels.stream()
-                        .map(LevelMapper.INSTANCE::levelToLevelDto)
-                        .collect(Collectors.toList())
+                levels
         );
     }
 
