@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.mapper;
 
 import com.hcmus.mela.lecture.dto.dto.LevelDto;
+import com.hcmus.mela.lecture.dto.request.CreateLevelRequest;
 import com.hcmus.mela.lecture.model.Level;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -12,4 +13,6 @@ public interface LevelMapper {
     LevelMapper INSTANCE = Mappers.getMapper(LevelMapper.class);
 
     LevelDto levelToLevelDto(Level level);
+
+    Level createLevelRequestToLevel(CreateLevelRequest createLevelRequest);
 }

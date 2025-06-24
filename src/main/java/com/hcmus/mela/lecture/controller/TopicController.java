@@ -1,6 +1,8 @@
 package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
+import com.hcmus.mela.lecture.dto.request.CreateTopicRequest;
+import com.hcmus.mela.lecture.dto.response.CreateTopicResponse;
 import com.hcmus.mela.lecture.dto.response.GetTopicsResponse;
 import com.hcmus.mela.lecture.service.TopicService;
 import com.hcmus.mela.lecture.strategy.TopicFilterStrategy;
@@ -10,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.UUID;
@@ -46,6 +45,15 @@ public class TopicController {
         return ResponseEntity.ok(response);
     }
 
-//    @PreAuthorize("hasAuthority('ADMIN')")
-//    public Re
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PostMapping
+    public ResponseEntity<CreateTopicResponse> createTopicRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody CreateTopicRequest createTopicRequest) {
+        log.info("Creating topic");
+        UUID creatorId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        CreateTopicResponse response = topicService.getCreateTopicResponse(creatorId, createTopicRequest);
+
+        return ResponseEntity.ok(response);
+    }
 }

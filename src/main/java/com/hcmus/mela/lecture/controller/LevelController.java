@@ -1,6 +1,8 @@
 package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
+import com.hcmus.mela.lecture.dto.request.CreateLevelRequest;
+import com.hcmus.mela.lecture.dto.response.CreateLevelResponse;
 import com.hcmus.mela.lecture.dto.response.GetLevelsResponse;
 import com.hcmus.mela.lecture.service.LevelService;
 import com.hcmus.mela.lecture.strategy.LevelFilterStrategy;
@@ -9,10 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.UUID;
@@ -41,6 +41,18 @@ public class LevelController {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         LevelFilterStrategy strategy = strategies.get("LEVEL_" + userRole.toString());
         GetLevelsResponse response = levelService.getLevelsResponse(strategy, userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PostMapping
+    public ResponseEntity<CreateLevelResponse> createLevelRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody CreateLevelRequest createLevelRequest) {
+        log.info("Creating level");
+        UUID creatorId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        CreateLevelResponse response = levelService.getCreateLevelResponse(creatorId, createLevelRequest);
 
         return ResponseEntity.ok(response);
     }

@@ -2,6 +2,7 @@ package com.hcmus.mela.lecture.mapper;
 
 import com.hcmus.mela.lecture.dto.dto.LecturesByTopicDto;
 import com.hcmus.mela.lecture.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.dto.request.CreateTopicRequest;
 import com.hcmus.mela.lecture.model.Topic;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,4 +18,6 @@ public interface TopicMapper {
 
     @Mapping(source = "name", target = "topicName")
     LecturesByTopicDto topicDtoToLecturesByTopicDto(TopicDto topicDto);
+
+    Topic createTopicRequestToTopic(CreateTopicRequest createTopicRequest);
 }

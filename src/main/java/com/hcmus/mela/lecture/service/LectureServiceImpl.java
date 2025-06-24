@@ -1,6 +1,5 @@
 package com.hcmus.mela.lecture.service;
 
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.LectureOfSectionDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
@@ -9,6 +8,7 @@ import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

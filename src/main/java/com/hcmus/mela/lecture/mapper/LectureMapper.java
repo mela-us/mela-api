@@ -17,7 +17,7 @@ public interface LectureMapper {
     LectureOfSectionDto lectureToLectureOfSectionDto(Lecture lecture);
 
     LectureStatDetailDto lectureToLectureStatDetailDto(Lecture lecture);
-    
+
     Lecture lectureActivityToLecture(LectureActivity lectureActivity);
 
     LectureDto lectureToLectureDto(Lecture lecture);
