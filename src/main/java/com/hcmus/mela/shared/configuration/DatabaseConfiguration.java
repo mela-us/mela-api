@@ -29,7 +29,8 @@ import org.springframework.lang.NonNull;
         "com.hcmus.mela.streak.repository",
         "com.hcmus.mela.review.repository",
         "com.hcmus.mela.suggestion.repository",
-        "com.hcmus.mela.token.repository"
+        "com.hcmus.mela.token.repository",
+        "com.hcmus.mela.capacity.repository"
 })
 @RequiredArgsConstructor
 public class DatabaseConfiguration {
