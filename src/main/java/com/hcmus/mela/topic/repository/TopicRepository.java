@@ -1,7 +1,7 @@
 package com.hcmus.mela.topic.repository;
 
-import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.topic.model.Topic;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;

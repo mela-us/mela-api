@@ -48,7 +48,7 @@ public class Lecture {
     @Field(name = "created_by")
     private UUID createdBy;
 
-    @Field(name= "rejected_reason")
+    @Field(name = "rejected_reason")
     private String rejectedReason;
 
     @PrePersist
@@ -58,6 +58,9 @@ public class Lecture {
         }
         if (this.createdBy == null) {
             this.createdBy = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        }
+        if (this.totalExercises != null) {
+            this.totalExercises = null;
         }
     }
 }

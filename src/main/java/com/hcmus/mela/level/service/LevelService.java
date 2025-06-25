@@ -6,6 +6,7 @@ import com.hcmus.mela.level.dto.response.CreateLevelResponse;
 import com.hcmus.mela.level.dto.response.GetLevelsResponse;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.strategy.LevelFilterStrategy;
+import com.hcmus.mela.shared.type.ContentStatus;
 
 import java.util.UUID;
 
@@ -20,6 +21,14 @@ public interface LevelService {
     void denyLevel(UUID levelId, String reason);
 
     void approveLevel(UUID levelId);
+
+    boolean isLevelAssignableToLecture(UUID levelId, UUID userId);
+
+    boolean isLevelDeleted(UUID levelId);
+
+    boolean isLevelVerified(UUID levelId);
+
+    boolean checkLevelStatus(UUID levelId, ContentStatus status);
 
     Level findLevelByLevelId(UUID id);
 

@@ -1,5 +1,6 @@
 package com.hcmus.mela.topic.service;
 
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.CreateTopicRequest;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
@@ -21,6 +22,14 @@ public interface TopicService {
     void denyTopic(UUID topicId, String reason);
 
     void approveTopic(UUID topicId);
+
+    boolean isTopicAssignableToLecture(UUID topicId, UUID userId);
+
+    boolean isTopicDeleted(UUID topicId);
+
+    boolean isTopicVerified(UUID topicId);
+
+    boolean checkTopicStatus(UUID topicId, ContentStatus status);
 
     List<TopicDto> getTopics();
 

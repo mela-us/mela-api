@@ -5,15 +5,17 @@ import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.LectureStatDetailDto;
 import com.hcmus.mela.lecture.dto.dto.LecturesByTopicDto;
 import com.hcmus.mela.lecture.dto.response.GetLecturesByLevelResponse;
+import com.hcmus.mela.lecture.dto.response.GetLecturesResponse;
 import com.hcmus.mela.lecture.dto.response.GetLecturesWithStatsResponse;
 import com.hcmus.mela.lecture.mapper.LectureMapper;
-import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.model.LectureActivity;
 import com.hcmus.mela.lecture.repository.LectureCustomRepositoryImpl;
 import com.hcmus.mela.lecture.repository.LectureRepository;
+import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +36,17 @@ public class LectureListServiceImpl implements LectureListService {
     private final ExerciseHistoryService exerciseHistoryService;
 
     private final AsyncCustomService asyncService;
+
     private final LectureCustomRepositoryImpl lectureCustomRepositoryImpl;
+
+    @Override
+    public GetLecturesResponse getLecturesResponse(LectureFilterStrategy strategy, UUID userId) {
+        List<LectureDto> lectures = strategy.getLectures(userId);
+        if (lectures.isEmpty()) {
+            return new GetLecturesResponse("No lectures found", Collections.emptyList());
+        }
+        return new GetLecturesResponse("Get lectures success", lectures);
+    }
 
     @Override
     public GetLecturesByLevelResponse getLecturesByLevel(UUID userId, UUID levelId) {

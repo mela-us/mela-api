@@ -1,17 +1,17 @@
 package com.hcmus.mela.topic.service;
 
+import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.CreateTopicRequest;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
 import com.hcmus.mela.topic.dto.response.CreateTopicResponse;
 import com.hcmus.mela.topic.dto.response.GetTopicsResponse;
+import com.hcmus.mela.topic.exception.TopicException;
 import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.topic.repository.TopicRepository;
 import com.hcmus.mela.topic.strategy.TopicFilterStrategy;
-import com.hcmus.mela.shared.exception.BadRequestException;
-import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -69,9 +69,9 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public void denyTopic(UUID topicId, String reason) {
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new BadRequestException("Topic not found"));
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new TopicException("Topic not found"));
         if (topic.getStatus() == ContentStatus.VERIFIED || topic.getStatus() == ContentStatus.DELETED) {
-            throw new BadRequestException("Topic cannot be denied");
+            throw new TopicException("Topic cannot be denied");
         }
         topic.setRejectedReason(reason);
         topic.setStatus(ContentStatus.DENIED);
@@ -80,13 +80,47 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public void approveTopic(UUID topicId) {
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new BadRequestException("Topic not found"));
+        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new TopicException("Topic not found"));
         if (topic.getStatus() == ContentStatus.DELETED) {
-            throw new BadRequestException("Topic cannot be approved");
+            throw new TopicException("Topic cannot be approved");
         }
         topic.setRejectedReason(null);
         topic.setStatus(ContentStatus.VERIFIED);
         topicRepository.save(topic);
+    }
+
+    @Override
+    public boolean isTopicAssignableToLecture(UUID topicId, UUID userId) {
+        if (topicId == null || userId == null) {
+            return false;
+        }
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        if (topic == null) {
+            return false;
+        }
+        if (topic.getStatus() == ContentStatus.VERIFIED) {
+            return true;
+        }
+        return topic.getStatus() != ContentStatus.DELETED && topic.getCreatedBy().equals(userId);
+    }
+
+    @Override
+    public boolean isTopicDeleted(UUID topicId) {
+        return checkTopicStatus(topicId, ContentStatus.DELETED);
+    }
+
+    @Override
+    public boolean isTopicVerified(UUID topicId) {
+        return checkTopicStatus(topicId, ContentStatus.VERIFIED);
+    }
+
+    @Override
+    public boolean checkTopicStatus(UUID topicId, ContentStatus status) {
+        if (topicId == null || status == null) {
+            return false;
+        }
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        return topic != null && topic.getStatus() == status;
     }
 
     @Override

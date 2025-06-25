@@ -1,12 +1,12 @@
 package com.hcmus.mela.topic.strategy;
 
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
+import com.hcmus.mela.topic.exception.TopicException;
 import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.topic.repository.TopicRepository;
-import com.hcmus.mela.shared.exception.BadRequestException;
-import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -38,9 +38,9 @@ public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
     @Override
     public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
         Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
-                .orElseThrow(() -> new BadRequestException("Topic of the contributor not found"));
+                .orElseThrow(() -> new TopicException("Topic of the contributor not found"));
         if (topic.getStatus() == ContentStatus.DELETED || topic.getStatus() == ContentStatus.VERIFIED) {
-            throw new BadRequestException("Contributor cannot update a deleted or verified topic");
+            throw new TopicException("Contributor cannot update a deleted or verified topic");
         }
         if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
             topic.setName(updateTopicRequest.getName());

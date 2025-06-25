@@ -56,7 +56,7 @@ public class LevelController {
         UUID creatorId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         CreateLevelResponse response = levelService.getCreateLevelResponse(creatorId, createLevelRequest);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(201).body(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")

@@ -1,10 +1,10 @@
 package com.hcmus.mela.lecture.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
-import com.hcmus.mela.lecture.dto.response.GetLectureSectionsResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesByLevelResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesWithStatsResponse;
-import com.hcmus.mela.level.dto.response.GetLevelsResponse;
+import com.hcmus.mela.lecture.dto.request.CreateLectureRequest;
+import com.hcmus.mela.lecture.dto.request.DenyLectureRequest;
+import com.hcmus.mela.lecture.dto.request.UpdateLectureRequest;
+import com.hcmus.mela.lecture.dto.response.*;
 import com.hcmus.mela.lecture.exception.LectureException;
 import com.hcmus.mela.lecture.service.LectureListService;
 import com.hcmus.mela.lecture.service.LectureService;
@@ -37,14 +37,65 @@ public class LectureController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
-    public ResponseEntity<GetAllLecturesResponse> getAllLecturesRequest(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<GetLecturesResponse> getAllLecturesRequest(@RequestHeader("Authorization") String authorizationHeader) {
         log.info("Getting lectures in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        GetLevelsResponse response = lectureService.getLecturesResponse(strategy, userId);
-
+        GetLecturesResponse response = lectureListService.getLecturesResponse(strategy, userId);
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PostMapping
+    public ResponseEntity<CreateLectureResponse> createLectureResponse(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody CreateLectureRequest createLectureRequest) {
+        log.info("Creating lecture");
+        UUID creatorId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        CreateLectureResponse response = lectureService.getCreateLectureResponse(creatorId, createLectureRequest);
+
+        return ResponseEntity.status(201).body(response);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PutMapping("/{lectureId}")
+    public ResponseEntity<Map<String, String>> updateLectureRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody UpdateLectureRequest updateLectureRequest,
+            @PathVariable UUID lectureId) {
+        log.info("Updating lecture");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
+        lectureService.updateLecture(strategy, userId, lectureId, updateLectureRequest);
+
+        return ResponseEntity.ok(
+                Map.of("message", "Lecture updated successfully")
+        );
+    }
+
+    @GetMapping("/{lectureId}")
+    public ResponseEntity<GetLectureInfoResponse> getLectureRequest(@PathVariable UUID lectureId) {
+        log.info("Get lecture information");
+        GetLectureInfoResponse response = lectureService.getLectureInfoResponse(lectureId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{lectureId}/deny")
+    public ResponseEntity<Map<String, String>> denyLectureRequest(@PathVariable UUID lectureId, @RequestBody DenyLectureRequest denyLectureRequest) {
+        log.info("Deny lecture");
+        lectureService.denyLecture(lectureId, denyLectureRequest.getReason());
+        return ResponseEntity.ok(Map.of("message", "Lecture denied successfully"));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{lectureId}/approve")
+    public ResponseEntity<Map<String, String>> approveLectureRequest(@PathVariable UUID lectureId) {
+        log.info("Approve lecture");
+        lectureService.approveLecture(lectureId);
+        return ResponseEntity.ok(Map.of("message", "Lecture approved successfully"));
     }
 
     @GetMapping

@@ -56,7 +56,7 @@ public class TopicController {
         UUID creatorId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         CreateTopicResponse response = topicService.getCreateTopicResponse(creatorId, createTopicRequest);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(201).body(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
