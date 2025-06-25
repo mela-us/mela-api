@@ -1,5 +1,6 @@
 package com.hcmus.mela.history.service;
 
+import com.hcmus.mela.capacity.service.UserCapacityService;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseGradeService;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
@@ -34,6 +35,7 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
     private final LectureService lectureService;
     private final ExerciseInfoService exerciseInfoService;
     private final ExerciseGradeService exerciseGradeService;
+    private final UserCapacityService userCapacityService;
 
     @Override
     public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
@@ -71,6 +73,8 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .filter(ExerciseAnswer::getIsCorrect)
                 .count() * 1.0 / answers.size() * 100;
 
+        Long correctAnswers = answers.stream().filter(ExerciseAnswer::getIsCorrect).count();
+
         ExerciseHistory exerciseHistory = ExerciseHistory.builder()
                 .id(UUID.randomUUID())
                 .lectureId(lectureInfo.getLectureId())
@@ -85,6 +89,12 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .build();
 
         exerciseHistoryRepository.save(exerciseHistory);
+
+        userCapacityService.updateUserCapacity(userId,
+                lectureInfo.getLevelId(),
+                lectureInfo.getTopicId(),
+                correctAnswers.intValue(),
+                answers.size() - correctAnswers.intValue());
     }
 
     @Override
