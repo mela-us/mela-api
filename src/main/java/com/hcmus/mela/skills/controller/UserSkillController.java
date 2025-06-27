@@ -1,0 +1,31 @@
+package com.hcmus.mela.skills.controller;
+
+import com.hcmus.mela.skills.dto.response.GetUserSkillResponse;
+import com.hcmus.mela.skills.service.UserSkillService;
+import io.swagger.v3.oas.annotations.Operation;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@AllArgsConstructor
+@Slf4j
+@RequestMapping("/api/users/skills")
+public class UserSkillController {
+    private final UserSkillService userSkillService;
+
+
+    @GetMapping("")
+    @Operation(tags = "User skill Service",
+            summary = "Get user's skills",
+            description = "Retrieve a list of skills belonging to a user in their current level from the system")
+    public ResponseEntity<GetUserSkillResponse> getUserSkill(@RequestHeader("Authorization") String authorizationHeader) {
+        GetUserSkillResponse response = userSkillService.getUserSkill(authorizationHeader);
+
+        return ResponseEntity.ok(response);
+    }
+}

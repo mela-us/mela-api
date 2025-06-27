@@ -1,4 +1,4 @@
-package com.hcmus.mela.capacity.model;
+package com.hcmus.mela.skills.model;
 
 import jakarta.persistence.Id;
 import lombok.*;
@@ -12,11 +12,11 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "user_capacities")
-public class UserCapacity {
+@Document(collection = "user_skills")
+public class UserSkill {
     @Id
     @Field("_id")
-    private UUID userCapacityId;
+    private UUID userSkillId;
 
     @Field("user_id")
     private UUID userId;
@@ -27,6 +27,6 @@ public class UserCapacity {
     @Field("topic_id")
     private UUID topicId;
 
-    @Field("excellence")
-    private Double excellence;
+    @Field("points")
+    private Double points;
 }
