@@ -1,4 +1,4 @@
-package com.hcmus.mela.capacity.dto;
+package com.hcmus.mela.skills.dto;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCapacityDto {
+public class UserSkillDto {
     private String topicName;
-    private Double excellence;
+    private Double points;
 }
