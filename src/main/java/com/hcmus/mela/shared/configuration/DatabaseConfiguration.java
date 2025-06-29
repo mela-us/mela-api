@@ -30,6 +30,7 @@ import org.springframework.lang.NonNull;
         "com.hcmus.mela.review.repository",
         "com.hcmus.mela.suggestion.repository",
         "com.hcmus.mela.token.repository",
+        "com.hcmus.mela.skills.repository"
         "com.hcmus.mela.topic.repository",
         "com.hcmus.mela.level.repository"
 })
