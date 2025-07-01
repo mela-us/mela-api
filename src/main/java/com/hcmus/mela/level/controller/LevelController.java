@@ -68,7 +68,7 @@ public class LevelController {
         log.info("Updating level");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LevelFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        LevelFilterStrategy strategy = strategies.get("LEVEL_" + userRole.toString());
         levelService.updateLevel(strategy, userId, levelId, updateLevelRequest);
 
         return ResponseEntity.ok(
@@ -93,6 +93,21 @@ public class LevelController {
         levelService.approveLevel(levelId);
         return ResponseEntity.ok(
                 Map.of("message", "Level approved successfully")
+        );
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @DeleteMapping("/{levelId}")
+    public ResponseEntity<Map<String, String>> deleteLevelRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable UUID levelId) {
+        log.info("Deleting level");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        LevelFilterStrategy strategy = strategies.get("LEVEL_" + userRole.toString());
+        levelService.deleteLevel(strategy, levelId, userId);
+        return ResponseEntity.ok(
+                Map.of("message", "Level deleted successfully")
         );
     }
 }

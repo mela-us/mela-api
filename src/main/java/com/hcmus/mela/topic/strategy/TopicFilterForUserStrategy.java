@@ -33,4 +33,9 @@ public class TopicFilterForUserStrategy implements TopicFilterStrategy {
     public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
 
     }
+
+    @Override
+    public void deleteTopic(UUID userId, UUID topicId) {
+
+    }
 }

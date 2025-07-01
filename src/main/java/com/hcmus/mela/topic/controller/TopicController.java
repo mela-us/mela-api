@@ -95,4 +95,19 @@ public class TopicController {
                 Map.of("message", "Topic approved successfully")
         );
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @DeleteMapping("/{topicId}")
+    public ResponseEntity<Map<String, String>> deleteTopicRequest(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable UUID topicId) {
+        log.info("Delete topic");
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        topicService.deleteTopic(strategy, topicId, userId);
+        return ResponseEntity.ok(
+                Map.of("message", "Topic deleted successfully")
+        );
+    }
 }

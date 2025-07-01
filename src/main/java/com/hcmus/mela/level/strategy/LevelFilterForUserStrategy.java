@@ -33,4 +33,9 @@ public class LevelFilterForUserStrategy implements LevelFilterStrategy {
     public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
 
     }
+
+    @Override
+    public void deleteLevel(UUID userId, UUID levelId) {
+
+    }
 }

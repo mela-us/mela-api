@@ -10,6 +10,7 @@ import com.hcmus.mela.history.model.LectureHistory;
 import com.hcmus.mela.history.repository.LectureHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ public class LectureHistoryServiceImpl implements LectureHistoryService {
 
     @Override
     public SaveLectureSectionResponse saveSection(UUID userId, SaveLectureSectionRequest saveLectureSectionRequest) {
+        if (!lectureService.checkLectureStatus(saveLectureSectionRequest.getLectureId(), ContentStatus.VERIFIED)) {
+            throw new HistoryException("Lecture is not available for saving section or does not exist.");
+        }
         LectureHistory lectureHistory = lectureHistoryRepository.findByLectureIdAndUserId(saveLectureSectionRequest.getLectureId(), userId);
         LectureDto lectureInfo = lectureService.getLectureById(saveLectureSectionRequest.getLectureId());
 

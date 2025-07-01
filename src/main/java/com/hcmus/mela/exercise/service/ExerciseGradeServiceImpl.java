@@ -14,6 +14,7 @@ import com.hcmus.mela.history.dto.dto.ExerciseAnswerDto;
 import com.hcmus.mela.history.mapper.ExerciseAnswerMapper;
 import com.hcmus.mela.history.model.ExerciseAnswer;
 import com.hcmus.mela.shared.async.AsyncCustomService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.TextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,8 +53,8 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
 
     @Override
     public List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> exerciseAnswerList) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new IllegalArgumentException("Exercise not found with id: " + exerciseId));
+        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
+        if (exercise == null) throw new IllegalArgumentException("Exercise not found with id: " + exerciseId);
         if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty()) {
             throw new IllegalArgumentException("Exercise does not contain any questions.");
         }

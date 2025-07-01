@@ -1,21 +1,22 @@
 package com.hcmus.mela.exercise.service;
 
-import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
-import com.hcmus.mela.exercise.dto.dto.ExerciseResultDto;
-import com.hcmus.mela.exercise.dto.dto.ExerciseStatDetailDto;
-import com.hcmus.mela.exercise.dto.dto.QuestionDto;
+import com.hcmus.mela.exercise.dto.dto.*;
+import com.hcmus.mela.exercise.dto.request.CreateExerciseRequest;
 import com.hcmus.mela.exercise.dto.request.ExerciseRequest;
-import com.hcmus.mela.exercise.dto.response.ExerciseResponse;
-import com.hcmus.mela.exercise.dto.response.QuestionResponse;
+import com.hcmus.mela.exercise.dto.request.UpdateExerciseRequest;
+import com.hcmus.mela.exercise.dto.response.*;
+import com.hcmus.mela.exercise.exception.ExerciseException;
 import com.hcmus.mela.exercise.mapper.ExerciseMapper;
 import com.hcmus.mela.exercise.mapper.ExerciseStatDetailMapper;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.ExerciseStatus;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
+import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
 import com.hcmus.mela.history.service.ExerciseHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.service.LectureService;
 import com.hcmus.mela.shared.async.AsyncCustomService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
@@ -49,33 +50,15 @@ public class ExerciseServiceImpl implements ExerciseService {
     private final AsyncCustomService asyncService;
 
     @Override
-    public QuestionResponse getExercise(ExerciseRequest exerciseRequest) {
-        exerciseValidationService.validateExercise(exerciseRequest);
-
-        final UUID exerciseId = exerciseRequest.getExerciseId();
-
-        ExerciseDto exerciseDto = exerciseInfoService.findByExerciseId(exerciseId);
-        List<QuestionDto> questionDtoList = new ArrayList<>();
-        if (exerciseDto != null) {
-            questionDtoList = exerciseDto.getQuestions();
-        }
-
-        final String exerciseSuccessMessage = generalMessageAccessor.getMessage(null, EXERCISE_FOUND, exerciseId);
-        log.info(exerciseSuccessMessage);
-
-        return new QuestionResponse(exerciseSuccessMessage, questionDtoList.size(), questionDtoList);
-    }
-
-    @Override
     public ExerciseResponse getAllExercisesInLecture(ExerciseRequest exerciseRequest) {
         exerciseValidationService.validateLecture(exerciseRequest);
 
         UUID lectureId = exerciseRequest.getLectureId();
         CompletableFuture<LectureDto> lectureFuture = asyncService.runAsync(
-                () -> lectureService.getLectureById(lectureId),
+                () -> lectureService.getLectureByIdAndStatus(lectureId, ContentStatus.VERIFIED),
                 null);
         CompletableFuture<List<Exercise>> exerciseFuture = asyncService.runAsync(
-                () -> exerciseRepository.findAllByLectureId(lectureId),
+                () -> exerciseRepository.findAllByLectureIdAndStatus(lectureId, ContentStatus.VERIFIED),
                 Collections.emptyList());
 
         CompletableFuture.allOf(lectureFuture, exerciseFuture).join();
@@ -104,6 +87,99 @@ public class ExerciseServiceImpl implements ExerciseService {
                 exercisesSuccessMessage,
                 exerciseStatDetailDtoList.size(),
                 exerciseStatDetailDtoList);
+    }
+
+    @Override
+    public GetExercisesResponse getExercisesResponse(ExerciseFilterStrategy strategy, UUID userId) {
+        List<ExerciseDetailDto> exercises = strategy.getExercises(userId);
+        if (exercises.isEmpty()) {
+            return new GetExercisesResponse("No exercises found", Collections.emptyList());
+        }
+        return new GetExercisesResponse("Get exercises success", exercises);
+    }
+
+    @Override
+    public CreateExerciseResponse getCreateExerciseResponse(ExerciseFilterStrategy strategy, UUID userId, CreateExerciseRequest request) {
+        Exercise exercise = ExerciseMapper.INSTANCE.createExerciseRequestToExercise(request);
+        exercise.setExerciseId(UUID.randomUUID());
+        exercise.setStatus(ContentStatus.PENDING);
+        exercise.setCreatedBy(userId);
+        ExerciseDto exerciseDto = strategy.createExercise(userId, exercise);
+
+        return new CreateExerciseResponse(
+                "Create exercise successfully",
+                exerciseDto
+        );
+    }
+
+    @Override
+    public void updateExercise(ExerciseFilterStrategy strategy, UUID userId, UUID exerciseId, UpdateExerciseRequest request) {
+        strategy.updateExercise(userId, exerciseId, request);
+    }
+
+    @Override
+    public GetExerciseInfoResponse getExerciseInfoResponse(ExerciseFilterStrategy strategy, UUID userId, UUID exerciseId) {
+        ExerciseDto exerciseDto = strategy.getExerciseById(userId, exerciseId);
+        return new GetExerciseInfoResponse("Get exercise info successfully", exerciseDto);
+    }
+
+    @Override
+    public void denyExercise(UUID exerciseId, String reason) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+        if (exercise.getStatus() == ContentStatus.VERIFIED || exercise.getStatus() == ContentStatus.DELETED) {
+            throw new ExerciseException("Exercise cannot be denied");
+        }
+        exercise.setRejectedReason(reason);
+        exercise.setStatus(ContentStatus.DENIED);
+        exerciseRepository.save(exercise);
+    }
+
+    @Override
+    public void approveExercise(UUID exerciseId) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+        if (exercise.getStatus() == ContentStatus.DELETED) {
+            throw new ExerciseException("Exercise cannot be approved");
+        }
+        if (!lectureService.checkLectureStatus(exercise.getLectureId(), ContentStatus.VERIFIED)) {
+            throw new ExerciseException("Lecture of exercise must be verified before approving exercise");
+        }
+        exercise.setRejectedReason(null);
+        exercise.setStatus(ContentStatus.VERIFIED);
+        exerciseRepository.save(exercise);
+    }
+
+    @Override
+    public boolean checkExerciseStatus(UUID exerciseId, ContentStatus status) {
+        if (exerciseId == null || status == null) {
+            return false;
+        }
+        Exercise exercise = exerciseRepository.findById(exerciseId).orElse(null);
+        return exercise != null && exercise.getStatus() == status;
+    }
+
+    @Override
+    public void deleteExercise(ExerciseFilterStrategy strategy, UUID exerciseId, UUID userId) {
+        strategy.deleteExercise(userId, exerciseId);
+    }
+
+    @Override
+    public QuestionResponse getListQuestionsOfExercise(ExerciseRequest exerciseRequest) {
+        exerciseValidationService.validateExercise(exerciseRequest);
+
+        final UUID exerciseId = exerciseRequest.getExerciseId();
+
+        ExerciseDto exerciseDto = exerciseInfoService.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
+        List<QuestionDto> questionDtoList = new ArrayList<>();
+        if (exerciseDto != null) {
+            questionDtoList = exerciseDto.getQuestions();
+        }
+
+        final String exerciseSuccessMessage = generalMessageAccessor.getMessage(null, EXERCISE_FOUND, exerciseId);
+        log.info(exerciseSuccessMessage);
+
+        return new QuestionResponse(exerciseSuccessMessage, questionDtoList.size(), questionDtoList);
     }
 
     @Override

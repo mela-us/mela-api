@@ -1,5 +1,6 @@
 package com.hcmus.mela.level.strategy;
 
+import com.hcmus.mela.lecture.strategy.LectureFilterForAdminStrategy;
 import com.hcmus.mela.level.dto.dto.LevelDto;
 import com.hcmus.mela.level.dto.request.UpdateLevelRequest;
 import com.hcmus.mela.level.exception.LevelException;
@@ -18,6 +19,8 @@ import java.util.UUID;
 public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
 
     private final LevelRepository levelRepository;
+
+    private final LectureFilterForAdminStrategy lectureFilterStrategy;
 
     @Override
     public List<LevelDto> getLevels(UUID userId) {
@@ -43,6 +46,15 @@ public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
         if (updateLevelRequest.getImageUrl() != null && !updateLevelRequest.getImageUrl().isEmpty()) {
             level.setImageUrl(updateLevelRequest.getImageUrl());
         }
+        levelRepository.save(level);
+    }
+
+    @Override
+    public void deleteLevel(UUID userId, UUID levelId) {
+        Level level = levelRepository.findById(levelId)
+                .orElseThrow(() -> new LevelException("Level not found"));
+        lectureFilterStrategy.deleteLecturesByLevel(userId, levelId);
+        level.setStatus(ContentStatus.DELETED);
         levelRepository.save(level);
     }
 }

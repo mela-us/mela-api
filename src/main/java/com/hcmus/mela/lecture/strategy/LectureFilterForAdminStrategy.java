@@ -1,5 +1,6 @@
 package com.hcmus.mela.lecture.strategy;
 
+import com.hcmus.mela.exercise.strategy.ExerciseFilterForAdminStrategy;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.request.UpdateLectureRequest;
 import com.hcmus.mela.lecture.exception.LectureException;
@@ -26,6 +27,8 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
 
     private final LevelService levelService;
 
+    private final ExerciseFilterForAdminStrategy exerciseFilterForAdminStrategy;
+
     @Override
     public List<LectureDto> getLectures(UUID userId) {
         List<Lecture> lectures = lectureRepository.findAll();
@@ -35,6 +38,60 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
         return lectures.stream()
                 .map(LectureMapper.INSTANCE::lectureToLectureDto)
                 .toList();
+    }
+
+    @Override
+    public LectureDto createLecture(UUID userId, Lecture lecture) {
+        if (lecture.getTopicId() == null || topicService.checkTopicStatus(lecture.getTopicId(), ContentStatus.DELETED)) {
+            throw new LectureException("Topic is not assignable to this lecture");
+        }
+        if (lecture.getLevelId() == null || levelService.checkLevelStatus(lecture.getLevelId(), ContentStatus.DELETED)) {
+            throw new LectureException("Level is not assignable to this lecture");
+        }
+        Lecture savedLecture = lectureRepository.save(lecture);
+        return LectureMapper.INSTANCE.lectureToLectureDto(savedLecture);
+    }
+
+    @Override
+    public LectureDto getLectureById(UUID userId, UUID lectureId) {
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException("Lecture not found"));
+        return LectureMapper.INSTANCE.lectureToLectureDto(lecture);
+    }
+
+    @Override
+    public void deleteLecture(UUID userId, UUID lectureId) {
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException("Lecture not found"));
+        exerciseFilterForAdminStrategy.deleteExercisesByLecture(userId, lectureId);
+        lecture.setStatus(ContentStatus.DELETED);
+        lectureRepository.save(lecture);
+    }
+
+    @Override
+    public void deleteLecturesByTopic(UUID userId, UUID topicId) {
+        List<Lecture> lectures = lectureRepository.findAllByTopicId(topicId);
+        if (lectures.isEmpty()) {
+            return;
+        }
+        for (Lecture lecture : lectures) {
+            exerciseFilterForAdminStrategy.deleteExercisesByLecture(userId, lecture.getLectureId());
+            lecture.setStatus(ContentStatus.DELETED);
+            lectureRepository.save(lecture);
+        }
+    }
+
+    @Override
+    public void deleteLecturesByLevel(UUID userId, UUID levelId) {
+        List<Lecture> lectures = lectureRepository.findAllByLevelId(levelId);
+        if (lectures.isEmpty()) {
+            return;
+        }
+        for (Lecture lecture : lectures) {
+            exerciseFilterForAdminStrategy.deleteExercisesByLecture(userId, lecture.getLectureId());
+            lecture.setStatus(ContentStatus.DELETED);
+            lectureRepository.save(lecture);
+        }
     }
 
     @Override
@@ -56,12 +113,12 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
         if (!updateLectureRequest.getSections().isEmpty()) {
             lecture.setSections(updateLectureRequest.getSections().stream().map(LectureSectionMapper.INSTANCE::updateSectionRequestToSection).toList());
         }
-        if (!topicService.isTopicDeleted(updateLectureRequest.getTopicId())) {
+        if (!topicService.checkTopicStatus(updateLectureRequest.getTopicId(), ContentStatus.DELETED)) {
             lecture.setTopicId(updateLectureRequest.getTopicId());
         } else {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (!levelService.isLevelDeleted(updateLectureRequest.getLevelId())) {
+        if (!levelService.checkLevelStatus(updateLectureRequest.getLevelId(), ContentStatus.DELETED)) {
             lecture.setLevelId(updateLectureRequest.getLevelId());
         } else {
             throw new LectureException("Level is not assignable to this lecture");

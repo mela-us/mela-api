@@ -1,11 +1,11 @@
 package com.hcmus.mela.media.controller;
 
-import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.media.model.UploadType;
 import com.hcmus.mela.shared.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -19,6 +19,7 @@ public class MediaController {
 
     private final StorageService storageService;
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR', 'USER')")
     @GetMapping("/upload")
     public ResponseEntity<Map<String, String>> getUploadUrl(
             @RequestHeader("Authorization") String authorizationHeader,

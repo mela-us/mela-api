@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,13 +23,14 @@ public class LectureHistoryController {
 
     private final JwtTokenService jwtTokenService;
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping()
     @Operation(
             tags = "History Service",
             summary = "Save section",
             description = "Save learning section of user in the system."
     )
-    public ResponseEntity<SaveLectureSectionResponse> saveExerciseHistory(
+    public ResponseEntity<SaveLectureSectionResponse> saveLectureSectionHistory(
             @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody SaveLectureSectionRequest saveLectureSectionRequest) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);

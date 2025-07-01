@@ -105,22 +105,17 @@ public class LevelServiceImpl implements LevelService {
     }
 
     @Override
-    public boolean isLevelDeleted(UUID levelId) {
-        return checkLevelStatus(levelId, ContentStatus.DELETED);
-    }
-
-    @Override
-    public boolean isLevelVerified(UUID levelId) {
-        return checkLevelStatus(levelId, ContentStatus.VERIFIED);
-    }
-
-    @Override
     public boolean checkLevelStatus(UUID levelId, ContentStatus status) {
         if (levelId == null || status == null) {
             return false;
         }
         Level level = levelRepository.findById(levelId).orElse(null);
         return level != null && level.getStatus() == status;
+    }
+
+    @Override
+    public void deleteLevel(LevelFilterStrategy strategy, UUID levelId, UUID userId) {
+        strategy.deleteLevel(userId, levelId);
     }
 
     @Override

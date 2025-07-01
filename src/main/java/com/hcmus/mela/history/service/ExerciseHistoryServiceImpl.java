@@ -1,6 +1,5 @@
 package com.hcmus.mela.history.service;
 
-import com.hcmus.mela.skills.service.UserSkillService;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseGradeService;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
@@ -8,6 +7,7 @@ import com.hcmus.mela.history.dto.dto.AnswerResultDto;
 import com.hcmus.mela.history.dto.dto.ExerciseHistoryDto;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
+import com.hcmus.mela.history.exception.HistoryException;
 import com.hcmus.mela.history.mapper.ExerciseAnswerMapper;
 import com.hcmus.mela.history.mapper.ExerciseHistoryMapper;
 import com.hcmus.mela.history.model.BestResultByExercise;
@@ -17,7 +17,9 @@ import com.hcmus.mela.history.model.ExercisesCountByLecture;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.ProjectConstants;
+import com.hcmus.mela.skills.service.UserSkillService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,9 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
 
     @Override
     public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
+        if (!exerciseInfoService.checkExerciseStatus(exerciseResultRequest.getExerciseId(), ContentStatus.VERIFIED)) {
+            throw new HistoryException("Exercise is not available for grading or does not exist.");
+        }
         List<ExerciseAnswer> exerciseAnswerList = exerciseGradeService.gradeExercise(
                 exerciseResultRequest.getExerciseId(),
                 exerciseResultRequest.getAnswers()

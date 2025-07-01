@@ -36,7 +36,6 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
         Criteria criteria = (keyword != null && !keyword.trim().isEmpty())
                 ? Criteria.where("name").regex(keyword, "i")
                 : new Criteria(); // match all
-
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
     }
@@ -173,10 +172,15 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                 Aggregation.group("lecture_id")
                         .first("completed_at").as("completed_at"),
                 Aggregation.sort(Sort.Direction.DESC, "completed_at"),
-                Aggregation.limit(size),
                 Aggregation.lookup("lectures", "_id", "_id", "lecture"),
                 Aggregation.unwind("lecture"),
+                Aggregation.match(Criteria.where("lecture.status").is("VERIFIED")),
+                Aggregation.limit(size),
                 Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
+                Aggregation.unwind("exercises"),
+                Aggregation.match(Criteria.where("exercises.status").is("VERIFIED")),
+                Aggregation.group("lecture._id", "lecture.level_id", "lecture.topic_id", "lecture.ordinal_number", "lecture.name", "lecture.description", "completed_at")
+                        .push("exercises").as("exercises"),
                 Aggregation.project()
                         .and("lecture._id").as("lecture_id")
                         .and("lecture.level_id").as("level_id")
@@ -192,8 +196,13 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
     private Aggregation buildLectureAggregation(Criteria matchCriteria) {
         return Aggregation.newAggregation(
                 Aggregation.match(matchCriteria),
+                Aggregation.match(Criteria.where("status").is("VERIFIED")),
                 Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description"),
                 Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
+                Aggregation.unwind("exercises"),
+                Aggregation.match(Criteria.where("exercises.status").is("VERIFIED")),
+                Aggregation.group("_id", "level_id", "topic_id", "ordinal_number", "name", "description")
+                        .push("exercises").as("exercises"),
                 Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description")
                         .and("exercises").size().as("total_exercises")
         );

@@ -105,16 +105,6 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public boolean isTopicDeleted(UUID topicId) {
-        return checkTopicStatus(topicId, ContentStatus.DELETED);
-    }
-
-    @Override
-    public boolean isTopicVerified(UUID topicId) {
-        return checkTopicStatus(topicId, ContentStatus.VERIFIED);
-    }
-
-    @Override
     public boolean checkTopicStatus(UUID topicId, ContentStatus status) {
         if (topicId == null || status == null) {
             return false;
@@ -124,8 +114,21 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    public void deleteTopic(TopicFilterStrategy strategy, UUID topicId, UUID userId) {
+        strategy.deleteTopic(userId, topicId);
+    }
+
+    @Override
     public List<TopicDto> getTopics() {
         List<Topic> topics = topicRepository.findAll();
+        return topics.isEmpty()
+                ? Collections.emptyList()
+                : topics.stream().map(TopicMapper.INSTANCE::topicToTopicDto).toList();
+    }
+
+    @Override
+    public List<TopicDto> getVerifiedTopics() {
+        List<Topic> topics = topicRepository.findAllByStatus(ContentStatus.VERIFIED);
         return topics.isEmpty()
                 ? Collections.emptyList()
                 : topics.stream().map(TopicMapper.INSTANCE::topicToTopicDto).toList();

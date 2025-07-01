@@ -1,15 +1,15 @@
 package com.hcmus.mela.skills.service;
 
+import com.hcmus.mela.level.model.Level;
+import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.skills.dto.UserSkillDto;
 import com.hcmus.mela.skills.dto.response.GetUserSkillResponse;
 import com.hcmus.mela.skills.mapper.UserSkillMapper;
 import com.hcmus.mela.skills.model.UserSkill;
 import com.hcmus.mela.skills.repository.UserSkillRepository;
-import com.hcmus.mela.lecture.dto.dto.TopicDto;
-import com.hcmus.mela.lecture.model.Level;
-import com.hcmus.mela.lecture.service.LevelService;
-import com.hcmus.mela.lecture.service.TopicService;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.topic.dto.dto.TopicDto;
+import com.hcmus.mela.topic.service.TopicService;
 import com.hcmus.mela.user.dto.response.GetUserProfileResponse;
 import com.hcmus.mela.user.service.UserService;
 import lombok.RequiredArgsConstructor;

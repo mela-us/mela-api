@@ -15,6 +15,7 @@ import com.hcmus.mela.shared.storage.StorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,6 +30,7 @@ public class ConversationController {
     private final StorageService storageService;
     private final ConversationHistoryService conversationHistoryService;
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("")
     public ResponseEntity<ChatResponseDto> createConversation(
             @Valid @RequestBody CreateConversationRequestDto createConversationRequestDto,
@@ -40,6 +42,7 @@ public class ConversationController {
         return ResponseEntity.ok(chatResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{conversationId}/messages")
     public ResponseEntity<ChatResponseDto> sendMessage(
             @Valid @RequestBody MessageRequestDto messageRequestDto,
@@ -54,6 +57,7 @@ public class ConversationController {
         return ResponseEntity.ok(chatResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{conversationId}/messages/review-submission")
     public ResponseEntity<ChatResponseDto> reviewSubmission(
             @Valid @RequestBody MessageRequestDto messageRequestDto,
@@ -68,6 +72,7 @@ public class ConversationController {
         return ResponseEntity.ok(chatResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{conversationId}/messages/solution")
     public ResponseEntity<ChatResponseDto> getSolution(
             @Valid @RequestBody MessageRequestDto messageRequestDto,
@@ -82,6 +87,7 @@ public class ConversationController {
         return ResponseEntity.ok(chatResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/files/upload-url")
     public ResponseEntity<Map<String, String>> getUploadUrl() {
         Map<String, String> urls = storageService.getUploadConversationFilePreSignedUrl(UUID.randomUUID().toString());
@@ -91,6 +97,7 @@ public class ConversationController {
         );
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("")
     public ResponseEntity<GetConversationHistoryResponseDto> getConversationHistory(
             @Valid @RequestBody GetConversationHistoryRequestDto request,
@@ -101,12 +108,14 @@ public class ConversationController {
         return ResponseEntity.ok(conversationHistoryService.getConversationHistory(request, userId));
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/{conversationId}")
     public ResponseEntity<ConversationInfoDto> getConversation(@PathVariable String conversationId) {
         ConversationInfoDto conversationInfoDto = conversationHistoryService.getConversation(UUID.fromString(conversationId));
         return ResponseEntity.ok(conversationInfoDto);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/{conversationId}/messages")
     public ResponseEntity<GetListMessagesResponseDto> getListMessages(
             @Valid @RequestBody GetListMessagesRequestDto request,
@@ -114,6 +123,7 @@ public class ConversationController {
         return ResponseEntity.ok(conversationHistoryService.getListMessages(request, UUID.fromString(conversationId)));
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @DeleteMapping("/{conversationId}")
     public ResponseEntity<Void> deleteConversation(@PathVariable String conversationId) {
         conversationHistoryService.deleteConversation(UUID.fromString(conversationId));

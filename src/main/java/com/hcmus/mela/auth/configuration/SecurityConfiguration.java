@@ -28,6 +28,8 @@ public class SecurityConfiguration {
 
 	private final JwtAccessDeniedHandler accessDeniedHandler;
 
+	private final CorsConfigurationSource corsConfigurationSource;
+
 	@Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -40,7 +42,7 @@ public class SecurityConfiguration {
 
 		return http
 				.csrf(CsrfConfigurer::disable)
-				.cors(CorsConfigurer::disable)
+				.cors(cors -> cors.configurationSource(corsConfigurationSource))
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.authorizeHttpRequests(request -> request.requestMatchers("/api/register",
 																	      "/api/login",

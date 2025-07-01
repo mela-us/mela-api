@@ -133,6 +133,11 @@ public class QuestionHintServiceImpl implements QuestionHintService {
     public HintResponseDto generateTerms(UUID questionId) {
         Question question = questionService.findByQuestionId(questionId);
 
+        if (question == null) {
+            log.warn("Question with ID {} not found", questionId);
+            throw new IllegalArgumentException("Question not found with ID: " + questionId);
+        }
+
         if (question.getTerms() == null || question.getTerms().isEmpty()) {
             List<String> keys = generateKeys(questionId);
 
@@ -175,8 +180,12 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     @Override
     public HintResponseDto generateGuide(UUID questionId) {
-
         Question question = questionService.findByQuestionId(questionId);
+
+        if (question == null) {
+            log.warn("Question with ID {} not found", questionId);
+            throw new IllegalArgumentException("Question not found with ID: " + questionId);
+        }
 
         if (question.getGuide() == null || question.getGuide().isEmpty()) {
             List<String> keys = generateKeys(questionId);

@@ -13,9 +13,11 @@ import java.util.UUID;
 
 public interface LectureService {
 
-    CreateLectureResponse getCreateLectureResponse(UUID userId, CreateLectureRequest request);
+    CreateLectureResponse getCreateLectureResponse(LectureFilterStrategy strategy, UUID userId, CreateLectureRequest request);
 
     void updateLecture(LectureFilterStrategy strategy, UUID userId, UUID lectureId, UpdateLectureRequest request);
+
+    void deleteLecture(LectureFilterStrategy strategy, UUID lectureId, UUID userId);
 
     void denyLecture(UUID lectureId, String reason);
 
@@ -23,15 +25,13 @@ public interface LectureService {
 
     boolean isLectureAssignableToExercise(UUID lectureId, UUID userId);
 
-    boolean isLectureDeleted(UUID lectureId);
-
-    boolean isLectureVerified(UUID lectureId);
-
     boolean checkLectureStatus(UUID lectureId, ContentStatus status);
 
-    GetLectureInfoResponse getLectureInfoResponse(UUID lectureId);
+    GetLectureInfoResponse getLectureInfoResponse(LectureFilterStrategy strategy, UUID userId, UUID lectureId);
 
     LectureDto getLectureById(UUID lectureId);
+
+    LectureDto getLectureByIdAndStatus(UUID lectureId, ContentStatus status);
 
     Integer getLectureOrdinalNumber(UUID lectureId);
 

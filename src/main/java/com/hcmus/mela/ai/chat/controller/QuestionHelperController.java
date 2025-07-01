@@ -7,6 +7,7 @@ import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class QuestionHelperController {
     private final QuestionConfusionService questionConfusionService;
     private final JwtTokenService jwtTokenService;
 
-
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{questionId}")
     public ResponseEntity<QuestionConfusionResponseDto> resolveQuestionConfusion(
             @PathVariable String questionId,

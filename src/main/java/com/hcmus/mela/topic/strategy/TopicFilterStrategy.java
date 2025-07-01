@@ -10,4 +10,6 @@ public interface TopicFilterStrategy {
     List<TopicDto> getTopics(UUID userId);
 
     void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest);
+
+    void deleteTopic(UUID userId, UUID topicId);
 }

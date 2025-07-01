@@ -1,5 +1,6 @@
 package com.hcmus.mela.topic.strategy;
 
+import com.hcmus.mela.lecture.strategy.LectureFilterForContributorStrategy;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
@@ -18,6 +19,8 @@ import java.util.UUID;
 public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
 
     private final TopicRepository topicRepository;
+
+    private final LectureFilterForContributorStrategy lectureFilterStrategy;
 
     @Override
     public List<TopicDto> getTopics(UUID userId) {
@@ -50,6 +53,18 @@ public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
         }
         topic.setStatus(ContentStatus.PENDING);
         topic.setRejectedReason(null);
+        topicRepository.save(topic);
+    }
+
+    @Override
+    public void deleteTopic(UUID userId, UUID topicId) {
+        Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
+                .orElseThrow(() -> new TopicException("Contributor topic not found"));
+        if (topic.getStatus() == ContentStatus.VERIFIED) {
+            throw new TopicException("Contributor cannot delete a verified topic");
+        }
+        lectureFilterStrategy.deleteLecturesByTopic(userId, topicId);
+        topic.setStatus(ContentStatus.DELETED);
         topicRepository.save(topic);
     }
 }

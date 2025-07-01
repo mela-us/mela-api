@@ -25,13 +25,13 @@ public interface TopicService {
 
     boolean isTopicAssignableToLecture(UUID topicId, UUID userId);
 
-    boolean isTopicDeleted(UUID topicId);
-
-    boolean isTopicVerified(UUID topicId);
-
     boolean checkTopicStatus(UUID topicId, ContentStatus status);
 
+    void deleteTopic(TopicFilterStrategy strategy, UUID topicId, UUID userId);
+
     List<TopicDto> getTopics();
+
+    List<TopicDto> getVerifiedTopics();
 
     TopicDto getTopicById(UUID topicId);
 }

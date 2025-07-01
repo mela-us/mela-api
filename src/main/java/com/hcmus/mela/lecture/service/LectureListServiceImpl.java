@@ -54,7 +54,7 @@ public class LectureListServiceImpl implements LectureListService {
                 () -> exerciseHistoryService.getPassedExerciseCountOfUser(userId),
                 Collections.emptyMap());
         CompletableFuture<List<LecturesByTopicDto>> lecturesByTopicDtoListFuture = asyncService.runAsync(
-                () -> topicService.getTopics()
+                () -> topicService.getVerifiedTopics()
                         .stream()
                         .map(TopicMapper.INSTANCE::topicDtoToLecturesByTopicDto)
                         .toList(),

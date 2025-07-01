@@ -28,6 +28,9 @@ public class ExerciseHistoryCustomRepositoryImpl implements ExerciseHistoryCusto
                         Criteria.where("user_id").is(userId),
                         Criteria.where("score").gte(passScore)
                 )),
+                Aggregation.lookup("exercises", "exercise_id", "_id", "exercise_docs"),
+                Aggregation.unwind("exercise_docs"),
+                Aggregation.match(Criteria.where("exercise_docs.status").is("VERIFIED")),
                 Aggregation.group("lecture_id").addToSet("exercise_id").as("exercises"),
                 Aggregation.project("_id").and("exercises").size().as("total_exercises")
         );

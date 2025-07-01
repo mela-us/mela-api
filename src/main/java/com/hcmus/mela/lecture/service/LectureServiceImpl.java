@@ -14,7 +14,6 @@ import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
-import com.hcmus.mela.level.exception.LevelException;
 import com.hcmus.mela.level.service.LevelService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
@@ -40,14 +39,12 @@ public class LectureServiceImpl implements LectureService {
     private final LevelService levelService;
 
     @Override
-    public CreateLectureResponse getCreateLectureResponse(UUID userId, CreateLectureRequest request) {
+    public CreateLectureResponse getCreateLectureResponse(LectureFilterStrategy strategy, UUID userId, CreateLectureRequest request) {
         Lecture lecture = LectureMapper.INSTANCE.createLectureRequestToLecture(request);
         lecture.setLectureId(UUID.randomUUID());
         lecture.setStatus(ContentStatus.PENDING);
         lecture.setCreatedBy(userId);
-        Lecture savedLecture = lectureRepository.save(lecture);
-
-        LectureDto lectureDto = LectureMapper.INSTANCE.lectureToLectureDto(savedLecture);
+        LectureDto lectureDto = strategy.createLecture(userId, lecture);
 
         return new CreateLectureResponse(
                 "Create lecture successfully",
@@ -61,10 +58,21 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
+    public GetLectureInfoResponse getLectureInfoResponse(LectureFilterStrategy strategy, UUID userId, UUID lectureId) {
+        LectureDto lectureDto = strategy.getLectureById(userId, lectureId);
+        return new GetLectureInfoResponse("Get lecture info successfully", lectureDto);
+    }
+
+    @Override
+    public void deleteLecture(LectureFilterStrategy strategy, UUID lectureId, UUID userId) {
+        strategy.deleteLecture(userId, lectureId);
+    }
+
+    @Override
     public void denyLecture(UUID lectureId, String reason) {
         Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new LectureException("Lecture not found"));
         if (lecture.getStatus() == ContentStatus.VERIFIED || lecture.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Lecture cannot be denied");
+            throw new LectureException("Lecture cannot be denied");
         }
         lecture.setRejectedReason(reason);
         lecture.setStatus(ContentStatus.DENIED);
@@ -75,13 +83,13 @@ public class LectureServiceImpl implements LectureService {
     public void approveLecture(UUID lectureId) {
         Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new LectureException("Lecture not found"));
         if (lecture.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Lecture cannot be approved");
+            throw new LectureException("Lecture cannot be approved");
         }
-        if (!topicService.isTopicVerified(lecture.getTopicId())) {
-            throw new LevelException("Topic of lecture must be verified before approving lecture");
+        if (!topicService.checkTopicStatus(lecture.getTopicId(), ContentStatus.VERIFIED)) {
+            throw new LectureException("Topic of lecture must be verified before approving lecture");
         }
-        if (!levelService.isLevelVerified(lecture.getLevelId())) {
-            throw new LevelException("Level of lecture must be verified before approving lecture");
+        if (!levelService.checkLevelStatus(lecture.getLevelId(), ContentStatus.VERIFIED)) {
+            throw new LectureException("Level of lecture must be verified before approving lecture");
         }
         lecture.setRejectedReason(null);
         lecture.setStatus(ContentStatus.VERIFIED);
@@ -104,16 +112,6 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
-    public boolean isLectureDeleted(UUID lectureId) {
-        return checkLectureStatus(lectureId, ContentStatus.DELETED);
-    }
-
-    @Override
-    public boolean isLectureVerified(UUID lectureId) {
-        return checkLectureStatus(lectureId, ContentStatus.VERIFIED);
-    }
-
-    @Override
     public boolean checkLectureStatus(UUID lectureId, ContentStatus status) {
         if (lectureId == null || status == null) {
             return false;
@@ -123,15 +121,17 @@ public class LectureServiceImpl implements LectureService {
     }
 
     @Override
-    public GetLectureInfoResponse getLectureInfoResponse(UUID lectureId) {
-        Lecture lecture = lectureRepository.findById(lectureId).orElseThrow(() -> new LectureException("Lecture not found"));
-        LectureDto lectureDto = LectureMapper.INSTANCE.lectureToLectureDto(lecture);
-        return new GetLectureInfoResponse("Get lecture info successfully", lectureDto);
+    public LectureDto getLectureById(UUID lectureId) {
+        Lecture lecture = lectureRepository.findByLectureId(lectureId);
+        if (lecture == null) {
+            return null;
+        }
+        return LectureMapper.INSTANCE.lectureToLectureDto(lecture);
     }
 
     @Override
-    public LectureDto getLectureById(UUID lectureId) {
-        Lecture lecture = lectureRepository.findByLectureId(lectureId);
+    public LectureDto getLectureByIdAndStatus(UUID lectureId, ContentStatus status) {
+        Lecture lecture = lectureRepository.findByLectureIdAndStatus(lectureId, status).orElse(null);
         if (lecture == null) {
             return null;
         }
@@ -152,7 +152,7 @@ public class LectureServiceImpl implements LectureService {
     @Override
     public GetLectureSectionsResponse getLectureSections(UUID lectureId) {
         Lecture lecture = lectureRepository.findByLectureId(lectureId);
-        if (lecture == null) {
+        if (lecture == null || lecture.getStatus() != ContentStatus.VERIFIED) {
             return new GetLectureSectionsResponse(
                     generalMessageAccessor.getMessage(null, "get_sections_success"),
                     0,

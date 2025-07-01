@@ -10,4 +10,6 @@ public interface LevelFilterStrategy {
     List<LevelDto> getLevels(UUID userId);
 
     void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest);
+
+    void deleteLevel(UUID userId, UUID levelId);
 }

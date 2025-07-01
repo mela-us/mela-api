@@ -1,5 +1,7 @@
 package com.hcmus.mela.topic.strategy;
 
+import com.hcmus.mela.lecture.strategy.LectureFilterForAdminStrategy;
+import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
@@ -18,6 +20,8 @@ import java.util.UUID;
 public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
 
     private final TopicRepository topicRepository;
+
+    private final LectureFilterForAdminStrategy lectureFilterStrategy;
 
     @Override
     public List<TopicDto> getTopics(UUID userId) {
@@ -43,6 +47,15 @@ public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
         if (updateTopicRequest.getImageUrl() != null && !updateTopicRequest.getImageUrl().isEmpty()) {
             topic.setImageUrl(updateTopicRequest.getImageUrl());
         }
+        topicRepository.save(topic);
+    }
+
+    @Override
+    public void deleteTopic(UUID userId, UUID topicId) {
+        Topic topic = topicRepository.findById(topicId)
+                .orElseThrow(() -> new TopicException("Topic not found"));
+        lectureFilterStrategy.deleteLecturesByTopic(userId, topicId);
+        topic.setStatus(ContentStatus.DELETED);
         topicRepository.save(topic);
     }
 }

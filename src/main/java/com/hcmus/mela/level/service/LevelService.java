@@ -24,11 +24,9 @@ public interface LevelService {
 
     boolean isLevelAssignableToLecture(UUID levelId, UUID userId);
 
-    boolean isLevelDeleted(UUID levelId);
-
-    boolean isLevelVerified(UUID levelId);
-
     boolean checkLevelStatus(UUID levelId, ContentStatus status);
+
+    void deleteLevel(LevelFilterStrategy strategy, UUID levelId, UUID userId);
 
     Level findLevelByLevelId(UUID id);
 
