@@ -1,4 +1,4 @@
-package com.example.banking.backend.config;
+package com.hcmus.mela.auth.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
