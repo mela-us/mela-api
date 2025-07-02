@@ -30,7 +30,8 @@ import org.springframework.lang.NonNull;
         "com.hcmus.mela.review.repository",
         "com.hcmus.mela.suggestion.repository",
         "com.hcmus.mela.token.repository",
-        "com.hcmus.mela.skills.repository"
+        "com.hcmus.mela.skills.repository",
+        "com.hcmus.mela.test.repository"
 })
 @RequiredArgsConstructor
 public class DatabaseConfiguration {

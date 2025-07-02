@@ -133,4 +133,13 @@ public class UserServiceImpl implements UserService {
             redisService.storeAccessToken(deleteAccountRequest.getAccessToken());
             redisService.storeRefreshToken(deleteAccountRequest.getRefreshToken());
     }
+
+    @Override
+    public UUID getLevelId(UUID userId) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new BadRequestException(exceptionMessageAccessor.getMessage(null, "user_not_found"));
+        }
+        return user.getLevelId();
+    }
 }
