@@ -76,7 +76,7 @@ public class UserSkillServiceImpl implements UserSkillService {
                         .userId(userId)
                         .levelId(levelId)
                         .topicId(topic.getTopicId())
-                        .points(0.0)
+                        .points(0)
                         .build();
 
                 UserSkill savedUserSkill = userSkillRepository.save(userSkill);
@@ -97,11 +97,12 @@ public class UserSkillServiceImpl implements UserSkillService {
                     .userId(userId)
                     .levelId(levelId)
                     .topicId(topicId)
-                    .points(0.0)
+                    .points(0)
                     .build();
         }
-
-        userSkill.setPoints(correctAnswers.doubleValue() - incorrectAnswers.doubleValue());
+        int bonusPoints = correctAnswers - incorrectAnswers;
+        int points = Math.max(userSkill.getPoints() + bonusPoints, 0);
+        userSkill.setPoints(points);
 
         userSkillRepository.updateUserSkill(userSkill);
 

@@ -1,6 +1,5 @@
-package com.hcmus.mela.shared.configuration;
+package com.hcmus.mela.token.interceptor;
 
-import com.hcmus.mela.token.interceptor.AiUsageInterceptor;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -8,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @AllArgsConstructor
-public class WebConfig implements WebMvcConfigurer {
+public class AiUsageInterceptorConfig implements WebMvcConfigurer {
     private AiUsageInterceptor aiUsageInterceptor;
 
     @Override
