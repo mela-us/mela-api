@@ -9,5 +9,5 @@ import lombok.*;
 @AllArgsConstructor
 public class UserSkillDto {
     private String topicName;
-    private Double points;
+    private Integer points;
 }

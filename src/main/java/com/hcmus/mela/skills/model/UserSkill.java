@@ -28,5 +28,5 @@ public class UserSkill {
     private UUID topicId;
 
     @Field("points")
-    private Double points;
+    private Integer points;
 }
