@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class LevelServiceImpl implements LevelService {
+public class LevelQueryServiceImpl implements LevelQueryService {
 
     private final LevelRepository levelRepository;
 

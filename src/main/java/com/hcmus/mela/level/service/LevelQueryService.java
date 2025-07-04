@@ -10,23 +10,11 @@ import com.hcmus.mela.shared.type.ContentStatus;
 
 import java.util.UUID;
 
-public interface LevelService {
+public interface LevelQueryService {
 
     GetLevelsResponse getLevelsResponse(LevelFilterStrategy levelFilterStrategy, UUID userId);
 
-    CreateLevelResponse getCreateLevelResponse(UUID creatorId, CreateLevelRequest createLevelRequest);
-
-    void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request);
-
-    void denyLevel(UUID levelId, String reason);
-
-    void approveLevel(UUID levelId);
-
-    boolean isLevelAssignableToLecture(UUID levelId, UUID userId);
-
     boolean checkLevelStatus(UUID levelId, ContentStatus status);
-
-    void deleteLevel(LevelFilterStrategy strategy, UUID levelId, UUID userId);
 
     Level findLevelByLevelId(UUID id);
 

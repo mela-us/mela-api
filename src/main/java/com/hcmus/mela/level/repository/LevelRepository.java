@@ -13,7 +13,9 @@ public interface LevelRepository extends MongoRepository<Level, UUID> {
 
     List<Level> findAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
 
-    Optional<Level> findByLevelIdAndCreatedBy(UUID levelId, UUID creatorId);
+    Optional<Level> findByName(String levelTitle);
 
-    Level findByName(String levelTitle);
+    Optional<Level> findByLevelIdAndCreatedBy(UUID levelId, UUID userId);
+
+    Optional<Level> findByLevelIdAndStatus(UUID levelId, ContentStatus status);
 }
