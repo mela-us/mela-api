@@ -16,7 +16,7 @@ import com.hcmus.mela.history.model.ExerciseHistory;
 import com.hcmus.mela.history.model.ExercisesCountByLecture;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
-import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.ProjectConstants;
 import com.hcmus.mela.skills.service.UserSkillService;
@@ -34,16 +34,13 @@ import java.util.stream.Collectors;
 public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
 
     private final ExerciseHistoryRepository exerciseHistoryRepository;
-    private final LectureService lectureService;
+    private final LectureInfoService lectureInfoService;
     private final ExerciseInfoService exerciseInfoService;
     private final ExerciseGradeService exerciseGradeService;
     private final UserSkillService userSkillService;
 
     @Override
     public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
-        if (!exerciseInfoService.checkExerciseStatus(exerciseResultRequest.getExerciseId(), ContentStatus.VERIFIED)) {
-            throw new HistoryException("Exercise is not available for grading or does not exist.");
-        }
         List<ExerciseAnswer> exerciseAnswerList = exerciseGradeService.gradeExercise(
                 exerciseResultRequest.getExerciseId(),
                 exerciseResultRequest.getAnswers()
@@ -71,8 +68,12 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
             LocalDateTime completedAt,
             UUID exerciseId,
             List<ExerciseAnswer> answers) {
-        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseId(exerciseId);
-        LectureDto lectureInfo = lectureService.getLectureById(exerciseInfo.getLectureId());
+        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
+        if (exerciseInfo == null) {
+            log.error("Exercise with id {} not found or not verified", exerciseId);
+            throw new HistoryException("Exercise not found or not verified");
+        }
+        LectureDto lectureInfo = lectureInfoService.findLectureByLectureId(exerciseInfo.getLectureId());
 
         Double score = answers.stream()
                 .filter(ExerciseAnswer::getIsCorrect)

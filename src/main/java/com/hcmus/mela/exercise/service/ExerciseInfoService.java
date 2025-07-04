@@ -9,7 +9,5 @@ public interface ExerciseInfoService {
 
     ExerciseDto findByExerciseId(UUID exerciseId);
 
-    boolean checkExerciseStatus(UUID exerciseId, ContentStatus status);
-
     ExerciseDto findByExerciseIdAndStatus(UUID exerciseId, ContentStatus status);
 }

@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetLecturesResponse {
+public class GetAllLecturesResponse {
 
     private String message;
 

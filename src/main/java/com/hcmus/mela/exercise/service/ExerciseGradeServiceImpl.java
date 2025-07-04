@@ -5,6 +5,7 @@ import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.prompts.AiGraderPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
+import com.hcmus.mela.exercise.exception.ExerciseException;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
@@ -26,22 +27,24 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class ExerciseGradeServiceImpl implements ExerciseGradeService {
 
-    private final float CORRECT_SCORE = 0.7f;
+    private static final float CORRECT_SCORE = 0.7f;
     private final AiWebClient aiWebClient;
     private final AiClientProperties.AiGrader aiGraderProperties;
     private final AiGraderPrompt aiGraderPrompt;
     private final AiRequestBodyFactory aiRequestBodyFactory;
     private final AiResponseFilter aiResponseFilter;
-    private final ExerciseRepository exerciseRepository;
     private final AsyncCustomService asyncService;
+    private final ExerciseRepository exerciseRepository;
 
-    public ExerciseGradeServiceImpl(AiWebClient aiWebClient,
-                                    AiClientProperties aiClientProperties,
-                                    AiGraderPrompt aiGraderPrompt,
-                                    AiRequestBodyFactory aiRequestBodyFactory,
-                                    ExerciseRepository exerciseRepository,
-                                    AiResponseFilter aiResponseFilter,
-                                    AsyncCustomService asyncService) {
+    public ExerciseGradeServiceImpl(
+            AiWebClient aiWebClient,
+            AiClientProperties aiClientProperties,
+            AiGraderPrompt aiGraderPrompt,
+            AiRequestBodyFactory aiRequestBodyFactory,
+            ExerciseRepository exerciseRepository,
+            AiResponseFilter aiResponseFilter,
+            AsyncCustomService asyncService
+    ) {
         this.aiWebClient = aiWebClient;
         this.aiGraderProperties = aiClientProperties.getAiGrader();
         this.aiGraderPrompt = aiGraderPrompt;
@@ -52,30 +55,30 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
     }
 
     @Override
-    public List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> exerciseAnswerList) {
-        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
-        if (exercise == null) throw new IllegalArgumentException("Exercise not found with id: " + exerciseId);
+    public List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> answers) {
+        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED)
+                .orElseThrow(() -> new ExerciseException("Exercise not found with id: " + exerciseId));
         if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty()) {
-            throw new IllegalArgumentException("Exercise does not contain any questions.");
+            throw new ExerciseException("Exercise does not contain any questions");
         }
-        List<Question> questions = exercise.getQuestions();
 
-        List<CompletableFuture<ExerciseAnswer>> answersFutures = new ArrayList<>();
-        for (ExerciseAnswerDto exerciseAnswerDto : exerciseAnswerList) {
-            ExerciseAnswer answer = ExerciseAnswerMapper.INSTANCE.convertToExerciseAnswer(exerciseAnswerDto);
+        List<Question> questions = exercise.getQuestions();
+        List<CompletableFuture<ExerciseAnswer>> futures = new ArrayList<>();
+        for (ExerciseAnswerDto exeAnswer : answers) {
+            ExerciseAnswer answer = ExerciseAnswerMapper.INSTANCE.convertToExerciseAnswer(exeAnswer);
             answer.setFeedback("");
             answer.setIsCorrect(false);
             CompletableFuture<ExerciseAnswer> future = asyncService.runComplexAsync(
                     () -> {
-                        if (exerciseAnswerDto.getQuestionId() == null) {
-                            throw new IllegalArgumentException("Answer must have a question ID.");
+                        if (exeAnswer.getQuestionId() == null) {
+                            throw new ExerciseException("Question is unknown");
                         }
                         Question question = questions.stream()
-                                .filter(q -> q.getQuestionId().equals(exerciseAnswerDto.getQuestionId()))
+                                .filter(q -> q.getQuestionId().equals(exeAnswer.getQuestionId()))
                                 .findFirst()
                                 .orElse(null);
                         if (question != null) {
-                            Map<String, Object> result = checkQuestionAnswer(exerciseAnswerDto, question);
+                            Map<String, Object> result = evaluateQuestion(exeAnswer, question);
                             answer.setIsCorrect((Boolean) result.get("isCorrect"));
                             answer.setFeedback((String) result.get("feedback"));
                         }
@@ -83,36 +86,37 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
                     },
                     answer
             );
-            answersFutures.add(future);
+            futures.add(future);
         }
-        CompletableFuture.allOf(answersFutures.toArray(new CompletableFuture[0])).join();
-        return answersFutures.stream()
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return futures.stream()
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    public Map<String, Object> checkQuestionAnswer(ExerciseAnswerDto answerDto, Question question) {
+    @Override
+    public Map<String, Object> evaluateQuestion(ExerciseAnswerDto answer, Question question) {
         if (question.getQuestionType() == QuestionType.FILL_IN_THE_BLANK) {
-            return checkBlankAnswer(answerDto, question);
+            return checkBlankAnswer(answer, question);
         } else if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-            return checkMultipleChoiceAnswer(answerDto, question);
+            return checkMultipleChoiceAnswer(answer, question);
         } else if (question.getQuestionType() == QuestionType.ESSAY) {
-            return checkEssayAnswer(answerDto, question);
+            return checkEssayAnswer(answer, question);
         } else {
-            throw new IllegalArgumentException("Unsupported question type: " + question.getQuestionType());
+            throw new ExerciseException("Unsupported question type: " + question.getQuestionType());
         }
     }
 
-    private Map<String, Object> checkMultipleChoiceAnswer(ExerciseAnswerDto answerDto, Question question) {
+    private Map<String, Object> checkMultipleChoiceAnswer(ExerciseAnswerDto answer, Question question) {
         if (question.getOptions() == null || question.getOptions().isEmpty()) {
             return Map.of("isCorrect", false, "feedback", "");
         }
-        if (answerDto.getSelectedOption() == null || answerDto.getSelectedOption() < 1 || answerDto.getSelectedOption() > question.getOptions().size()) {
+        if (answer.getSelectedOption() == null || answer.getSelectedOption() < 1 || answer.getSelectedOption() > question.getOptions().size()) {
             return Map.of("isCorrect", false, "feedback", "");
         }
         Option option = question.getOptions().stream()
-                .filter(opt -> opt.getOrdinalNumber() == answerDto.getSelectedOption().intValue())
+                .filter(opt -> opt.getOrdinalNumber() == answer.getSelectedOption().intValue())
                 .findFirst()
                 .orElse(null);
         if (option != null && option.getIsCorrect()) {
@@ -121,22 +125,22 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
         return Map.of("isCorrect", false, "feedback", "");
     }
 
-    private Map<String, Object> checkBlankAnswer(ExerciseAnswerDto answerDto, Question question) {
+    private Map<String, Object> checkBlankAnswer(ExerciseAnswerDto answer, Question question) {
         if (question.getBlankAnswer() == null || question.getBlankAnswer().isEmpty()) {
             return Map.of("isCorrect", false, "feedback", "");
         }
-        String normalizedAnswer = TextUtils.normalizeText(answerDto.getBlankAnswer());
+        String normalizedAnswer = TextUtils.normalizeText(answer.getBlankAnswer());
         String normalizedSolution = TextUtils.normalizeText(question.getBlankAnswer());
         return Map.of("isCorrect", normalizedAnswer.equalsIgnoreCase(normalizedSolution), "feedback", "");
     }
 
-    private Map<String, Object> checkEssayAnswer(ExerciseAnswerDto answerDto, Question question) {
+    private Map<String, Object> checkEssayAnswer(ExerciseAnswerDto answer, Question question) {
         Object requestBody = aiRequestBodyFactory.createRequestBodyForAiGrader(
                 aiGraderPrompt.formatInstruction(CORRECT_SCORE),
                 question.getContent(),
                 question.getSolution(),
-                answerDto.getBlankAnswer(),
-                answerDto.getImages(),
+                answer.getBlankAnswer(),
+                answer.getImages(),
                 aiGraderProperties);
 
         Object responseObject = aiWebClient.fetchAiResponse(aiGraderProperties, requestBody);

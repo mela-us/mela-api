@@ -21,23 +21,13 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
 
     @Override
     public ExerciseDto findByExerciseId(UUID exerciseId) {
-        Exercise exercise = exerciseRepository.findByExerciseId(exerciseId);
-        return exercise == null
-                ? null
-                : ExerciseMapper.INSTANCE.converToExerciseDto(exercise);
-    }
-
-    @Override
-    public boolean checkExerciseStatus(UUID exerciseId, ContentStatus status) {
-        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, status);
-        return exercise != null;
+        Exercise exercise = exerciseRepository.findById(exerciseId).orElse(null);
+        return exercise == null ? null : ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
     }
 
     @Override
     public ExerciseDto findByExerciseIdAndStatus(UUID exerciseId, ContentStatus status) {
-        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, status);
-        return exercise == null
-                ? null
-                : ExerciseMapper.INSTANCE.converToExerciseDto(exercise);
+        Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, status).orElse(null);
+        return exercise == null ? null : ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
     }
 }

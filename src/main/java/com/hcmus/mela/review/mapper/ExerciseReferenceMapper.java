@@ -1,6 +1,6 @@
 package com.hcmus.mela.review.mapper;
 
-import com.hcmus.mela.review.dto.ExerciseReferenceDto;
+import com.hcmus.mela.review.dto.dto.ExerciseReferenceDto;
 import com.hcmus.mela.review.model.ExerciseReference;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

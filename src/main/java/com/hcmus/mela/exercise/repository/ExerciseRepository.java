@@ -10,11 +10,11 @@ import java.util.UUID;
 
 public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, ExerciseCustomRepository {
 
-    Exercise findByExerciseId(UUID exerciseId);
+    Optional<Exercise> findByExerciseIdAndStatus(UUID exerciseId, ContentStatus status);
 
-    Exercise findByExerciseIdAndStatus(UUID exerciseId, ContentStatus status);
+    Optional<Exercise> findByQuestionsQuestionIdAndStatus(UUID questionId, ContentStatus status);
 
-    Exercise findByQuestionsQuestionId(UUID questionId);
+    Optional<Exercise> findByQuestionsQuestionId(UUID questionId);
 
     Optional<Exercise> findByExerciseIdAndCreatedBy(UUID exerciseId, UUID creatorId);
 

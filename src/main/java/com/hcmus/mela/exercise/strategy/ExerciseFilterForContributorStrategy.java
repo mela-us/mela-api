@@ -8,7 +8,7 @@ import com.hcmus.mela.exercise.mapper.ExerciseMapper;
 import com.hcmus.mela.exercise.mapper.QuestionMapper;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
-import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,8 +21,7 @@ import java.util.UUID;
 public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrategy {
 
     private final ExerciseRepository exerciseRepository;
-
-    private final LectureService lectureService;
+    private final LectureStatusService lectureStatusService;
 
     @Override
     public List<ExerciseDetailDto> getExercises(UUID userId) {
@@ -46,11 +45,11 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
 
     @Override
     public ExerciseDto createExercise(UUID userId, Exercise exercise) {
-        if (exercise.getLectureId() == null || lectureService.isLectureAssignableToExercise(exercise.getLectureId(), userId)) {
+        if (exercise.getLectureId() == null || lectureStatusService.isLectureAssignableToExercise(userId, exercise.getLectureId())) {
             throw new ExerciseException("Lecture is not assignable to this exercise");
         }
         Exercise savedExercise = exerciseRepository.save(exercise);
-        return ExerciseMapper.INSTANCE.converToExerciseDto(savedExercise);
+        return ExerciseMapper.INSTANCE.exerciseToExerciseDto(savedExercise);
     }
 
     @Override
@@ -61,7 +60,7 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
             throw new ExerciseException("Exercise has been deleted");
         }
         if (exercise.getCreatedBy().equals(userId) || exercise.getStatus() == ContentStatus.VERIFIED) {
-            return ExerciseMapper.INSTANCE.converToExerciseDto(exercise);
+            return ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
         }
         throw new ExerciseException("Contributor cannot view this exercise");
     }
@@ -73,7 +72,7 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
         if (exercise.getStatus() == ContentStatus.DELETED || exercise.getStatus() == ContentStatus.VERIFIED) {
             throw new ExerciseException("Contributor cannot update a deleted or verified exercise");
         }
-        if (!lectureService.isLectureAssignableToExercise(updateRequest.getLectureId(), userId)) {
+        if (!lectureStatusService.isLectureAssignableToExercise(userId, updateRequest.getLectureId())) {
             exercise.setLectureId(updateRequest.getLectureId());
         } else {
             throw new ExerciseException("Lecture is not assignable to this exercise");

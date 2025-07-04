@@ -6,13 +6,17 @@ import com.hcmus.mela.exercise.dto.request.DenyExerciseRequest;
 import com.hcmus.mela.exercise.dto.request.ExerciseRequest;
 import com.hcmus.mela.exercise.dto.request.UpdateExerciseRequest;
 import com.hcmus.mela.exercise.dto.response.*;
-import com.hcmus.mela.exercise.service.ExerciseService;
+import com.hcmus.mela.exercise.service.ExerciseCommandService;
+import com.hcmus.mela.exercise.service.ExerciseQueryService;
+import com.hcmus.mela.exercise.service.ExerciseQuestionService;
+import com.hcmus.mela.exercise.service.ExerciseStatusService;
 import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
 import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +30,11 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class ExerciseController {
 
-    private final ExerciseService exerciseService;
-
+    private final ExerciseQuestionService exerciseQuestionService;
+    private final ExerciseQueryService exerciseQueryService;
+    private final ExerciseStatusService exerciseStatusService;
+    private final ExerciseCommandService exerciseCommandService;
     private final JwtTokenService jwtTokenService;
-
     private final Map<String, ExerciseFilterStrategy> strategies;
 
     @PreAuthorize("hasAuthority('USER')")
@@ -39,7 +44,7 @@ public class ExerciseController {
             summary = "Get sections",
             description = "Retrieves a list of exercises belonging to a lecture from the system."
     )
-    public ResponseEntity<ExerciseResponse> getExerciseInLecture(
+    public ResponseEntity<GetExercisesInLectureResponse> getExerciseInLecture(
             @Parameter(description = "Lecture id", example = "54c3abc5-3e8b-4017-acc2-c1005cd51c28")
             @PathVariable String lectureId,
             @RequestHeader("Authorization") String authorizationHeader) {
@@ -47,9 +52,9 @@ public class ExerciseController {
         ExerciseRequest exerciseRequest = new ExerciseRequest(null, UUID.fromString(lectureId), userId);
 
         log.info("Getting exercises for lecture: {}", lectureId);
-        final ExerciseResponse exerciseResponse = exerciseService.getAllExercisesInLecture(exerciseRequest);
+        final GetExercisesInLectureResponse getExercisesInLectureResponse = exerciseQueryService.getExercisesByLectureId(UUID.fromString(lectureId), userId);
 
-        return ResponseEntity.ok(exerciseResponse);
+        return ResponseEntity.ok(getExercisesInLectureResponse);
     }
 
     @PreAuthorize("hasAuthority('USER')")
@@ -67,51 +72,60 @@ public class ExerciseController {
         ExerciseRequest exerciseRequest = new ExerciseRequest(UUID.fromString(exerciseId), null, userId);
 
         log.info("Getting questions for exercise: {}", exerciseId);
-        final QuestionResponse exerciseResponse = exerciseService.getListQuestionsOfExercise(exerciseRequest);
+        final QuestionResponse exerciseResponse = exerciseQuestionService.findQuestionsByExerciseId(UUID.fromString(exerciseId), userId);
 
         return ResponseEntity.ok(exerciseResponse);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @GetMapping(value = "/exercises")
-    public ResponseEntity<GetExercisesResponse> getAllExercisesRequest(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<GetAllExercisesResponse> getAllExercisesRequest(@RequestHeader("Authorization") String authorizationHeader) {
         log.info("Getting exercises in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
-        GetExercisesResponse response = exerciseService.getExercisesResponse(strategy, userId);
+        GetAllExercisesResponse response = exerciseQueryService.getAllExercises(strategy, userId);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PostMapping(value = "/exercises")
     public ResponseEntity<CreateExerciseResponse> createExerciseRequest(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody CreateExerciseRequest createExerciseRequest) {
-        log.info("Creating exercise");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
-        CreateExerciseResponse response = exerciseService.getCreateExerciseResponse(strategy, userId, createExerciseRequest);
-
-        return ResponseEntity.status(201).body(response);
+            @RequestBody CreateExerciseRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("Creating exercise {}", request.getExerciseName());
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString().toUpperCase());
+        CreateExerciseResponse response = exerciseCommandService.createExercise(strategy, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PutMapping(value = "/exercises/{exerciseId}")
     public ResponseEntity<Map<String, String>> updateExerciseRequest(
             @PathVariable UUID exerciseId,
-            @RequestBody UpdateExerciseRequest updateExerciseRequest,
-            @RequestHeader("Authorization") String authorizationHeader) {
-        log.info("Updating exercise");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
-        exerciseService.updateExercise(strategy, userId, exerciseId, updateExerciseRequest);
+            @RequestBody UpdateExerciseRequest request,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("Updating exercise {}", exerciseId);
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString().toUpperCase());
+        exerciseCommandService.updateExercise(strategy, userId, exerciseId, request);
+        return ResponseEntity.ok(Map.of("message", "Exercise updated successfully"));
+    }
 
-        return ResponseEntity.ok(
-                Map.of("message", "Exercise updated successfully")
-        );
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @DeleteMapping("/exercises/{exerciseId}")
+    public ResponseEntity<Map<String, String>> deleteExerciseRequest(
+            @PathVariable UUID exerciseId,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("Deleting exercise {}", exerciseId);
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString().toUpperCase());
+        exerciseCommandService.deleteExercise(strategy, userId, exerciseId);
+        return ResponseEntity.ok(Map.of("message", "Exercise deleted successfully"));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
@@ -123,37 +137,25 @@ public class ExerciseController {
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
-        GetExerciseInfoResponse response = exerciseService.getExerciseInfoResponse(strategy, userId, exerciseId);
+        GetExerciseInfoResponse response = exerciseQueryService.getExerciseInfoByExerciseId(strategy, userId, exerciseId);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/exercises/{exerciseId}/deny")
-    public ResponseEntity<Map<String, String>> denyExerciseRequest(@PathVariable UUID exerciseId, @RequestBody DenyExerciseRequest denyExerciseRequest) {
-        log.info("Deny exercise");
-        exerciseService.denyExercise(exerciseId, denyExerciseRequest.getReason());
+    public ResponseEntity<Map<String, String>> denyExerciseRequest(
+            @PathVariable UUID exerciseId,
+            @RequestBody DenyExerciseRequest request) {
+        log.info("Deny exercise {}", exerciseId);
+        exerciseStatusService.denyExercise(exerciseId, request.getReason());
         return ResponseEntity.ok(Map.of("message", "Exercise denied successfully"));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/exercises/{exerciseId}/approve")
     public ResponseEntity<Map<String, String>> approveExerciseRequest(@PathVariable UUID exerciseId) {
-        log.info("Approve exercise");
-        exerciseService.approveExercise(exerciseId);
+        log.info("Approve exercise {}", exerciseId);
+        exerciseStatusService.approveExercise(exerciseId);
         return ResponseEntity.ok(Map.of("message", "Exercise approved successfully"));
-    }
-
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
-    @DeleteMapping("/exercises/{exerciseId}")
-    public ResponseEntity<Map<String, String>> deleteExerciseRequest(
-            @PathVariable UUID exerciseId,
-            @RequestHeader("Authorization") String authorizationHeader) {
-        log.info("Delete exercise");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
-        exerciseService.deleteExercise(strategy, exerciseId, userId);
-
-        return ResponseEntity.ok(Map.of("message", "Exercise deleted successfully"));
     }
 }
