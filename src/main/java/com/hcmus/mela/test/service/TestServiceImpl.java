@@ -63,4 +63,20 @@ public class TestServiceImpl implements TestService {
                 .build();
     }
 
+    @Override
+    public Question getQuestionById(UUID questionId) {
+        TestQuestion test = testQuestionRepository.findByQuestionsQuestionId(questionId);
+
+        if (test == null) return null;
+
+        return test.getQuestions().stream()
+                .filter(q -> q.getQuestionId().equals(questionId))
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public TestQuestion getTestByQuestionId(UUID questionId) {
+        return testQuestionRepository.findByQuestionsQuestionId(questionId);
+    }
+
 }
