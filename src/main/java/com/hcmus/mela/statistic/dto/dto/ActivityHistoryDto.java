@@ -27,4 +27,6 @@ public class ActivityHistoryDto {
     private ExerciseActivityDto exercise;
 
     private SectionActivityDto section;
+
+    private TestActivityDto test;
 }
