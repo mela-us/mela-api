@@ -8,9 +8,9 @@ import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
-import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.level.service.LevelStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.topic.service.TopicService;
+import com.hcmus.mela.topic.service.TopicStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +22,8 @@ import java.util.UUID;
 public class LectureFilterForContributorStrategy implements LectureFilterStrategy {
 
     private final LectureRepository lectureRepository;
-
-    private final TopicService topicService;
-
-    private final LevelService levelService;
-
+    private final LevelStatusService levelStatusService;
+    private final TopicStatusService topicStatusService;
     private final ExerciseFilterForContributorStrategy exerciseFilterForContributorStrategy;
 
     @Override
@@ -47,10 +44,10 @@ public class LectureFilterForContributorStrategy implements LectureFilterStrateg
 
     @Override
     public LectureDto createLecture(UUID userId, Lecture lecture) {
-        if (lecture.getTopicId() == null || topicService.isTopicAssignableToLecture(lecture.getLectureId(), userId)) {
+        if (lecture.getTopicId() == null || topicStatusService.isTopicAssignableToLecture(userId, lecture.getLectureId())) {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (lecture.getLevelId() == null || levelService.isLevelAssignableToLecture(lecture.getLevelId(), userId)) {
+        if (lecture.getLevelId() == null || levelStatusService.isLevelAssignableToLecture(userId, lecture.getLevelId())) {
             throw new LectureException("Level is not assignable to this lecture");
         }
         Lecture savedLecture = lectureRepository.save(lecture);
@@ -128,12 +125,12 @@ public class LectureFilterForContributorStrategy implements LectureFilterStrateg
         if (!updateLectureRequest.getSections().isEmpty()) {
             lecture.setSections(updateLectureRequest.getSections().stream().map(LectureSectionMapper.INSTANCE::updateSectionRequestToSection).toList());
         }
-        if (topicService.isTopicAssignableToLecture(updateLectureRequest.getTopicId(), userId)) {
+        if (topicStatusService.isTopicAssignableToLecture(userId, updateLectureRequest.getTopicId())) {
             lecture.setTopicId(updateLectureRequest.getTopicId());
         } else {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (levelService.isLevelAssignableToLecture(updateLectureRequest.getLevelId(), userId)) {
+        if (levelStatusService.isLevelAssignableToLecture(userId, updateLectureRequest.getLevelId())) {
             lecture.setLevelId(updateLectureRequest.getLevelId());
         } else {
             throw new LectureException("Level is not assignable to this lecture");

@@ -9,7 +9,8 @@ import com.hcmus.mela.history.model.LectureCompletedSection;
 import com.hcmus.mela.history.model.LectureHistory;
 import com.hcmus.mela.history.repository.LectureHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
-import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.service.LectureInfoService;
+import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,16 +24,16 @@ import java.util.*;
 public class LectureHistoryServiceImpl implements LectureHistoryService {
 
     private final LectureHistoryRepository lectureHistoryRepository;
-
-    private final LectureService lectureService;
+    private final LectureStatusService lectureStatusService;
+    private final LectureInfoService lectureInfoService;
 
     @Override
     public SaveLectureSectionResponse saveSection(UUID userId, SaveLectureSectionRequest saveLectureSectionRequest) {
-        if (!lectureService.checkLectureStatus(saveLectureSectionRequest.getLectureId(), ContentStatus.VERIFIED)) {
+        if (!lectureStatusService.isLectureInStatus(saveLectureSectionRequest.getLectureId(), ContentStatus.VERIFIED)) {
             throw new HistoryException("Lecture is not available for saving section or does not exist.");
         }
         LectureHistory lectureHistory = lectureHistoryRepository.findByLectureIdAndUserId(saveLectureSectionRequest.getLectureId(), userId);
-        LectureDto lectureInfo = lectureService.getLectureById(saveLectureSectionRequest.getLectureId());
+        LectureDto lectureInfo = lectureInfoService.findLectureByLectureId(saveLectureSectionRequest.getLectureId());
 
         if (lectureInfo == null) {
             throw new HistoryException("Lecture not found for id: " + saveLectureSectionRequest.getLectureId());

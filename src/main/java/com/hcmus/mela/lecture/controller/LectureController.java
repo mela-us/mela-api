@@ -6,14 +6,16 @@ import com.hcmus.mela.lecture.dto.request.DenyLectureRequest;
 import com.hcmus.mela.lecture.dto.request.UpdateLectureRequest;
 import com.hcmus.mela.lecture.dto.response.*;
 import com.hcmus.mela.lecture.exception.LectureException;
-import com.hcmus.mela.lecture.service.LectureListService;
-import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.service.LectureCommandService;
+import com.hcmus.mela.lecture.service.LectureQueryService;
+import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,97 +29,92 @@ import java.util.UUID;
 @Slf4j
 public class LectureController {
 
-    private final LectureListService lectureListService;
-
-    private final LectureService lectureService;
-
+    private final LectureQueryService lectureQueryService;
+    private final LectureCommandService lectureCommandService;
+    private final LectureStatusService lectureStatusService;
     private final JwtTokenService jwtTokenService;
-
     private final Map<String, LectureFilterStrategy> strategies;
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @GetMapping("/all")
-    public ResponseEntity<GetLecturesResponse> getAllLecturesRequest(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<GetAllLecturesResponse> getAllLecturesRequest(@RequestHeader("Authorization") String authorizationHeader) {
         log.info("Getting lectures in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        GetLecturesResponse response = lectureListService.getLecturesResponse(strategy, userId);
+        GetAllLecturesResponse response = lectureQueryService.getAllLectures(strategy, userId);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PostMapping
     public ResponseEntity<CreateLectureResponse> createLectureRequest(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody CreateLectureRequest createLectureRequest) {
-        log.info("Creating lecture");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        CreateLectureResponse response = lectureService.getCreateLectureResponse(strategy, userId, createLectureRequest);
-
-        return ResponseEntity.status(201).body(response);
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody CreateLectureRequest request) {
+        log.info("Creating lecture {}", request.getName());
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString().toUpperCase());
+        CreateLectureResponse response = lectureCommandService.createLecture(strategy, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PutMapping("/{lectureId}")
     public ResponseEntity<Map<String, String>> updateLectureRequest(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody UpdateLectureRequest updateLectureRequest,
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UpdateLectureRequest request,
             @PathVariable UUID lectureId) {
-        log.info("Updating lecture");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        lectureService.updateLecture(strategy, userId, lectureId, updateLectureRequest);
+        log.info("Updating lecture {}", lectureId);
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString().toUpperCase());
+        lectureCommandService.updateLecture(strategy, userId, lectureId, request);
+        return ResponseEntity.ok(Map.of("message", "Lecture updated successfully"));
+    }
 
-        return ResponseEntity.ok(
-                Map.of("message", "Lecture updated successfully")
-        );
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @DeleteMapping("/{lectureId}")
+    public ResponseEntity<Map<String, String>> deleteLectureRequest(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable UUID lectureId) {
+        log.info("Delete lecture {}", lectureId);
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString().toUpperCase());
+        lectureCommandService.deleteLecture(strategy, userId, lectureId);
+        return ResponseEntity.ok(Map.of("message", "Lecture deleted successfully"));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @GetMapping("/{lectureId}")
-    public ResponseEntity<GetLectureInfoResponse> getLectureRequest(
-            @RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<GetLectureInfoResponse> getLectureInfoRequest(
+            @RequestHeader("Authorization") String authHeader,
             @PathVariable UUID lectureId) {
-        log.info("Get lecture information");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        GetLectureInfoResponse response = lectureService.getLectureInfoResponse(strategy, userId, lectureId);
+        log.info("Getting lecture {}", lectureId);
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString().toUpperCase());
+        GetLectureInfoResponse response = lectureQueryService.getLectureInfoByLectureId(strategy, userId, lectureId);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{lectureId}/deny")
-    public ResponseEntity<Map<String, String>> denyLectureRequest(@PathVariable UUID lectureId, @RequestBody DenyLectureRequest denyLectureRequest) {
-        log.info("Deny lecture");
-        lectureService.denyLecture(lectureId, denyLectureRequest.getReason());
+    public ResponseEntity<Map<String, String>> denyLectureRequest(
+            @PathVariable UUID lectureId,
+            @RequestBody DenyLectureRequest request) {
+        log.info("Deny lecture {}", lectureId);
+        lectureStatusService.denyLecture(lectureId, request.getReason());
         return ResponseEntity.ok(Map.of("message", "Lecture denied successfully"));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{lectureId}/approve")
     public ResponseEntity<Map<String, String>> approveLectureRequest(@PathVariable UUID lectureId) {
-        log.info("Approve lecture");
-        lectureService.approveLecture(lectureId);
+        log.info("Approve lecture {}", lectureId);
+        lectureStatusService.approveLecture(lectureId);
         return ResponseEntity.ok(Map.of("message", "Lecture approved successfully"));
-    }
-
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
-    @DeleteMapping("/{lectureId}")
-    public ResponseEntity<Map<String, String>> deleteLectureRequest(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable UUID lectureId) {
-        log.info("Delete lecture");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
-        lectureService.deleteLecture(strategy, lectureId, userId);
-
-        return ResponseEntity.ok(Map.of("message", "Lecture deleted successfully"));
     }
 
     @PreAuthorize("hasAuthority('USER')")
@@ -135,7 +132,7 @@ public class LectureController {
         UUID levelUuid = UUID.fromString(levelId);
 
         log.info("Getting lectures for level: {} and user: {}", levelId, userId);
-        GetLecturesByLevelResponse response = lectureListService.getLecturesByLevel(userId, levelUuid);
+        GetLecturesByLevelResponse response = lectureQueryService.getLecturesByLevelId(userId, levelUuid);
 
         return ResponseEntity.ok(response);
     }
@@ -154,7 +151,7 @@ public class LectureController {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
         log.info("Searching lectures with keyword: '{}' for user: {}", keyword, userId);
-        GetLecturesWithStatsResponse response = lectureListService.getLecturesByKeyword(userId, keyword);
+        GetLecturesWithStatsResponse response = lectureQueryService.getLecturesByKeyword(userId, keyword);
 
         return ResponseEntity.ok(response);
     }
@@ -176,11 +173,10 @@ public class LectureController {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
         log.info("Getting {} recent lectures for user: {}", size, userId);
-        GetLecturesWithStatsResponse response = lectureListService.getLecturesByRecent(userId, size);
+        GetLecturesWithStatsResponse response = lectureQueryService.getLecturesByRecent(userId, size);
 
         return ResponseEntity.ok(response);
     }
-
 
     @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/{lectureId}/sections")
@@ -192,11 +188,8 @@ public class LectureController {
     public ResponseEntity<GetLectureSectionsResponse> getLectureSectionsRequest(
             @Parameter(description = "Lecture ID (UUID format)", example = "54c3abc5-3e8b-4017-acc2-c1005cd51c28")
             @PathVariable String lectureId) {
-        UUID lectureUuid = UUID.fromString(lectureId);
-
         log.info("Getting sections for lecture: {}", lectureId);
-        GetLectureSectionsResponse response = lectureService.getLectureSections(lectureUuid);
-
+        GetLectureSectionsResponse response = lectureQueryService.getLectureSectionsByLectureId(UUID.fromString(lectureId));
         return ResponseEntity.ok(response);
     }
 }

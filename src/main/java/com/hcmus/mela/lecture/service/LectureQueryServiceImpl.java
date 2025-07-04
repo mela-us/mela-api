@@ -1,22 +1,20 @@
 package com.hcmus.mela.lecture.service;
 
 import com.hcmus.mela.history.service.ExerciseHistoryService;
-import com.hcmus.mela.lecture.dto.dto.LectureDto;
-import com.hcmus.mela.lecture.dto.dto.LectureStatDetailDto;
-import com.hcmus.mela.lecture.dto.dto.LecturesByTopicDto;
-import com.hcmus.mela.lecture.dto.response.GetLecturesByLevelResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesResponse;
-import com.hcmus.mela.lecture.dto.response.GetLecturesWithStatsResponse;
+import com.hcmus.mela.lecture.dto.dto.*;
+import com.hcmus.mela.lecture.dto.response.*;
 import com.hcmus.mela.lecture.mapper.LectureMapper;
+import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.model.LectureActivity;
 import com.hcmus.mela.lecture.repository.LectureCustomRepositoryImpl;
 import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.async.AsyncCustomService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.mapper.TopicMapper;
-import com.hcmus.mela.topic.service.TopicService;
+import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,11 +23,11 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
-public class LectureListServiceImpl implements LectureListService {
+public class LectureQueryServiceImpl implements LectureQueryService {
 
     private final GeneralMessageAccessor generalMessageAccessor;
 
-    private final TopicService topicService;
+    private final TopicQueryService topicQueryService;
 
     private final LectureRepository lectureRepository;
 
@@ -40,21 +38,27 @@ public class LectureListServiceImpl implements LectureListService {
     private final LectureCustomRepositoryImpl lectureCustomRepositoryImpl;
 
     @Override
-    public GetLecturesResponse getLecturesResponse(LectureFilterStrategy strategy, UUID userId) {
+    public GetAllLecturesResponse getAllLectures(LectureFilterStrategy strategy, UUID userId) {
         List<LectureDto> lectures = strategy.getLectures(userId);
         if (lectures.isEmpty()) {
-            return new GetLecturesResponse("No lectures found", Collections.emptyList());
+            return new GetAllLecturesResponse("No lectures found", Collections.emptyList());
         }
-        return new GetLecturesResponse("Get lectures success", lectures);
+        return new GetAllLecturesResponse("Get lectures success", lectures);
     }
 
     @Override
-    public GetLecturesByLevelResponse getLecturesByLevel(UUID userId, UUID levelId) {
+    public GetLectureInfoResponse getLectureInfoByLectureId(LectureFilterStrategy strategy, UUID userId, UUID lectureId) {
+        LectureDto lectureDto = strategy.getLectureById(userId, lectureId);
+        return new GetLectureInfoResponse("Get lecture info successfully", lectureDto);
+    }
+
+    @Override
+    public GetLecturesByLevelResponse getLecturesByLevelId(UUID userId, UUID levelId) {
         CompletableFuture<Map<UUID, Integer>> passExerciseTotalsMapFuture = asyncService.runAsync(
                 () -> exerciseHistoryService.getPassedExerciseCountOfUser(userId),
                 Collections.emptyMap());
         CompletableFuture<List<LecturesByTopicDto>> lecturesByTopicDtoListFuture = asyncService.runAsync(
-                () -> topicService.getVerifiedTopics()
+                () -> topicQueryService.getVerifiedTopics()
                         .stream()
                         .map(TopicMapper.INSTANCE::topicDtoToLecturesByTopicDto)
                         .toList(),
@@ -142,17 +146,36 @@ public class LectureListServiceImpl implements LectureListService {
     }
 
     @Override
-    public List<LectureDto> getLecturesNeedToBeReviewed(UUID userId) {
-        List<Lecture> lectures = lectureCustomRepositoryImpl.findCompleteLecturesWithWrongExercises(userId);
-
-        return lectures.stream()
-                .map(LectureMapper.INSTANCE::lectureToLectureDto)
+    public GetLectureSectionsResponse getLectureSectionsByLectureId(UUID lectureId) {
+        Lecture lecture = lectureRepository.findByLectureId(lectureId);
+        if (lecture == null || lecture.getStatus() != ContentStatus.VERIFIED) {
+            return new GetLectureSectionsResponse(
+                    generalMessageAccessor.getMessage(null, "get_sections_success"),
+                    0,
+                    null,
+                    Collections.emptyList()
+            );
+        }
+        LectureOfSectionDto lectureInfo = LectureMapper.INSTANCE.lectureToLectureOfSectionDto(lecture);
+        if (lecture.getSections() == null) {
+            return new GetLectureSectionsResponse(
+                    generalMessageAccessor.getMessage(null, "get_sections_success"),
+                    0,
+                    lectureInfo,
+                    Collections.emptyList()
+            );
+        }
+        List<SectionDto> sectionDtoList = lecture.getSections().stream()
+                .map(LectureSectionMapper.INSTANCE::sectionToSectionDto)
+                .sorted(Comparator.comparingInt(SectionDto::getOrdinalNumber))
                 .toList();
-    }
 
-    @Override
-    public List<LectureDto> getLecturesNeedToBeSuggested(UUID userId) {
-        return List.of();
+        return new GetLectureSectionsResponse(
+                generalMessageAccessor.getMessage(null, "get_sections_success"),
+                sectionDtoList.size(),
+                lectureInfo,
+                sectionDtoList
+        );
     }
 
     private List<LectureActivity> mergeActivity(List<LectureActivity> first, List<LectureActivity> second) {

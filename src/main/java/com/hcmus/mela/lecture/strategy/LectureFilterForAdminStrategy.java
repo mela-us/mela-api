@@ -8,9 +8,9 @@ import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
-import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.level.service.LevelQueryService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.topic.service.TopicService;
+import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,9 +23,9 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
 
     private final LectureRepository lectureRepository;
 
-    private final TopicService topicService;
+    private final TopicQueryService topicQueryService;
 
-    private final LevelService levelService;
+    private final LevelQueryService levelQueryService;
 
     private final ExerciseFilterForAdminStrategy exerciseFilterForAdminStrategy;
 
@@ -42,10 +42,10 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
 
     @Override
     public LectureDto createLecture(UUID userId, Lecture lecture) {
-        if (lecture.getTopicId() == null || topicService.checkTopicStatus(lecture.getTopicId(), ContentStatus.DELETED)) {
+        if (lecture.getTopicId() == null || topicQueryService.checkTopicStatus(lecture.getTopicId(), ContentStatus.DELETED)) {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (lecture.getLevelId() == null || levelService.checkLevelStatus(lecture.getLevelId(), ContentStatus.DELETED)) {
+        if (lecture.getLevelId() == null || levelQueryService.checkLevelStatus(lecture.getLevelId(), ContentStatus.DELETED)) {
             throw new LectureException("Level is not assignable to this lecture");
         }
         Lecture savedLecture = lectureRepository.save(lecture);
@@ -113,12 +113,12 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
         if (!updateLectureRequest.getSections().isEmpty()) {
             lecture.setSections(updateLectureRequest.getSections().stream().map(LectureSectionMapper.INSTANCE::updateSectionRequestToSection).toList());
         }
-        if (!topicService.checkTopicStatus(updateLectureRequest.getTopicId(), ContentStatus.DELETED)) {
+        if (!topicQueryService.checkTopicStatus(updateLectureRequest.getTopicId(), ContentStatus.DELETED)) {
             lecture.setTopicId(updateLectureRequest.getTopicId());
         } else {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (!levelService.checkLevelStatus(updateLectureRequest.getLevelId(), ContentStatus.DELETED)) {
+        if (!levelQueryService.checkLevelStatus(updateLectureRequest.getLevelId(), ContentStatus.DELETED)) {
             lecture.setLevelId(updateLectureRequest.getLevelId());
         } else {
             throw new LectureException("Level is not assignable to this lecture");
