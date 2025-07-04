@@ -16,9 +16,7 @@ public class UserSkillCustomRepositoryImpl implements UserSkillCustomRepository 
     @Override
     public UserSkill updateUserSkill(UserSkill userSkill) {
         Query query = new Query(Criteria.where("_id").is(userSkill.getUserSkillId()));
-
         Update update = new Update().set("points", userSkill.getPoints());
-
         return mongoTemplate.findAndModify(query, update, UserSkill.class);
     }
 }

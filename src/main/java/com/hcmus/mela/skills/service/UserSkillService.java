@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UserSkillService {
-    GetUserSkillResponse getUserSkill(String authorizationHeader);
 
-    List<UserSkill> checkUserSkill(UUID userId, UUID levelId);
+    GetUserSkillResponse getUserSkillsByUserId(UUID userId);
+
+    List<UserSkill> getUserSkillsByLevelId(UUID userId, UUID levelId);
 
     void updateUserSkill(UUID userId, UUID levelId, UUID topicId, Integer correctAnswers, Integer incorrectAnswers);
+
+    void deleteUserSkillByUserId(UUID userId);
 }

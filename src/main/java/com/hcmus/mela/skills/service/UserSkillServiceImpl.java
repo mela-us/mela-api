@@ -1,21 +1,22 @@
 package com.hcmus.mela.skills.service;
 
-import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.level.service.LevelStatusService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
-import com.hcmus.mela.skills.dto.UserSkillDto;
+import com.hcmus.mela.skills.dto.dto.UserSkillDto;
 import com.hcmus.mela.skills.dto.response.GetUserSkillResponse;
 import com.hcmus.mela.skills.mapper.UserSkillMapper;
 import com.hcmus.mela.skills.model.UserSkill;
 import com.hcmus.mela.skills.repository.UserSkillRepository;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
-import com.hcmus.mela.topic.service.TopicService;
-import com.hcmus.mela.user.dto.response.GetUserProfileResponse;
-import com.hcmus.mela.user.service.UserService;
+import com.hcmus.mela.topic.service.TopicInfoService;
+import com.hcmus.mela.user.model.User;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,73 +25,69 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserSkillServiceImpl implements UserSkillService {
 
-    private final UserSkillRepository userSkillRepository;
-    private final TopicService topicService;
-    private final GeneralMessageAccessor generalMessageAccessor;
-
     private final String GET_USER_SKILL = "user_skill_found";
-    private final UserService userService;
-    private final LevelService levelService;
+
+    private final GeneralMessageAccessor generalMessageAccessor;
+    private final UserSkillRepository userSkillRepository;
+    private final UserInfoService userInfoService;
+    private final TopicInfoService topicInfoService;
+    private final LevelStatusService levelStatusService;
 
 
     @Override
-    public GetUserSkillResponse getUserSkill(String authorizationHeader) {
-        GetUserProfileResponse response = userService.getUserProfile(authorizationHeader);
+    public GetUserSkillResponse getUserSkillsByUserId(UUID userId) {
+        User user = userInfoService.getUserById(userId);
 
-        UUID userId = response.getUser().getUserId();
+        boolean isLevelVerified = levelStatusService.isLevelInStatus(user.getLevelId(), ContentStatus.VERIFIED);
+        if (!isLevelVerified) {
+            return new GetUserSkillResponse("Level of user is invalid", List.of());
+        }
 
-        Level level = levelService.findLevelByLevelTitle(response.getUser().getLevelTitle());
-
-        List<UserSkill> userSkills = checkUserSkill(userId, level.getLevelId());
-
+        List<UserSkill> userSkills = getUserSkillsByLevelId(userId, user.getLevelId());
         List<UserSkillDto> userSkillDtos = userSkills.stream()
                 .map(userSkill -> {
-                    // Map basic fields
-                    UserSkillDto dto = UserSkillMapper.INSTANCE.userSkillToUserSkillDto(userSkill);
-
-                    // Fetch topic and set topicName
-                    TopicDto topic = topicService.getTopicById(userSkill.getTopicId());
+                    UserSkillDto skill = UserSkillMapper.INSTANCE.userSkillToUserSkillDto(userSkill);
+                    TopicDto topic = topicInfoService.findTopicByTopicId(userSkill.getTopicId());
                     if (topic != null) {
-                        dto.setTopicName(topic.getName());
+                        skill.setTopicName(topic.getName());
                     } else {
-                        dto.setTopicName(null); // or "Unknown"
+                        skill.setTopicName(null);
                     }
-                    return dto;
+                    return skill;
                 }).toList();
 
         String getUserSkillSuccessMessage = generalMessageAccessor.getMessage(null, GET_USER_SKILL, userId);
-
         return new GetUserSkillResponse(getUserSkillSuccessMessage, userSkillDtos);
     }
 
     @Override
-    public List<UserSkill> checkUserSkill(UUID userId, UUID levelId) {
+    public List<UserSkill> getUserSkillsByLevelId(UUID userId, UUID levelId) {
         List<UserSkill> userSkills = userSkillRepository.findAllByUserIdAndLevelId(userId, levelId);
-
-        if (userSkills.isEmpty()) {
-            List<TopicDto> topics = topicService.getTopics();
-
-            for (TopicDto topic : topics) {
-                UserSkill userSkill = UserSkill.builder()
+        List<UserSkill> validUserSkills = new ArrayList<>();
+        List<TopicDto> topics = topicInfoService.findAllTopicsInStatus(ContentStatus.VERIFIED);
+        for (TopicDto topic : topics) {
+            UserSkill existingUserSkill = userSkills.stream()
+                    .filter(us -> us.getUserId().equals(userId) && us.getLevelId().equals(levelId) && us.getTopicId().equals(topic.getTopicId()))
+                    .findFirst()
+                    .orElse(null);
+            if (existingUserSkill == null) {
+                UserSkill newUserSkill = UserSkill.builder()
                         .userSkillId(UUID.randomUUID())
                         .userId(userId)
                         .levelId(levelId)
                         .topicId(topic.getTopicId())
                         .points(0)
                         .build();
-
-                UserSkill savedUserSkill = userSkillRepository.save(userSkill);
-                userSkills.add(savedUserSkill);
+                existingUserSkill = userSkillRepository.save(newUserSkill);
             }
+            validUserSkills.add(existingUserSkill);
         }
-
-        return userSkills;
+        return validUserSkills;
     }
 
     @Override
     public void updateUserSkill(UUID userId, UUID levelId, UUID topicId, Integer correctAnswers, Integer incorrectAnswers) {
-        UserSkill userSkill = userSkillRepository.findByUserIdAndLevelIdAndTopicId(userId, levelId, topicId);
-
+        UserSkill userSkill = userSkillRepository.findByUserIdAndLevelIdAndTopicId(userId, levelId, topicId).orElse(null);
         if (userSkill == null) {
             userSkill = UserSkill.builder()
                     .userSkillId(UUID.randomUUID())
@@ -105,6 +102,14 @@ public class UserSkillServiceImpl implements UserSkillService {
         userSkill.setPoints(points);
 
         userSkillRepository.updateUserSkill(userSkill);
+    }
 
+    @Override
+    public void deleteUserSkillByUserId(UUID userId) {
+        List<UserSkill> userSkills = userSkillRepository.findAllByUserId(userId);
+        if (userSkills.isEmpty()) {
+            return;
+        }
+        userSkillRepository.deleteAll(userSkills);
     }
 }

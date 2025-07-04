@@ -1,4 +1,4 @@
-package com.hcmus.mela.skills.dto;
+package com.hcmus.mela.skills.dto.dto;
 
 import lombok.*;
 
@@ -8,6 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserSkillDto {
+
     private String topicName;
+
     private Integer points;
 }
