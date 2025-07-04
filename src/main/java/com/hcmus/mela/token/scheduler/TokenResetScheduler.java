@@ -16,11 +16,9 @@ public class TokenResetScheduler {
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Ho_Chi_Minh")
     public void resetTokens() {
         List<Token> usersWithLowToken = tokenRepository.findByTokenLessThan(5);
-
         for (Token user : usersWithLowToken) {
             user.setToken(5);
         }
-
         tokenRepository.saveAll(usersWithLowToken);
     }
 }

@@ -17,12 +17,11 @@ public class StreakCustomRepositoryImpl implements StreakCustomRepository {
     @Override
     public Streak updateStreak(Streak streak) {
         Query query = new Query(Criteria.where("_id").is(streak.getUserId()));
-
-        Update update = new Update().set("streak_days", streak.getStreakDays())
+        Update update = new Update()
+                .set("streak_days", streak.getStreakDays())
                 .set("started_at", streak.getStartedAt())
                 .set("updated_at", streak.getUpdatedAt())
                 .set("longest_streak", streak.getLongestStreak());
-
         return mongoTemplate.findAndModify(query, update, Streak.class);
     }
 }

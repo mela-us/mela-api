@@ -15,12 +15,11 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/tokens")
 @Slf4j
+@RequestMapping("/api/tokens")
 public class TokenController {
 
     private final TokenService tokenService;
-
     private final JwtTokenService jwtTokenService;
 
     @GetMapping
@@ -29,13 +28,10 @@ public class TokenController {
             summary = "Get tokens by user ID",
             description = "Retrieves all tokens of the user with given user ID."
     )
-    public ResponseEntity<GetUserTokenResponse> getUserToken(@RequestHeader("Authorization") String authorizationHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Get tokens for user {}.", userId);
-
+    public ResponseEntity<GetUserTokenResponse> getUserToken(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Getting tokens for user {}", userId);
         GetUserTokenResponse response = tokenService.getUserToken(userId);
-
         return ResponseEntity.ok(response);
     }
 
@@ -45,14 +41,12 @@ public class TokenController {
             summary = "Increase tokens by user ID",
             description = "Increase the token amount of the user with given user ID."
     )
-    public ResponseEntity<IncreaseUserTokenResponse> increaseUserToken(@RequestHeader("Authorization") String authorizationHeader,
-                                                                       @RequestBody IncreaseUserTokenRequest request) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Increase tokens for user {}.", userId);
-
+    public ResponseEntity<IncreaseUserTokenResponse> increaseUserToken(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody IncreaseUserTokenRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Increase tokens for user {}", userId);
         IncreaseUserTokenResponse response = tokenService.increaseUserToken(userId, request.getToken());
-
         return ResponseEntity.ok(response);
     }
 }

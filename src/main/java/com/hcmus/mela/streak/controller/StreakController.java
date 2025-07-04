@@ -19,7 +19,6 @@ import java.util.UUID;
 public class StreakController {
 
     private final StreakService streakService;
-
     private final JwtTokenService jwtTokenService;
 
     @GetMapping(value = "")
@@ -28,14 +27,11 @@ public class StreakController {
             summary = "Get user's streak",
             description = "Retrieves a user's streak and the information belonging to the streak."
     )
-    public ResponseEntity<GetStreakResponse> getStreak(@RequestHeader("Authorization") String authorizationHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Getting streak for user: {}", userId);
-
-        final GetStreakResponse getStreakResponse = streakService.getStreak(userId);
-
-        return ResponseEntity.ok(getStreakResponse);
+    public ResponseEntity<GetStreakResponse> getStreak(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Getting streak for user {}", userId);
+        final GetStreakResponse response = streakService.getStreak(userId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(value = "")
@@ -44,13 +40,10 @@ public class StreakController {
             summary = "Update user's streak",
             description = "Updates a user's streak."
     )
-    public ResponseEntity<UpdateStreakResponse> updateStreak(@RequestHeader("Authorization") String authorizationHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Updating streak for user: {}", userId);
-
+    public ResponseEntity<UpdateStreakResponse> updateStreak(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Updating streak for user {}", userId);
         final UpdateStreakResponse updateStreakResponse = streakService.updateStreak(userId);
-
         return ResponseEntity.ok(updateStreakResponse);
     }
 }
