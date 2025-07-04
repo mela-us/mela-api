@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TopicServiceImpl implements TopicService {
+public class TopicQueryServiceImpl implements TopicQueryService {
 
     private final TopicRepository topicRepository;
 

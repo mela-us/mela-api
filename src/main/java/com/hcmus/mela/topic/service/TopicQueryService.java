@@ -11,23 +11,11 @@ import com.hcmus.mela.topic.strategy.TopicFilterStrategy;
 import java.util.List;
 import java.util.UUID;
 
-public interface TopicService {
+public interface TopicQueryService {
 
     GetTopicsResponse getTopicsResponse(TopicFilterStrategy topicFilterStrategy, UUID userId);
 
-    CreateTopicResponse getCreateTopicResponse(UUID creatorId, CreateTopicRequest createTopicRequest);
-
-    void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request);
-
-    void denyTopic(UUID topicId, String reason);
-
-    void approveTopic(UUID topicId);
-
-    boolean isTopicAssignableToLecture(UUID topicId, UUID userId);
-
     boolean checkTopicStatus(UUID topicId, ContentStatus status);
-
-    void deleteTopic(TopicFilterStrategy strategy, UUID topicId, UUID userId);
 
     List<TopicDto> getTopics();
 

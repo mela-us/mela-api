@@ -9,11 +9,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TopicRepository extends MongoRepository<Topic, UUID> {
+
     List<Topic> findAllByStatus(ContentStatus status);
 
     List<Topic> findAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
 
-    Optional<Topic> findByTopicIdAndCreatedBy(UUID topicId, UUID creatorId);
+    Optional<Topic> findByTopicIdAndCreatedBy(UUID topicId, UUID userId);
 
-    Topic findByTopicId(UUID topicId);
+    Optional<Topic> findByTopicIdAndStatus(UUID topicId, ContentStatus status);
 }
