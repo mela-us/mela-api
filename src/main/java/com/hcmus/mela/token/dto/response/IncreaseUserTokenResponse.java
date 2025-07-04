@@ -11,6 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class IncreaseUserTokenResponse {
     private String message;
-
     private Integer token;
 }

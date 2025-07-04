@@ -24,12 +24,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
-
     private final JwtAccessDeniedHandler accessDeniedHandler;
-
-	private final CorsConfigurationSource corsConfigurationSource;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -40,7 +37,6 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         //@formatter:off
-
 		return http
 				.csrf(CsrfConfigurer::disable)
 				.cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -62,7 +58,6 @@ public class SecurityConfiguration {
 						.authenticationEntryPoint(unauthorizedHandler)
 						.accessDeniedHandler(accessDeniedHandler))
 				.build();
-
 		//@formatter:on
     }
 

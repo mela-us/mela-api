@@ -3,18 +3,17 @@ package com.hcmus.mela.ai.question.hint.service;
 import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
 import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
+import com.hcmus.mela.ai.client.prompts.QuestionHintPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
 import com.hcmus.mela.ai.question.hint.dto.response.HintResponseDto;
-import com.hcmus.mela.ai.client.prompts.QuestionHintPrompt;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
-import com.hcmus.mela.exercise.service.ExerciseService;
-import com.hcmus.mela.exercise.service.QuestionService;
+import com.hcmus.mela.exercise.service.ExerciseQuestionService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
+import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.lecture.service.LectureService;
-import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.level.service.LevelQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +30,9 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     private final QuestionHintPrompt questionHintPrompt;
 
-    private final QuestionService questionService;
+    private final ExerciseQuestionService exerciseQuestionService;
 
-    private final ExerciseService exerciseService;
-
-    private final LectureService lectureService;
-
-    private final LevelService levelService;
+    private final LevelQueryService levelQueryService;
 
     private final AiWebClient aiWebClient;
 
@@ -47,34 +42,34 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     private final AiResponseFilter aiResponseFilter;
 
+    private final LectureInfoService lectureInfoService;
+
     public QuestionHintServiceImpl(QuestionHintPrompt questionHintPrompt,
-                                   QuestionService questionService,
-                                   ExerciseService exerciseService,
-                                   LectureService lectureService,
-                                   LevelService levelService,
+                                   ExerciseQuestionService exerciseQuestionService,
+                                   LevelQueryService levelQueryService,
                                    AiWebClient aiWebClient,
                                    AiClientProperties aiClientProperties,
                                    AiRequestBodyFactory aiRequestBodyFactory,
-                                   AiResponseFilter aiResponseFilter) {
+                                   AiResponseFilter aiResponseFilter,
+                                   LectureInfoService lectureInfoService) {
         this.questionHintPrompt = questionHintPrompt;
-        this.questionService = questionService;
-        this.exerciseService = exerciseService;
-        this.lectureService = lectureService;
-        this.levelService = levelService;
+        this.exerciseQuestionService = exerciseQuestionService;
+        this.levelQueryService = levelQueryService;
         this.aiWebClient = aiWebClient;
         this.questionHintProperties = aiClientProperties.getQuestionHint();
         this.aiRequestBodyFactory = aiRequestBodyFactory;
         this.aiResponseFilter = aiResponseFilter;
+        this.lectureInfoService = lectureInfoService;
     }
 
     public List<String> generateKeys(UUID questionId) {
-        Question question = questionService.findByQuestionId(questionId);
+        Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
 
-        Exercise exercise = exerciseService.findByQuestionId(questionId);
+        Exercise exercise = exerciseQuestionService.findExerciseByQuestionId(questionId);
 
-        LectureDto lecture = lectureService.getLectureById(exercise.getLectureId());
+        LectureDto lecture = lectureInfoService.findLectureByLectureId(exercise.getLectureId());
 
-        Level level = levelService.findLevelByLevelId(lecture.getLevelId());
+        Level level = levelQueryService.findLevelByLevelId(lecture.getLevelId());
 
         List<String> keys = new ArrayList<>();
 
@@ -131,7 +126,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     @Override
     public HintResponseDto generateTerms(UUID questionId) {
-        Question question = questionService.findByQuestionId(questionId);
+        Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
 
         if (question == null) {
             log.warn("Question with ID {} not found", questionId);
@@ -158,7 +153,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
             Object response = aiWebClient.fetchAiResponse(questionHintProperties, requestBody);
             String responseText = aiResponseFilter.getMessage(response);
 
-            Exercise exercise = exerciseService.findByQuestionId(questionId);
+            Exercise exercise = exerciseQuestionService.findExerciseByQuestionId(questionId);
 
             List<Question> questions = exercise.getQuestions();
 
@@ -171,7 +166,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
             }
 
             exercise.setQuestions(questions);
-            exerciseService.updateQuestionHint(exercise);
+            exerciseQuestionService.updateQuestionHint(exercise);
         }
 
         return new HintResponseDto(question.getTerms());
@@ -180,7 +175,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
 
     @Override
     public HintResponseDto generateGuide(UUID questionId) {
-        Question question = questionService.findByQuestionId(questionId);
+        Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
 
         if (question == null) {
             log.warn("Question with ID {} not found", questionId);
@@ -207,7 +202,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
             Object response = aiWebClient.fetchAiResponse(questionHintProperties, requestBody);
             String responseText = aiResponseFilter.getMessage(response);
 
-            Exercise exercise = exerciseService.findByQuestionId(questionId);
+            Exercise exercise = exerciseQuestionService.findExerciseByQuestionId(questionId);
 
             List<Question> questions = exercise.getQuestions();
 
@@ -220,7 +215,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
             }
 
             exercise.setQuestions(questions);
-            exerciseService.updateQuestionHint(exercise);
+            exerciseQuestionService.updateQuestionHint(exercise);
         }
 
         return new HintResponseDto(question.getGuide());

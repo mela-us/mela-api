@@ -1,6 +1,5 @@
 package com.hcmus.mela;
 
-import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.exercise.model.QuestionType;
 import com.hcmus.mela.exercise.service.ExerciseGradeService;
@@ -27,7 +26,7 @@ class MelaApplicationTests {
     @Test
     void testGradeQuestion() {
         System.out.println("Checking question answer...");
-        Map<String, Object> result = exerciseGradeService.checkQuestionAnswer(
+        Map<String, Object> result = exerciseGradeService.evaluateQuestion(
                 new ExerciseAnswerDto(
                         UUID.randomUUID(),
                         "",

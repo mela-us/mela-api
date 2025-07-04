@@ -1,17 +1,15 @@
 package com.hcmus.mela.suggestion.service;
 
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.history.model.LectureCompletedSection;
 import com.hcmus.mela.history.model.LectureHistory;
 import com.hcmus.mela.history.service.LectureHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
-import com.hcmus.mela.topic.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.lecture.service.LectureService;
-import com.hcmus.mela.level.service.LevelService;
-import com.hcmus.mela.topic.service.TopicService;
+import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.suggestion.dto.SectionReferenceDto;
 import com.hcmus.mela.suggestion.dto.SuggestionDto;
 import com.hcmus.mela.suggestion.dto.request.UpdateSuggestionRequest;
@@ -22,6 +20,8 @@ import com.hcmus.mela.suggestion.mapper.SuggestionMapper;
 import com.hcmus.mela.suggestion.model.SectionReference;
 import com.hcmus.mela.suggestion.model.Suggestion;
 import com.hcmus.mela.suggestion.repository.SuggestionRepository;
+import com.hcmus.mela.topic.dto.dto.TopicDto;
+import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,13 +37,13 @@ public class SuggestionServiceImpl implements SuggestionService {
 
     private final LectureHistoryService lectureHistoryService;
 
-    private final LectureService lectureService;
-
     private final SuggestionRepository suggestionRepository;
 
-    private final TopicService topicService;
+    private final TopicQueryService topicQueryService;
 
-    private final LevelService levelService;
+    private final LevelQueryService levelQueryService;
+
+    private final LectureInfoService lectureInfoService;
 
     private final GeneralMessageAccessor generalMessageAccessor;
 
@@ -79,11 +79,11 @@ public class SuggestionServiceImpl implements SuggestionService {
 
         for (SuggestionDto suggestionDto : suggestionDtos) {
             for (SectionReferenceDto sectionReferenceDto : suggestionDto.getSectionList()) {
-                LectureDto lectureDto = lectureService.getLectureById(sectionReferenceDto.getLectureId());
+                LectureDto lectureDto = lectureInfoService.findLectureByLectureId(sectionReferenceDto.getLectureId());
 
-                TopicDto topicDto = topicService.getTopicById(lectureDto.getTopicId());
+                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
 
-                Level level = levelService.findLevelByLevelId(lectureDto.getLevelId());
+                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
 
                 sectionReferenceDto.setLectureTitle(lectureDto.getName());
                 sectionReferenceDto.setTopicTitle(topicDto.getName());
@@ -142,7 +142,7 @@ public class SuggestionServiceImpl implements SuggestionService {
             boolean isSuggested = false;
 
             if (history.getProgress() < 100) {
-                LectureDto lecture = lectureService.getLectureById(history.getLectureId());
+                LectureDto lecture = lectureInfoService.findLectureByLectureId(history.getLectureId());
 
                 List<Integer> completedSectionNumbers = history.getCompletedSections().stream()
                         .map(LectureCompletedSection::getOrdinalNumber)
@@ -164,10 +164,10 @@ public class SuggestionServiceImpl implements SuggestionService {
                     suggestedLectures.add(lecture);
                 }
             } else {
-                LectureDto lecture = lectureService.getLectureByTopicIdAndLevelIdAndOrdinalNumber(
+                LectureDto lecture = lectureInfoService.findLectureByTopicIdAndLevelIdAndOrdinalNumber(
                         history.getTopicId(),
                         history.getLevelId(),
-                        lectureService.getLectureOrdinalNumber(history.getLectureId()) + 1);
+                        lectureInfoService.findLectureOrdinalNumberByLectureId(history.getLectureId()) + 1);
 
                 if (lecture != null) {
 
@@ -213,10 +213,10 @@ public class SuggestionServiceImpl implements SuggestionService {
                 LectureDto lecture = suggestedLectures.get(i);
                 List<SectionReference> sectionReferences = new ArrayList<>();
 
-                LectureDto nextLecture = lectureService.getLectureByTopicIdAndLevelIdAndOrdinalNumber(
+                LectureDto nextLecture = lectureInfoService.findLectureByTopicIdAndLevelIdAndOrdinalNumber(
                         lecture.getTopicId(),
                         lecture.getLevelId(),
-                        lectureService.getLectureOrdinalNumber(lecture.getLectureId()) + 1);
+                        lectureInfoService.findLectureOrdinalNumberByLectureId(lecture.getLectureId()) + 1);
 
                 if (nextLecture != null) {
 
@@ -246,7 +246,6 @@ public class SuggestionServiceImpl implements SuggestionService {
                         sectionSize += sectionReferences.size();
                     }
                 }
-
 
 
                 if (sectionSize >= 3) {

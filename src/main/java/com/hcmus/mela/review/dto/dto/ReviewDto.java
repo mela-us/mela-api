@@ -1,4 +1,4 @@
-package com.hcmus.mela.review.dto;
+package com.hcmus.mela.review.dto.dto;
 
 import lombok.*;
 

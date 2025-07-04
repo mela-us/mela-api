@@ -11,7 +11,7 @@ import com.hcmus.mela.ai.client.webclient.AiWebClient;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.exercise.model.QuestionType;
-import com.hcmus.mela.exercise.service.QuestionService;
+import com.hcmus.mela.exercise.service.ExerciseQuestionService;
 import com.hcmus.mela.shared.exception.BadRequestException;
 import org.springframework.stereotype.Service;
 
@@ -23,20 +23,20 @@ import java.util.regex.Pattern;
 
 @Service
 public class QuestionConfusionServiceImpl implements QuestionConfusionService {
-    private final QuestionService questionService;
+    private final ExerciseQuestionService exerciseQuestionService;
     private final AiWebClient aiWebClient;
     private final AiFeatureProperties aiClientProperties;
     private final AiRequestBodyFactory aiRequestBodyFactory;
     private final QuestionConfusionPrompt questionConfusionPrompt;
 
     public QuestionConfusionServiceImpl(
-            QuestionService questionService,
+            ExerciseQuestionService exerciseQuestionService,
             AiWebClient aiWebClient,
             AiClientProperties aiClientProperties,
             AiRequestBodyFactory aiRequestBodyFactory,
             QuestionConfusionPrompt questionConfusionPrompt
     ) {
-        this.questionService = questionService;
+        this.exerciseQuestionService = exerciseQuestionService;
         this.aiWebClient = aiWebClient;
         this.aiClientProperties = aiClientProperties.getChatBot();
         this.aiRequestBodyFactory = aiRequestBodyFactory;
@@ -58,7 +58,7 @@ public class QuestionConfusionServiceImpl implements QuestionConfusionService {
 
     @Override
     public QuestionConfusionResponseDto resolveQuestionConfusion(UUID questionId, QuestionConfusionRequestDto requestDto) {
-        Question question = questionService.findByQuestionId(questionId);
+        Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
         if (question == null) {
             throw new BadRequestException("Question with id " + questionId + " not found");
         }

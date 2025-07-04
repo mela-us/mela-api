@@ -5,7 +5,7 @@ import com.hcmus.mela.auth.service.OtpService;
 import com.hcmus.mela.shared.cache.RedisService;
 import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.level.service.LevelService;
+import com.hcmus.mela.level.service.LevelQueryService;
 import com.hcmus.mela.user.dto.UserDto;
 import com.hcmus.mela.user.dto.request.*;
 import com.hcmus.mela.user.dto.response.*;
@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     private final GeneralMessageAccessor generalMessageAccessor;
 
     private final ExceptionMessageAccessor exceptionMessageAccessor;
-    private final LevelService levelService;
+    private final LevelQueryService levelQueryService;
 
     @Override
     public UpdateProfileResponse updateProfile(UpdateProfileRequest updateProfileRequest, String authorizationHeader) {
@@ -74,7 +74,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (updateProfileRequest.getLevelTitle() != null) {
-            Level level = levelService.findLevelByLevelTitle(updateProfileRequest.getLevelTitle());
+            Level level = levelQueryService.findLevelByLevelTitle(updateProfileRequest.getLevelTitle());
             user.setLevelId(level.getLevelId());
         }
 
@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
         UserDto userDto = UserMapper.INSTANCE.userToUserDto(user);
 
         if (user.getLevelId() != null) {
-            Level level = levelService.findLevelByLevelId(user.getLevelId());
+            Level level = levelQueryService.findLevelByLevelId(user.getLevelId());
 
             userDto.setLevelTitle(level.getName());
         }
@@ -141,5 +141,10 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException(exceptionMessageAccessor.getMessage(null, "user_not_found"));
         }
         return user.getLevelId();
+    }
+
+    @Override
+    public UserDto getUserById(UUID userId) {
+        return null;
     }
 }

@@ -1,5 +1,6 @@
 package com.hcmus.mela.statistic.service;
 
+import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
@@ -11,8 +12,7 @@ import com.hcmus.mela.history.service.LectureHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
-import com.hcmus.mela.lecture.service.LectureService;
-import com.hcmus.mela.topic.service.TopicService;
+import com.hcmus.mela.topic.service.TopicQueryService;
 import com.hcmus.mela.statistic.dto.dto.*;
 import com.hcmus.mela.statistic.dto.response.GetStatisticsResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,9 @@ public class StatisticServiceImpl implements StatisticService {
 
     private final LectureHistoryService lectureHistoryService;
 
-    private final TopicService topicService;
+    private final TopicQueryService topicQueryService;
 
-    private final LectureService lectureService;
+    private final LectureInfoService lectureInfoService;
 
     private final ExerciseInfoService exerciseInfoService;
 
@@ -79,7 +79,7 @@ public class StatisticServiceImpl implements StatisticService {
         List<ActivityHistoryDto> activities = new ArrayList<>();
 
         for (LectureHistoryDto lectureHistory : lectureHistories) {
-            LectureDto lecture = lectureService.getLectureById(lectureHistory.getLectureId());
+            LectureDto lecture = lectureInfoService.findLectureByLectureId(lectureHistory.getLectureId());
             String lectureName = lecture.getName();
             String topicName = topicNameMap.get(lecture.getTopicId());
 
@@ -117,7 +117,7 @@ public class StatisticServiceImpl implements StatisticService {
 
         exerciseHistoriesByExerciseId.forEach((exerciseId, histories) -> {
             ExerciseHistoryDto firstHistory = histories.get(0);
-            LectureDto lecture = lectureService.getLectureById(firstHistory.getLectureId());
+            LectureDto lecture = lectureInfoService.findLectureByLectureId(firstHistory.getLectureId());
             ExerciseDto exercise = exerciseInfoService.findByExerciseId(exerciseId);
 
             ActivityHistoryDto activity = new ActivityHistoryDto();
@@ -149,7 +149,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     private Map<UUID, String> getTopicNameMap() {
-        return topicService.getTopics().stream()
+        return topicQueryService.getTopics().stream()
                 .collect(Collectors.toMap(TopicDto::getTopicId, TopicDto::getName));
     }
 }

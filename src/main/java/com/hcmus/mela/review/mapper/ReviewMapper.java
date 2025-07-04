@@ -1,6 +1,6 @@
 package com.hcmus.mela.review.mapper;
 
-import com.hcmus.mela.review.dto.ReviewDto;
+import com.hcmus.mela.review.dto.dto.ReviewDto;
 import com.hcmus.mela.review.model.Review;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

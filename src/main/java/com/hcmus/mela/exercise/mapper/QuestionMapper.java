@@ -18,10 +18,10 @@ public interface QuestionMapper {
 
     QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
 
-    QuestionDto convertToQuestionDto(Question question);
+    QuestionDto questionToQuestionDto(Question question);
 
-    @Named("convertToQuestionDtoList")
-    List<QuestionDto> convertToQuestionDtoList(List<Question> questions);
+    @Named("questionsToQuestionDtos")
+    List<QuestionDto> questionsToQuestionDtos(List<Question> questions);
 
     @Mapping(source = "options", target = "options", qualifiedByName = "createOptionRequestsToOptions")
     Question createQuestionRequestToQuestion(CreateQuestionRequest createQuestionRequest);

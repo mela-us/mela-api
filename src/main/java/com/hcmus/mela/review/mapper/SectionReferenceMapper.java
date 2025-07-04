@@ -1,6 +1,6 @@
 package com.hcmus.mela.review.mapper;
 
-import com.hcmus.mela.review.dto.SectionReferenceDto;
+import com.hcmus.mela.review.dto.dto.SectionReferenceDto;
 import com.hcmus.mela.review.model.SectionReference;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

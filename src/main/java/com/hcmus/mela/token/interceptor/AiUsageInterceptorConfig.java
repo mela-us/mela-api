@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @AllArgsConstructor
 public class AiUsageInterceptorConfig implements WebMvcConfigurer {
+
     private AiUsageInterceptor aiUsageInterceptor;
 
     @Override

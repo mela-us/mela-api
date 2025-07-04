@@ -1,21 +1,17 @@
 package com.hcmus.mela.review.service;
 
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
-import com.hcmus.mela.exercise.service.ExerciseService;
+import com.hcmus.mela.exercise.service.ExerciseQueryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
-import com.hcmus.mela.topic.dto.dto.TopicDto;
+import com.hcmus.mela.lecture.service.LectureInfoService;
+import com.hcmus.mela.lecture.service.LectureQueryService;
 import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.lecture.service.LectureListService;
-import com.hcmus.mela.lecture.service.LectureService;
-import com.hcmus.mela.level.service.LevelService;
-import com.hcmus.mela.topic.service.TopicService;
-import com.hcmus.mela.review.dto.ExerciseReferenceDto;
-import com.hcmus.mela.review.dto.ReviewDto;
-import com.hcmus.mela.review.dto.SectionReferenceDto;
+import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.review.dto.dto.ExerciseReferenceDto;
+import com.hcmus.mela.review.dto.dto.ReviewDto;
+import com.hcmus.mela.review.dto.dto.SectionReferenceDto;
 import com.hcmus.mela.review.dto.request.UpdateReviewRequest;
 import com.hcmus.mela.review.dto.response.GetReviewsResponse;
 import com.hcmus.mela.review.dto.response.UpdateReviewResponse;
@@ -26,10 +22,15 @@ import com.hcmus.mela.review.model.Review;
 import com.hcmus.mela.review.model.ReviewType;
 import com.hcmus.mela.review.model.SectionReference;
 import com.hcmus.mela.review.repository.ReviewRepository;
+import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
+import com.hcmus.mela.topic.dto.dto.TopicDto;
+import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -39,51 +40,28 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-    private final ReviewRepository reviewRepository;
-
-    private final ExerciseService exerciseService;
-
-    private final ExerciseInfoService exerciseInfoService;
-
-    private final LectureListService lectureListService;
-
-    private final LectureService lectureService;
-
-    private final TopicService topicService;
-
-    private final LevelService levelService;
-
     private final String REVIEWS_FOUND = "reviews_found_successful";
-
     private final String REVIEW_NOT_FOUND = "review_not_found";
-
     private final String UPDATE_REVIEW_SUCCESS = "update_review_successful";
 
     private final GeneralMessageAccessor generalMessageAccessor;
-
     private final ExceptionMessageAccessor exceptionMessageAccessor;
-
-    private static Date truncateTime(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
-    }
+    private final ReviewRepository reviewRepository;
+    private final ExerciseQueryService exerciseQueryService;
+    private final ExerciseInfoService exerciseInfoService;
+    private final TopicQueryService topicQueryService;
+    private final LevelQueryService levelQueryService;
+    private final LectureInfoService lectureInfoService;
 
     @Override
     public GetReviewsResponse getReviews(UUID userId) {
-        ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
-        ZonedDateTime startOfDayUtc = utcNow.toLocalDate().atStartOfDay(ZoneOffset.UTC);
+        ZoneId zoneVN = ZoneId.of("Asia/Ho_Chi_Minh");
 
-        Date startOfDay = Date.from(startOfDayUtc.toInstant());
+        ZonedDateTime startOfDayVN = ZonedDateTime.now(zoneVN).toLocalDate().atStartOfDay(zoneVN);
+        ZonedDateTime endOfDayVN = startOfDayVN.plusDays(1);
 
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        cal.setTime(startOfDay);
-        cal.add(Calendar.DATE, 1);
-        Date endOfDay = cal.getTime();
+        Date startOfDay = Date.from(startOfDayVN.toInstant());
+        Date endOfDay = Date.from(endOfDayVN.toInstant());
 
         List<Review> reviews = reviewRepository.findAllByUserIdAndCreatedAtBetween(userId, startOfDay, endOfDay);
 
@@ -99,22 +77,22 @@ public class ReviewServiceImpl implements ReviewService {
             for (ExerciseReferenceDto exerciseReferenceDto : reviewDto.getExerciseList()) {
                 ExerciseDto exerciseDto = exerciseInfoService.findByExerciseId(exerciseReferenceDto.getExerciseId());
 
-                LectureDto lectureDto = lectureService.getLectureById(exerciseDto.getLectureId());
+                LectureDto lectureDto = lectureInfoService.findLectureByLectureId(exerciseDto.getLectureId());
 
-                TopicDto topicDto = topicService.getTopicById(lectureDto.getTopicId());
+                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
 
-                Level level = levelService.findLevelByLevelId(lectureDto.getLevelId());
+                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
 
                 exerciseReferenceDto.setLectureTitle(lectureDto.getName());
                 exerciseReferenceDto.setTopicTitle(topicDto.getName());
                 exerciseReferenceDto.setLevelTitle(level.getName());
             }
             for (SectionReferenceDto sectionReferenceDto : reviewDto.getSectionList()) {
-                LectureDto lectureDto = lectureService.getLectureById(sectionReferenceDto.getLectureId());
+                LectureDto lectureDto = lectureInfoService.findLectureByLectureId(sectionReferenceDto.getLectureId());
 
-                TopicDto topicDto = topicService.getTopicById(lectureDto.getTopicId());
+                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
 
-                Level level = levelService.findLevelByLevelId(lectureDto.getLevelId());
+                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
 
                 sectionReferenceDto.setLectureTitle(lectureDto.getName());
                 sectionReferenceDto.setTopicTitle(topicDto.getName());
@@ -132,7 +110,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public UpdateReviewResponse updateReview(UUID reviewId, UpdateReviewRequest updateReviewRequest) {
+    public UpdateReviewResponse updateReview(UUID reviewId, UpdateReviewRequest request) {
         Review review = reviewRepository.findByReviewId(reviewId);
 
         if (review == null) {
@@ -141,20 +119,19 @@ public class ReviewServiceImpl implements ReviewService {
             throw new ReviewNotFoundException(errorMessage);
         }
 
-        if (updateReviewRequest.getType() == ReviewType.EXERCISE) {
+        if (request.getType() == ReviewType.EXERCISE) {
             for (ExerciseReference exerciseReference : review.getExerciseList()) {
-                if (exerciseReference.getExerciseId().equals(updateReviewRequest.getItemId())
-                && exerciseReference.getOrdinalNumber().equals(updateReviewRequest.getOrdinalNumber())) {
-                    exerciseReference.setIsDone(updateReviewRequest.getIsDone());
+                if (exerciseReference.getExerciseId().equals(request.getItemId())
+                        && exerciseReference.getOrdinalNumber().equals(request.getOrdinalNumber())) {
+                    exerciseReference.setIsDone(request.getIsDone());
                     break;
                 }
             }
-        }
-        else {
-            for(SectionReference sectionReference : review.getSectionList()) {
-                if(sectionReference.getLectureId().equals(updateReviewRequest.getItemId())
-                && sectionReference.getOrdinalNumber().equals(updateReviewRequest.getOrdinalNumber())) {
-                    sectionReference.setIsDone(updateReviewRequest.getIsDone());
+        } else {
+            for (SectionReference sectionReference : review.getSectionList()) {
+                if (sectionReference.getLectureId().equals(request.getItemId())
+                        && sectionReference.getOrdinalNumber().equals(request.getOrdinalNumber())) {
+                    sectionReference.setIsDone(request.getIsDone());
                     break;
                 }
             }
@@ -167,8 +144,13 @@ public class ReviewServiceImpl implements ReviewService {
         return new UpdateReviewResponse(updateReviewsSuccessMessage);
     }
 
+    @Override
+    public void deleteReview(UUID userId) {
+
+    }
+
     private List<Review> createReview(UUID userId, Date startOfDay) {
-        List<LectureDto> lectures = lectureListService.getLecturesNeedToBeReviewed(userId);
+        List<LectureDto> lectures = lectureInfoService.findLecturesNeedToBeReviewed(userId);
 
         int sectionSize = 0;
 
@@ -189,7 +171,7 @@ public class ReviewServiceImpl implements ReviewService {
                         false));
             }
 
-            for (ExerciseDto exercise : exerciseService.getListOfExercisesInLecture(lecture.getLectureId())) {
+            for (ExerciseDto exercise : exerciseQueryService.getExercisesByLectureId(lecture.getLectureId())) {
                 exerciseReferences.add(new ExerciseReference(
                         exercise.getExerciseId(),
                         exercise.getOrdinalNumber(),

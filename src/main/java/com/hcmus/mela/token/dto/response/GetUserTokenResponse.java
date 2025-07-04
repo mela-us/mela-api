@@ -11,6 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class GetUserTokenResponse {
     private String message;
-
     private Integer token;
 }

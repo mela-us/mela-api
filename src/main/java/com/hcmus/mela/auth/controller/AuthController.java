@@ -1,7 +1,13 @@
 package com.hcmus.mela.auth.controller;
 
-import com.hcmus.mela.auth.dto.request.*;
-import com.hcmus.mela.auth.dto.response.*;
+import com.hcmus.mela.auth.dto.request.LoginRequest;
+import com.hcmus.mela.auth.dto.request.LogoutRequest;
+import com.hcmus.mela.auth.dto.request.RefreshTokenRequest;
+import com.hcmus.mela.auth.dto.request.RegistrationRequest;
+import com.hcmus.mela.auth.dto.response.LoginResponse;
+import com.hcmus.mela.auth.dto.response.LogoutResponse;
+import com.hcmus.mela.auth.dto.response.RefreshTokenResponse;
+import com.hcmus.mela.auth.dto.response.RegistrationResponse;
 import com.hcmus.mela.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;

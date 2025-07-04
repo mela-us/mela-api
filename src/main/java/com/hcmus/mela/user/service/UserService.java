@@ -1,6 +1,6 @@
 package com.hcmus.mela.user.service;
 
-import com.hcmus.mela.lecture.model.Level;
+import com.hcmus.mela.user.dto.UserDto;
 import com.hcmus.mela.user.dto.request.*;
 import com.hcmus.mela.user.dto.response.*;
 
@@ -14,4 +14,6 @@ public interface UserService {
     void deleteAccount(DeleteAccountRequest deleteAccountRequest, String authorizationHeader);
 
     UUID getLevelId(UUID userId);
+
+    UserDto getUserById(UUID userId);
 }

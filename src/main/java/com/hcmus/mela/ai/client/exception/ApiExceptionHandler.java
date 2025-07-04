@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -22,7 +23,7 @@ public class ApiExceptionHandler {
                 e.getStatusCode(),
                 e.getErrorMessage(),
                 request.getDescription(false),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
         return ResponseEntity.status(apiErrorResponse.getStatus()).body(apiErrorResponse);
     }
