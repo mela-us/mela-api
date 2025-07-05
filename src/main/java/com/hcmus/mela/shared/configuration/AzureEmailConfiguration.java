@@ -33,8 +33,7 @@ public class AzureEmailConfiguration {
     @Setter
     @Getter
     public static class Email {
-        private String domain;
-        private String from;
+        private String senderAddress;
     }
 
     @Bean

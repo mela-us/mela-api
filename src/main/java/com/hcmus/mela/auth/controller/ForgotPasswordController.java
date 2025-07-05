@@ -10,6 +10,7 @@ import com.hcmus.mela.auth.service.ForgotPasswordService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,38 +18,38 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-
 @RequestMapping("/api/forgot-password")
 public class ForgotPasswordController {
 
     private final ForgotPasswordService forgotPasswordService;
 
     @PostMapping
-    @Operation(tags = "Auth Service", description = "You can enter your email to receive otp via the email.")
-    public ResponseEntity<ForgotPasswordResponse> forgotPasswordRequest(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest) {
-
-        final ForgotPasswordResponse forgotPasswordResponse = forgotPasswordService.sendOtpCodeByEmail(forgotPasswordRequest);
-
-        return ResponseEntity.status(HttpStatus.OK).body(forgotPasswordResponse);
+    @Operation(tags = "🔑 Forgot Password Service", summary = "Send email for forgot password",
+            description = "You can enter your email to receive otp via the email.")
+    public ResponseEntity<ForgotPasswordResponse> forgotPasswordRequest(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Forgot password request for email {}", request.getUsername());
+        final ForgotPasswordResponse response = forgotPasswordService.sendOtpCodeByEmail(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/validate-otp")
-    @Operation(tags = "Auth Service", description = "You must provide otp code to verify your account.")
-    public ResponseEntity<OtpConfirmationResponse> validateOtpRequest(@Valid @RequestBody OtpConfirmationRequest otpConfirmationRequest) {
-
-        final OtpConfirmationResponse otpConfirmationResponse = forgotPasswordService.validateOtp(otpConfirmationRequest);
-
-        return ResponseEntity.status(HttpStatus.OK).body(otpConfirmationResponse);
+    @Operation(tags = "🔑 Forgot Password Service", summary = "Validate OTP",
+            description = "You must provide otp code to verify your account.")
+    public ResponseEntity<OtpConfirmationResponse> validateOtpRequest(@Valid @RequestBody OtpConfirmationRequest request) {
+        log.info("Validating OTP for email {}", request.getUsername());
+        final OtpConfirmationResponse response = forgotPasswordService.validateOtp(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/reset-password")
-    @Operation(tags = "Auth Service", description = "You can reset your password.")
-    public ResponseEntity<ResetPasswordResponse> resetPasswordRequest(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
-
-        final ResetPasswordResponse resetPasswordResponse = forgotPasswordService.resetPassword(resetPasswordRequest);
-
-        return ResponseEntity.status(HttpStatus.OK).body(resetPasswordResponse);
+    @Operation(tags = "🔑 Forgot Password Service", summary = "Reset Password",
+            description = "You can reset your password.")
+    public ResponseEntity<ResetPasswordResponse> resetPasswordRequest(@Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Resetting password for email {}", request.getUsername());
+        final ResetPasswordResponse response = forgotPasswordService.resetPassword(request);
+        return ResponseEntity.ok(response);
     }
 }

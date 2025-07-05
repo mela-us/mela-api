@@ -9,9 +9,9 @@ import com.hcmus.mela.auth.dto.response.ResetPasswordResponse;
 
 public interface ForgotPasswordService {
 
-    public ForgotPasswordResponse sendOtpCodeByEmail(ForgotPasswordRequest forgotPasswordRequest);
+    ForgotPasswordResponse sendOtpCodeByEmail(ForgotPasswordRequest request);
 
-    public OtpConfirmationResponse validateOtp(OtpConfirmationRequest otpConfirmationRequest);
+    OtpConfirmationResponse validateOtp(OtpConfirmationRequest request);
 
-    public ResetPasswordResponse resetPassword(ResetPasswordRequest resetPasswordRequest);
+    ResetPasswordResponse resetPassword(ResetPasswordRequest request);
 }

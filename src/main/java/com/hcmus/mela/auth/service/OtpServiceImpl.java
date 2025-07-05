@@ -20,7 +20,6 @@ public class OtpServiceImpl implements OtpService {
         return String.format("%06d", otpInt);
     }
 
-
     @Override
     public void generateAndSendOtp(String email) {
         String otp = generateRandomOtp();

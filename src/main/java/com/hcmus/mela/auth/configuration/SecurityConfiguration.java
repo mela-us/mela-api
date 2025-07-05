@@ -29,13 +29,12 @@ public class SecurityConfiguration {
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
-    public AuthenticationManager authenticationManager(final AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(final AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         //@formatter:off
 		return http
 				.csrf(CsrfConfigurer::disable)
@@ -60,5 +59,4 @@ public class SecurityConfiguration {
 				.build();
 		//@formatter:on
     }
-
 }

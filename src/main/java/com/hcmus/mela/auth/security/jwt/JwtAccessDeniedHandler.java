@@ -4,6 +4,7 @@ import com.hcmus.mela.shared.exception.ApiErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,8 +13,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 
@@ -26,18 +29,17 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException exception) throws IOException, ServletException {
+        log.error("Access denied for request {}, {}", request.getRequestURI(), exception.getMessage());
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
         ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
                 getRequestId(),
                 HttpStatus.FORBIDDEN.value(),
-                accessDeniedException.getMessage(),
+                exception.getMessage(),
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
-
         response.getWriter().write(apiErrorResponse.toJson());
     }
 }

@@ -28,7 +28,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public ForgotPasswordResponse sendOtpCodeByEmail(ForgotPasswordRequest request) {
         User user = authService.findByUsername(request.getUsername());
         if (user == null) {
-            throw new UserNotFoundException("User not found with username: " + request.getUsername());
+            throw new UserNotFoundException("User not found with username " + request.getUsername());
         }
         otpService.generateAndSendOtp(user.getUsername());
         return new ForgotPasswordResponse("Send email successfully to " + user.getUsername());
@@ -38,7 +38,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public OtpConfirmationResponse validateOtp(OtpConfirmationRequest request) {
         User user = authService.findByUsername(request.getUsername());
         if (user == null) {
-            throw new UserNotFoundException("User not found with username: " + request.getUsername());
+            throw new UserNotFoundException("User not found with username " + request.getUsername());
         }
         if (!otpService.validateOtp(request.getUsername(), request.getOtpCode())) {
             throw new ForgotPasswordException("Invalid OTP code for user " + request.getUsername());

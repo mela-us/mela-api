@@ -17,12 +17,12 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+@Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(basePackageClasses = {
         AuthController.class,
         ForgotPasswordController.class
 })
-@Slf4j
 public class AuthExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -35,7 +35,6 @@ public class AuthExceptionHandler {
                 request.getDescription(false),
                 LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
-
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    @Value("${azure.email.from}")
+    @Value("${azure.email.sender-address}")
     private String fromEmail;
     private final EmailClient emailClient;
     private final TemplateEngine emailTemplateEngine;
@@ -31,32 +31,26 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendOtpEmail(String to, String otp) {
         try {
-            // Tạo HTML content từ template
             Context context = new Context();
             context.setVariable("otpCode", otp);
             context.setVariable("currentYear", ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).getYear());
             context.setVariable("expirationMinutes", 5);
-
             String htmlContent = emailTemplateEngine.process("email-otp", context);
 
-            // Tạo email message
             EmailMessage emailMessage = new EmailMessage()
                     .setSenderAddress(fromEmail)
                     .setToRecipients(List.of(new EmailAddress(to)))
                     .setSubject("🔐 Mã OTP cho reset password")
                     .setBodyHtml(htmlContent);
 
-            // Gửi email
             EmailSendResult result = emailClient.beginSend(emailMessage)
                     .waitForCompletion(Duration.ofMinutes(2))
                     .getValue();
-
             if (result.getStatus() == EmailSendStatus.SUCCEEDED) {
-                log.info("OTP email sent successfully to {} with operation ID: {}", to, result.getId());
+                log.info("OTP email sent successfully to {}", to);
             } else {
                 throw new ForgotPasswordException("Failed to send OTP email with status " + result.getStatus());
             }
-
         } catch (Exception e) {
             throw new ForgotPasswordException("Failed to send OTP email, " + e.getMessage());
         }
