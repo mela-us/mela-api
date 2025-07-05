@@ -101,12 +101,17 @@ public class UserServiceImpl implements UserService {
 
         UserDto userDto = UserMapper.INSTANCE.userToUserDto(user);
 
-        if (user.getLevelId() != null) {
-            Level level = levelService.findLevelByLevelId(user.getLevelId());
+        if (user.getLevelId() == null) {
+            Level level = levelService.findLevelByLevelTitle("Lớp 1");
 
-            userDto.setLevelTitle(level.getName());
+            user.setLevelId(level.getLevelId());
+
+            userRepository.save(user);
         }
 
+        Level level = levelService.findLevelByLevelId(user.getLevelId());
+
+        userDto.setLevelTitle(level.getName());
 
         final String getUserSuccessfully = generalMessageAccessor.getMessage(null, "get_user_successful", userId);
 

@@ -93,6 +93,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         List<ReviewDto> reviewDtos = reviews.stream()
                 .map(ReviewMapper.INSTANCE::reviewToReviewDto)
+                .sorted(Comparator.comparing(ReviewDto::getOrdinalNumber))
                 .toList();
 
         for (ReviewDto reviewDto : reviewDtos) {
@@ -199,6 +200,7 @@ public class ReviewServiceImpl implements ReviewService {
             Review review = Review.builder()
                     .reviewId(UUID.randomUUID())
                     .userId(userId)
+                    .ordinalNumber(results.size() + 1)
                     .createdAt(startOfDay)
                     .sectionList(sectionReferences)
                     .exerciseList(exerciseReferences)
