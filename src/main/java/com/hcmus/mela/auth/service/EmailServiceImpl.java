@@ -1,38 +1,37 @@
 package com.hcmus.mela.auth.service;
 
+import com.azure.communication.email.EmailClient;
+import com.azure.communication.email.models.EmailAddress;
+import com.azure.communication.email.models.EmailMessage;
+import com.azure.communication.email.models.EmailSendResult;
+import com.azure.communication.email.models.EmailSendStatus;
 import com.hcmus.mela.auth.exception.ForgotPasswordException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
-    @Value("${spring.mail.username}")
+    @Value("${azure.email.from}")
     private String fromEmail;
-    private final JavaMailSender javaMailSender;
+    private final EmailClient emailClient;
     private final TemplateEngine emailTemplateEngine;
 
     @Override
     public void sendOtpEmail(String to, String otp) {
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message,
-                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
-                    StandardCharsets.UTF_8.name());
-
+            // Tạo HTML content từ template
             Context context = new Context();
             context.setVariable("otpCode", otp);
             context.setVariable("currentYear", ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).getYear());
@@ -40,13 +39,23 @@ public class EmailServiceImpl implements EmailService {
 
             String htmlContent = emailTemplateEngine.process("email-otp", context);
 
-            helper.setTo(to);
-            helper.setFrom(fromEmail);
-            helper.setSubject("🔐 Mã OTP cho reset password");
-            helper.setText(htmlContent, true);
+            // Tạo email message
+            EmailMessage emailMessage = new EmailMessage()
+                    .setSenderAddress(fromEmail)
+                    .setToRecipients(List.of(new EmailAddress(to)))
+                    .setSubject("🔐 Mã OTP cho reset password")
+                    .setBodyHtml(htmlContent);
 
-            javaMailSender.send(message);
-            log.info("OTP email sent successfully to {}", to);
+            // Gửi email
+            EmailSendResult result = emailClient.beginSend(emailMessage)
+                    .waitForCompletion(Duration.ofMinutes(2))
+                    .getValue();
+
+            if (result.getStatus() == EmailSendStatus.SUCCEEDED) {
+                log.info("OTP email sent successfully to {} with operation ID: {}", to, result.getId());
+            } else {
+                throw new ForgotPasswordException("Failed to send OTP email with status " + result.getStatus());
+            }
 
         } catch (Exception e) {
             throw new ForgotPasswordException("Failed to send OTP email, " + e.getMessage());
