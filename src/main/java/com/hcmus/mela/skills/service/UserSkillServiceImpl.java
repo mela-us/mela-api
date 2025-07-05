@@ -106,10 +106,6 @@ public class UserSkillServiceImpl implements UserSkillService {
 
     @Override
     public void deleteUserSkillByUserId(UUID userId) {
-        List<UserSkill> userSkills = userSkillRepository.findAllByUserId(userId);
-        if (userSkills.isEmpty()) {
-            return;
-        }
-        userSkillRepository.deleteAll(userSkills);
+        userSkillRepository.deleteAllByUserId(userId);
     }
 }

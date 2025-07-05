@@ -24,20 +24,20 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/topics")
 @Slf4j
+@RequestMapping("/api/topics")
 public class TopicController {
 
     private final TopicQueryService topicQueryService;
     private final TopicStatusService topicStatusService;
     private final TopicCommandService topicCommandService;
     private final JwtTokenService jwtTokenService;
-
     private final Map<String, TopicFilterStrategy> strategies;
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR', 'STUDENT')")
     @GetMapping
     @Operation(
-            tags = "Math Category Service",
+            tags = "Topic Service",
             summary = "Get all topics",
             description = "Get all topics existing in the system."
     )

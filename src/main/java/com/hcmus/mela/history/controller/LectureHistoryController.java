@@ -1,8 +1,8 @@
 package com.hcmus.mela.history.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
-import com.hcmus.mela.history.dto.request.SaveLectureSectionRequest;
-import com.hcmus.mela.history.dto.response.SaveLectureSectionResponse;
+import com.hcmus.mela.history.dto.request.SaveSectionRequest;
+import com.hcmus.mela.history.dto.response.SaveSectionResponse;
 import com.hcmus.mela.history.service.LectureHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,6 @@ import java.util.UUID;
 public class LectureHistoryController {
 
     private final LectureHistoryService lectureHistoryService;
-
     private final JwtTokenService jwtTokenService;
 
     @PreAuthorize("hasAuthority('USER')")
@@ -30,14 +29,12 @@ public class LectureHistoryController {
             summary = "Save section",
             description = "Save learning section of user in the system."
     )
-    public ResponseEntity<SaveLectureSectionResponse> saveLectureSectionHistory(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody SaveLectureSectionRequest saveLectureSectionRequest) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Saving lecture section for user: {}", userId);
-        SaveLectureSectionResponse response = lectureHistoryService.saveSection(userId, saveLectureSectionRequest);
-
+    public ResponseEntity<SaveSectionResponse> saveLectureSectionHistory(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody SaveSectionRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Saving lecture section for user {}", userId);
+        SaveSectionResponse response = lectureHistoryService.saveSection(userId, request);
         return ResponseEntity.ok(response);
     }
 }

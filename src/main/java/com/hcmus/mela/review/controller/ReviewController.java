@@ -20,7 +20,6 @@ import java.util.UUID;
 public class ReviewController {
 
     private final ReviewService reviewService;
-
     private final JwtTokenService jwtTokenService;
 
     @GetMapping
@@ -29,13 +28,10 @@ public class ReviewController {
             summary = "Get reviews by user ID",
             description = "Retrieves all reviews of the user with given user ID."
     )
-    public ResponseEntity<GetReviewsResponse> getReviews(@RequestHeader("Authorization") String authorizationHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Get review sections and exercises for user {}.", userId);
-
+    public ResponseEntity<GetReviewsResponse> getReviews(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Get review sections and exercises for user {}", userId);
         GetReviewsResponse response = reviewService.getReviews(userId);
-
         return ResponseEntity.ok(response);
     }
 
@@ -45,13 +41,13 @@ public class ReviewController {
             summary = "Update review with review ID",
             description = "Update review that has given ID."
     )
-    public ResponseEntity<UpdateReviewResponse> updateReview(@RequestHeader("Authorization") String authorizationHeader,
-                                                             @PathVariable("reviewId") String reviewId,
-                                                             @RequestBody UpdateReviewRequest request) {
-        log.info("Update review with review ID {}.", reviewId);
-
-        UpdateReviewResponse response = reviewService.updateReview(UUID.fromString(reviewId), request);
-
+    public ResponseEntity<UpdateReviewResponse> updateReview(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable("reviewId") String reviewId,
+            @RequestBody UpdateReviewRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Update review {} for user {}", reviewId, userId);
+        UpdateReviewResponse response = reviewService.updateReview(userId, UUID.fromString(reviewId), request);
         return ResponseEntity.ok(response);
     }
 }

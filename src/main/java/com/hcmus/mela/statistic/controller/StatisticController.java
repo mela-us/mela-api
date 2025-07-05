@@ -20,7 +20,6 @@ import java.util.UUID;
 public class StatisticController {
 
     private final StatisticService statisticService;
-
     private final JwtTokenService jwtTokenService;
 
     @GetMapping("/{levelId}")
@@ -34,16 +33,14 @@ public class StatisticController {
             @PathVariable("levelId") UUID levelId,
             @Parameter(description = "Type of activity", example = "EXERCISE, TEST, LESSON, ALL, ...", required = false)
             @RequestParam(value = "type", required = false) String type,
-            @RequestHeader("Authorization") String authorizationHeader) {
+            @RequestHeader("Authorization") String authHeader) {
         ActivityType activityType = ActivityType.fromValue(type);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Getting statistics for user: {} with levelId: {} and type: {}", userId, levelId, activityType);
-        GetStatisticsResponse response = statisticService.getStatisticByUserAndLevelAndType(
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Getting statistics for user {} with level {} and type {}", userId, levelId, activityType);
+        GetStatisticsResponse response = statisticService.getStatisticByUserIdAndLevelIdAndType(
                 userId,
                 levelId,
                 activityType);
-
         return ResponseEntity.ok(response);
     }
 }

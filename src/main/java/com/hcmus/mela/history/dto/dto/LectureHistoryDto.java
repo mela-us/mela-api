@@ -29,5 +29,5 @@ public class LectureHistoryDto {
 
     private Integer progress;
 
-    private List<LectureCompletedSectionDto> completedSections;
+    private List<CompletedSectionDto> completedSections;
 }

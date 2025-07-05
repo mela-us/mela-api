@@ -2,13 +2,11 @@ package com.hcmus.mela.review.service;
 
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
-import com.hcmus.mela.exercise.service.ExerciseQueryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
 import com.hcmus.mela.lecture.service.LectureInfoService;
-import com.hcmus.mela.lecture.service.LectureQueryService;
-import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.level.dto.dto.LevelDto;
+import com.hcmus.mela.level.service.LevelInfoService;
 import com.hcmus.mela.review.dto.dto.ExerciseReferenceDto;
 import com.hcmus.mela.review.dto.dto.ReviewDto;
 import com.hcmus.mela.review.dto.dto.SectionReferenceDto;
@@ -22,18 +20,20 @@ import com.hcmus.mela.review.model.Review;
 import com.hcmus.mela.review.model.ReviewType;
 import com.hcmus.mela.review.model.SectionReference;
 import com.hcmus.mela.review.repository.ReviewRepository;
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
-import com.hcmus.mela.topic.service.TopicQueryService;
+import com.hcmus.mela.topic.service.TopicInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -41,16 +41,13 @@ import java.util.*;
 public class ReviewServiceImpl implements ReviewService {
 
     private final String REVIEWS_FOUND = "reviews_found_successful";
-    private final String REVIEW_NOT_FOUND = "review_not_found";
     private final String UPDATE_REVIEW_SUCCESS = "update_review_successful";
 
     private final GeneralMessageAccessor generalMessageAccessor;
-    private final ExceptionMessageAccessor exceptionMessageAccessor;
     private final ReviewRepository reviewRepository;
-    private final ExerciseQueryService exerciseQueryService;
     private final ExerciseInfoService exerciseInfoService;
-    private final TopicQueryService topicQueryService;
-    private final LevelQueryService levelQueryService;
+    private final TopicInfoService topicInfoService;
+    private final LevelInfoService levelInfoService;
     private final LectureInfoService lectureInfoService;
 
     @Override
@@ -74,50 +71,57 @@ public class ReviewServiceImpl implements ReviewService {
                 .toList();
 
         for (ReviewDto reviewDto : reviewDtos) {
+            List<ExerciseReferenceDto> exerciseReferenceDtos = new ArrayList<>();
             for (ExerciseReferenceDto exerciseReferenceDto : reviewDto.getExerciseList()) {
-                ExerciseDto exerciseDto = exerciseInfoService.findByExerciseId(exerciseReferenceDto.getExerciseId());
-
+                ExerciseDto exerciseDto = exerciseInfoService.findExerciseByExerciseIdAndStatus(
+                        exerciseReferenceDto.getExerciseId(), ContentStatus.VERIFIED);
+                if (exerciseDto == null) {
+                    continue;
+                }
                 LectureDto lectureDto = lectureInfoService.findLectureByLectureId(exerciseDto.getLectureId());
-
-                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
-
-                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
+                TopicDto topicDto = topicInfoService.findTopicByTopicId(lectureDto.getTopicId());
+                LevelDto levelDto = levelInfoService.findLevelByLevelId(lectureDto.getLevelId());
 
                 exerciseReferenceDto.setLectureTitle(lectureDto.getName());
                 exerciseReferenceDto.setTopicTitle(topicDto.getName());
-                exerciseReferenceDto.setLevelTitle(level.getName());
+                exerciseReferenceDto.setLevelTitle(levelDto.getName());
+                exerciseReferenceDtos.add(exerciseReferenceDto);
             }
+            reviewDto.setExerciseList(exerciseReferenceDtos);
+
+            List<SectionReferenceDto> sectionReferenceDtos = new ArrayList<>();
             for (SectionReferenceDto sectionReferenceDto : reviewDto.getSectionList()) {
-                LectureDto lectureDto = lectureInfoService.findLectureByLectureId(sectionReferenceDto.getLectureId());
-
-                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
-
-                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
+                LectureDto lectureDto = lectureInfoService.findLectureByLectureIdAndStatus(
+                        sectionReferenceDto.getLectureId(), ContentStatus.VERIFIED);
+                if (lectureDto == null) {
+                    continue;
+                }
+                TopicDto topicDto = topicInfoService.findTopicByTopicId(lectureDto.getTopicId());
+                LevelDto levelDto = levelInfoService.findLevelByLevelId(lectureDto.getLevelId());
 
                 sectionReferenceDto.setLectureTitle(lectureDto.getName());
                 sectionReferenceDto.setTopicTitle(topicDto.getName());
-                sectionReferenceDto.setLevelTitle(level.getName());
-                sectionReferenceDto.setSectionUrl(lectureDto
-                        .getSections()
-                        .get(sectionReferenceDto.getOrdinalNumber() - 1)
-                        .getUrl());
+                sectionReferenceDto.setLevelTitle(levelDto.getName());
+                String sectionUrl = lectureDto.getSections()
+                        .stream()
+                        .filter(s -> s.getOrdinalNumber().equals(sectionReferenceDto.getOrdinalNumber()))
+                        .findFirst()
+                        .map(SectionDto::getUrl)
+                        .orElse(null);
+                sectionReferenceDto.setSectionUrl(sectionUrl);
+                sectionReferenceDtos.add(sectionReferenceDto);
             }
+            reviewDto.setSectionList(sectionReferenceDtos);
         }
 
         final String getReviewsSuccessMessage = generalMessageAccessor.getMessage(null, REVIEWS_FOUND, userId);
-
         return new GetReviewsResponse(getReviewsSuccessMessage, reviewDtos);
     }
 
     @Override
-    public UpdateReviewResponse updateReview(UUID reviewId, UpdateReviewRequest request) {
-        Review review = reviewRepository.findByReviewId(reviewId);
-
-        if (review == null) {
-            final String errorMessage = exceptionMessageAccessor.getMessage(null, REVIEW_NOT_FOUND, reviewId);
-            log.error(errorMessage);
-            throw new ReviewNotFoundException(errorMessage);
-        }
+    public UpdateReviewResponse updateReview(UUID userId, UUID reviewId, UpdateReviewRequest request) {
+        Review review = reviewRepository.findByReviewIdAndUserId(reviewId, userId)
+                .orElseThrow(() -> new ReviewNotFoundException("Review of user " + userId + " not found with id " + reviewId));
 
         if (request.getType() == ReviewType.EXERCISE) {
             for (ExerciseReference exerciseReference : review.getExerciseList()) {
@@ -138,30 +142,26 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review result = reviewRepository.updateReview(review);
-
         final String updateReviewsSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_REVIEW_SUCCESS, reviewId);
-
         return new UpdateReviewResponse(updateReviewsSuccessMessage);
     }
 
     @Override
     public void deleteReview(UUID userId) {
-
+        reviewRepository.deleteAllByUserId(userId);
     }
 
     private List<Review> createReview(UUID userId, Date startOfDay) {
         List<LectureDto> lectures = lectureInfoService.findLecturesNeedToBeReviewed(userId);
-
+        if (lectures.isEmpty()) {
+            return List.of();
+        }
         int sectionSize = 0;
-
         int exerciseSize = 0;
 
-
         List<Review> results = new ArrayList<>();
-
         for (LectureDto lecture : lectures) {
             List<ExerciseReference> exerciseReferences = new ArrayList<>();
-
             List<SectionReference> sectionReferences = new ArrayList<>();
 
             for (SectionDto sectionDto : lecture.getSections()) {
@@ -171,7 +171,7 @@ public class ReviewServiceImpl implements ReviewService {
                         false));
             }
 
-            for (ExerciseDto exercise : exerciseQueryService.getExercisesByLectureId(lecture.getLectureId())) {
+            for (ExerciseDto exercise : exerciseInfoService.findExercisesByLectureIdAndStatus(lecture.getLectureId(), ContentStatus.VERIFIED)) {
                 exerciseReferences.add(new ExerciseReference(
                         exercise.getExerciseId(),
                         exercise.getOrdinalNumber(),
@@ -189,22 +189,12 @@ public class ReviewServiceImpl implements ReviewService {
             results.add(review);
 
             sectionSize += sectionReferences.size();
-
             exerciseSize += exerciseReferences.size();
-
             if (sectionSize >= 3 && exerciseSize >= 3) {
                 break;
             }
         }
 
-        if (lectures.isEmpty()) {
-            return List.of();
-        }
-
-        try {
-            return reviewRepository.saveAll(results);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        return reviewRepository.saveAll(results);
     }
 }

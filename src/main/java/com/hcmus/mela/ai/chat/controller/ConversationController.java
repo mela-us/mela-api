@@ -126,7 +126,7 @@ public class ConversationController {
     @PreAuthorize("hasAuthority('USER')")
     @DeleteMapping("/{conversationId}")
     public ResponseEntity<Void> deleteConversation(@PathVariable String conversationId) {
-        conversationHistoryService.deleteConversation(UUID.fromString(conversationId));
+        conversationHistoryService.deleteConversationById(UUID.fromString(conversationId));
         return ResponseEntity.noContent().build();
     }
 }

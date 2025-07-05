@@ -65,7 +65,7 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
         List<Question> questions = exercise.getQuestions();
         List<CompletableFuture<ExerciseAnswer>> futures = new ArrayList<>();
         for (ExerciseAnswerDto exeAnswer : answers) {
-            ExerciseAnswer answer = ExerciseAnswerMapper.INSTANCE.convertToExerciseAnswer(exeAnswer);
+            ExerciseAnswer answer = ExerciseAnswerMapper.INSTANCE.exerciseAnswerDtoToExerciseAnswer(exeAnswer);
             answer.setFeedback("");
             answer.setIsCorrect(false);
             CompletableFuture<ExerciseAnswer> future = asyncService.runComplexAsync(

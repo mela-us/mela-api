@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @Setter
 @Getter
-public class LectureCompletedSectionDto {
+public class CompletedSectionDto {
 
     private final LocalDateTime completedAt;
 

@@ -18,8 +18,4 @@ public interface TopicQueryService {
     boolean checkTopicStatus(UUID topicId, ContentStatus status);
 
     List<TopicDto> getTopics();
-
-    List<TopicDto> getVerifiedTopics();
-
-    TopicDto getTopicById(UUID topicId);
 }

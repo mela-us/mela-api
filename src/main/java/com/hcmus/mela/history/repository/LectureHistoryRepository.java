@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.repository.Update;
 import java.util.List;
 import java.util.UUID;
 
-public interface LectureHistoryRepository extends MongoRepository<LectureHistory, UUID>, LectureHistoryCustomRepository {
+public interface LectureHistoryRepository extends MongoRepository<LectureHistory, UUID> {
 
     LectureHistory findByLectureIdAndUserId(UUID lectureId, UUID userId);
 
@@ -21,11 +21,18 @@ public interface LectureHistoryRepository extends MongoRepository<LectureHistory
 
     @Aggregation(pipeline = {
             "{ '$match': { 'user_id': ?0} }",
+            "{ '$lookup': { " +
+                    "'from': 'lectures', " +
+                    "'localField': 'lecture_id', " +
+                    "'foreignField': '_id', " +
+                    "'as': 'lecture' " +
+                    "} }",
+            "{ '$unwind': '$lecture' }",
+            "{ '$match': { 'lecture.status': 'VERIFIED' } }",
             "{ '$sort': { 'progress': -1 } }",
             "{ '$group': { '_id': '$lecture_id', 'history': { '$first': '$$ROOT' } } }",
             "{ '$replaceWith': '$history' }",
             "{ '$sort': { 'completed_at': -1 } }"
     })
     List<LectureHistory> findBestProgressHistoriesGroupedByLecture(UUID userId);
-
 }

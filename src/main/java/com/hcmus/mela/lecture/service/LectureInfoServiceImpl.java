@@ -32,7 +32,10 @@ public class LectureInfoServiceImpl implements LectureInfoService {
     @Override
     public LectureDto findLectureByTopicIdAndLevelIdAndOrdinalNumber(UUID topicId, UUID levelId, Integer ordinalNumber) {
         Lecture lecture = lectureRepository.findByTopicIdAndLevelIdAndOrdinalNumber(topicId, levelId, ordinalNumber);
-        return lecture == null ? null : LectureMapper.INSTANCE.lectureToLectureDto(lecture);
+        if (lecture == null || lecture.getStatus() != ContentStatus.VERIFIED) {
+            return null;
+        }
+        return LectureMapper.INSTANCE.lectureToLectureDto(lecture);
     }
 
     @Override

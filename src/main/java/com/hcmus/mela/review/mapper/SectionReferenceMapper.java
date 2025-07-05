@@ -8,6 +8,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface SectionReferenceMapper {
+
     SectionReferenceMapper INSTANCE = Mappers.getMapper(SectionReferenceMapper.class);
 
     SectionReferenceDto sectionReferenceToSectionReferenceDto(SectionReference sectionReference);

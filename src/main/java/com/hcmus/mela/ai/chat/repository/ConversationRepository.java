@@ -77,10 +77,11 @@ public interface ConversationRepository extends MongoRepository<Conversation, UU
     }
 
 
-
     // Custom method to delete a conversation by conversationId
     void deleteByConversationId(UUID conversationId);
 
     // Method to check if a conversation exists
     boolean existsByConversationId(UUID conversationId);
+
+    void deleteAllByUserId(UUID userId);
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SaveLectureSectionRequest {
+public class SaveSectionRequest {
 
     @Schema(description = "Id of the lecture", example = "344069af-a408-4b27-917a-ea49b7a14e33")
     private UUID lectureId;

@@ -14,6 +14,7 @@ import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.mapper.TopicMapper;
+import com.hcmus.mela.topic.service.TopicInfoService;
 import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,16 +27,11 @@ import java.util.concurrent.CompletableFuture;
 public class LectureQueryServiceImpl implements LectureQueryService {
 
     private final GeneralMessageAccessor generalMessageAccessor;
-
     private final TopicQueryService topicQueryService;
-
+    private final TopicInfoService topicInfoService;
     private final LectureRepository lectureRepository;
-
     private final ExerciseHistoryService exerciseHistoryService;
-
     private final AsyncCustomService asyncService;
-
-    private final LectureCustomRepositoryImpl lectureCustomRepositoryImpl;
 
     @Override
     public GetAllLecturesResponse getAllLectures(LectureFilterStrategy strategy, UUID userId) {
@@ -58,7 +54,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 () -> exerciseHistoryService.getPassedExerciseCountOfUser(userId),
                 Collections.emptyMap());
         CompletableFuture<List<LecturesByTopicDto>> lecturesByTopicDtoListFuture = asyncService.runAsync(
-                () -> topicQueryService.getVerifiedTopics()
+                () -> topicInfoService.findAllTopicsInStatus(ContentStatus.VERIFIED)
                         .stream()
                         .map(TopicMapper.INSTANCE::topicDtoToLecturesByTopicDto)
                         .toList(),

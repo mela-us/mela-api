@@ -20,7 +20,6 @@ import java.util.UUID;
 public class SuggestionController {
 
     private final SuggestionService suggestionService;
-
     private final JwtTokenService jwtTokenService;
 
     @GetMapping
@@ -29,13 +28,10 @@ public class SuggestionController {
             summary = "Get suggestions by user ID",
             description = "Retrieves all suggestions of the user with given user ID."
     )
-    public ResponseEntity<GetSuggestionsResponse> getSuggestions(@RequestHeader("Authorization") String authorizationHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Get suggestion sections and exercises for user {}.", userId);
-
+    public ResponseEntity<GetSuggestionsResponse> getSuggestions(@RequestHeader("Authorization") String authHeader) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Get suggestion sections for user {}", userId);
         GetSuggestionsResponse response = suggestionService.getSuggestions(userId);
-
         return ResponseEntity.ok(response);
     }
 
@@ -45,13 +41,13 @@ public class SuggestionController {
             summary = "Update suggestion with suggestion ID",
             description = "Update suggestion that has given ID."
     )
-    public ResponseEntity<UpdateSuggestionResponse> updateSuggestion(@RequestHeader("Authorization") String authorizationHeader,
-                                                                     @PathVariable("suggestionId") String suggestionId,
-                                                                     @RequestBody UpdateSuggestionRequest request) {
-        log.info("Update suggestion with suggestion ID {}.", suggestionId);
-
-        UpdateSuggestionResponse response = suggestionService.updateSuggestion(UUID.fromString(suggestionId), request);
-
+    public ResponseEntity<UpdateSuggestionResponse> updateSuggestion(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable("suggestionId") String suggestionId,
+            @RequestBody UpdateSuggestionRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Update suggestion with suggestion id {} for user {}", suggestionId, userId);
+        UpdateSuggestionResponse response = suggestionService.updateSuggestion(userId, UUID.fromString(suggestionId), request);
         return ResponseEntity.ok(response);
     }
 }

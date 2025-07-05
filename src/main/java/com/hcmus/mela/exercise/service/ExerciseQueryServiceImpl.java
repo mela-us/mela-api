@@ -98,15 +98,6 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
         return new GetExerciseInfoResponse("Get exercise info successfully", exerciseDto);
     }
 
-    @Override
-    public List<ExerciseDto> getExercisesByLectureId(UUID lectureId) {
-        List<Exercise> exercises = exerciseRepository.findAllByLectureId(lectureId);
-
-        return exercises.stream()
-                .map(ExerciseMapper.INSTANCE::exerciseToExerciseDto)
-                .toList();
-    }
-
     private List<ExerciseStatDetailDto> mapExercisesToStatDetails(
             List<Exercise> exercises,
             UUID userId,

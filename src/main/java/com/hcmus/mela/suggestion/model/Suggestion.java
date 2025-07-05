@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "suggestions")
 public class Suggestion {
+
     @Id
     @Field(name = "_id")
     private UUID suggestionId;

@@ -16,6 +16,4 @@ public interface ExerciseQueryService {
     GetAllExercisesResponse getAllExercises(ExerciseFilterStrategy strategy, UUID userId);
 
     GetExerciseInfoResponse getExerciseInfoByExerciseId(ExerciseFilterStrategy strategy, UUID userId, UUID exerciseId);
-
-    List<ExerciseDto> getExercisesByLectureId(UUID lectureId);
 }

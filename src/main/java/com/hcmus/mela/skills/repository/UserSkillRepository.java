@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface UserSkillRepository extends MongoRepository<UserSkill, UUID>, UserSkillCustomRepository {
 
-    List<UserSkill> findAllByUserId(UUID userId);
+    void deleteAllByUserId(UUID userId);
 
     List<UserSkill> findAllByUserIdAndLevelId(UUID userId, UUID levelId);
 

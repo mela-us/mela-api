@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @RestControllerAdvice(basePackageClasses = StatisticController.class)
@@ -18,12 +19,13 @@ public class HistoryExceptionHandler {
 
     @ExceptionHandler(HistoryException.class)
     ResponseEntity<ApiErrorResponse> handleMathContentException(HistoryException exception, WebRequest request) {
+        log.error("HistoryException occurred: {}", exception.getMessage(), exception);
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
                 HttpStatus.BAD_REQUEST.value(),
                 exception.getMessage(),
                 request.getDescription(false),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
         return ResponseEntity.status(response.getStatus()).body(response);
     }

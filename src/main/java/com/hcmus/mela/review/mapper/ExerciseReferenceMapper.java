@@ -8,6 +8,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ExerciseReferenceMapper {
+
     ExerciseReferenceMapper INSTANCE = Mappers.getMapper(ExerciseReferenceMapper.class);
 
     ExerciseReferenceDto exerciseReferenceToExerciseReferenceDto(ExerciseReference exerciseReference);

@@ -23,9 +23,7 @@ import java.util.UUID;
 public class ExerciseHistoryController {
 
     private final ExerciseHistoryService exerciseHistoryService;
-
     private final StorageService storageService;
-
     private final JwtTokenService jwtTokenService;
 
     @PreAuthorize("hasAuthority('USER')")
@@ -36,13 +34,11 @@ public class ExerciseHistoryController {
             description = "Save exercise result of the user in the system."
     )
     public ResponseEntity<ExerciseResultResponse> saveExerciseHistory(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody ExerciseResultRequest exerciseResultRequest) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Saving exercise result for user: {}", userId);
-        ExerciseResultResponse response = exerciseHistoryService.getExerciseResultResponse(userId, exerciseResultRequest);
-
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody ExerciseResultRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Saving exercise result for user {}", userId);
+        ExerciseResultResponse response = exerciseHistoryService.getExerciseResultResponse(userId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -52,9 +48,9 @@ public class ExerciseHistoryController {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
         String path = String.format("exercises/%s-%s-%s", LocalDate.now().toString(), userId.toString().substring(3), UUID.randomUUID().toString().substring(5));
         Map<String, String> urls = storageService.getUploadUserFilePreSignedUrl(path);
-
-        return ResponseEntity.ok().body(
-                Map.of("preSignedUrl", urls.get("preSignedUrl"), "fileUrl", urls.get("storedUrl"))
+        return ResponseEntity.ok().body(Map.of(
+                "preSignedUrl", urls.get("preSignedUrl"),
+                "fileUrl", urls.get("storedUrl"))
         );
     }
 }

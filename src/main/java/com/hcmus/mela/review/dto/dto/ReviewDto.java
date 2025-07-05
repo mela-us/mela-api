@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewDto {
+
     private UUID reviewId;
 
     private UUID userId;

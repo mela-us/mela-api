@@ -11,14 +11,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 @AllArgsConstructor
 public class SuggestionCustomRepositoryImpl implements SuggestionCustomRepository {
+
     private final MongoTemplate mongoTemplate;
 
     @Override
     public Suggestion updateSuggestion(Suggestion suggestion) {
         Query query = new Query(Criteria.where("_id").is(suggestion.getSuggestionId()));
-
         Update update = new Update().set("suggestion_list", suggestion.getSectionList());
-
         return mongoTemplate.findAndModify(query, update, Suggestion.class);
     }
 }

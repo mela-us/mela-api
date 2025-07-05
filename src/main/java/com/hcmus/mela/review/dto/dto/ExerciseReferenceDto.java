@@ -10,6 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExerciseReferenceDto {
+
     private UUID exerciseId;
 
     private Integer ordinalNumber;

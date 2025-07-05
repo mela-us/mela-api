@@ -15,5 +15,7 @@ public interface ConversationHistoryService {
 
     GetListMessagesResponseDto getListMessages(GetListMessagesRequestDto request, UUID conversationId);
 
-    void deleteConversation(UUID conversationId);
+    void deleteConversationById(UUID conversationId);
+
+    void deleteConversationByUserId(UUID userId);
 }

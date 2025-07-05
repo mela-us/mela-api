@@ -10,7 +10,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @AllArgsConstructor
-public class ReviewCustomRepositoryImpl implements ReviewCustomRepository{
+public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
+
     private final MongoTemplate mongoTemplate;
 
     @Override

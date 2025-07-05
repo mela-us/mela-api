@@ -8,6 +8,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ReviewMapper {
+
     ReviewMapper INSTANCE = Mappers.getMapper(ReviewMapper.class);
 
     ReviewDto reviewToReviewDto(Review review);

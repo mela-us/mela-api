@@ -55,7 +55,7 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
         log.info("Exercise result saved successfully for user: {}", userId);
 
         List<AnswerResultDto> answerResults = exerciseAnswerList.stream()
-                .map(ExerciseAnswerMapper.INSTANCE::convertToAnswerResultDto)
+                .map(ExerciseAnswerMapper.INSTANCE::exerciseAnswerToAnswerResultDto)
                 .toList();
         return new ExerciseResultResponse(
                 "Exercise result submit successfully for user: " + userId,
@@ -68,19 +68,15 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
             LocalDateTime completedAt,
             UUID exerciseId,
             List<ExerciseAnswer> answers) {
-        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
+        ExerciseDto exerciseInfo = exerciseInfoService.findExerciseByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
         if (exerciseInfo == null) {
-            log.error("Exercise with id {} not found or not verified", exerciseId);
             throw new HistoryException("Exercise not found or not verified");
         }
         LectureDto lectureInfo = lectureInfoService.findLectureByLectureId(exerciseInfo.getLectureId());
-
         Double score = answers.stream()
                 .filter(ExerciseAnswer::getIsCorrect)
                 .count() * 1.0 / answers.size() * 100;
-
         Long correctAnswers = answers.stream().filter(ExerciseAnswer::getIsCorrect).count();
-
         ExerciseHistory exerciseHistory = ExerciseHistory.builder()
                 .id(UUID.randomUUID())
                 .lectureId(lectureInfo.getLectureId())
@@ -93,9 +89,7 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .completedAt(completedAt)
                 .answers(answers)
                 .build();
-
         exerciseHistoryRepository.save(exerciseHistory);
-
         userSkillService.updateUserSkill(userId,
                 lectureInfo.getLevelId(),
                 lectureInfo.getTopicId(),
@@ -107,11 +101,9 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
     public Map<UUID, Integer> getPassedExerciseCountOfUser(UUID userId) {
         List<ExercisesCountByLecture> exercisesCountByLectureList = exerciseHistoryRepository
                 .countTotalPassExerciseOfUser(userId, ProjectConstants.EXERCISE_PASS_SCORE);
-
         if (exercisesCountByLectureList == null || exercisesCountByLectureList.isEmpty()) {
             return Collections.emptyMap();
         }
-
         return exercisesCountByLectureList.stream()
                 .collect(Collectors.toMap(
                         ExercisesCountByLecture::getLectureId,
@@ -135,6 +127,6 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
         if (exerciseHistories == null || exerciseHistories.isEmpty()) {
             return new ArrayList<>();
         }
-        return exerciseHistories.stream().map(ExerciseHistoryMapper.INSTANCE::converToExerciseHistoryDto).toList();
+        return exerciseHistories.stream().map(ExerciseHistoryMapper.INSTANCE::exerciseHistoryToExerciseHistoryDto).toList();
     }
 }

@@ -6,12 +6,13 @@ import com.hcmus.mela.history.service.LectureHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
 import com.hcmus.mela.lecture.service.LectureInfoService;
-import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.level.dto.dto.LevelDto;
+import com.hcmus.mela.level.service.LevelInfoService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
 import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
-import com.hcmus.mela.suggestion.dto.SectionReferenceDto;
-import com.hcmus.mela.suggestion.dto.SuggestionDto;
+import com.hcmus.mela.suggestion.dto.dto.SectionReferenceDto;
+import com.hcmus.mela.suggestion.dto.dto.SuggestionDto;
 import com.hcmus.mela.suggestion.dto.request.UpdateSuggestionRequest;
 import com.hcmus.mela.suggestion.dto.response.GetSuggestionsResponse;
 import com.hcmus.mela.suggestion.dto.response.UpdateSuggestionResponse;
@@ -21,51 +22,44 @@ import com.hcmus.mela.suggestion.model.SectionReference;
 import com.hcmus.mela.suggestion.model.Suggestion;
 import com.hcmus.mela.suggestion.repository.SuggestionRepository;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
-import com.hcmus.mela.topic.service.TopicQueryService;
+import com.hcmus.mela.topic.service.TopicInfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class SuggestionServiceImpl implements SuggestionService {
 
-    private final LectureHistoryService lectureHistoryService;
-
-    private final SuggestionRepository suggestionRepository;
-
-    private final TopicQueryService topicQueryService;
-
-    private final LevelQueryService levelQueryService;
-
-    private final LectureInfoService lectureInfoService;
+    private final String SUGGESTIONS_FOUND = "suggestions_found_successful";
+    private final String SUGGESTION_NOT_FOUND = "suggestion_not_found";
+    private final String UPDATE_SUGGESTION_SUCCESS = "update_suggestion_successful";
 
     private final GeneralMessageAccessor generalMessageAccessor;
-
-    private final String SUGGESTIONS_FOUND = "suggestions_found_successful";
-
-    private final String SUGGESTION_NOT_FOUND = "suggestion_not_found";
-
-    private final String UPDATE_SUGGESTION_SUCCESS = "update_suggestion_successful";
     private final ExceptionMessageAccessor exceptionMessageAccessor;
+    private final LectureHistoryService lectureHistoryService;
+    private final SuggestionRepository suggestionRepository;
+    private final TopicInfoService topicInfoService;
+    private final LevelInfoService levelInfoService;
+    private final LectureInfoService lectureInfoService;
 
     @Override
     public GetSuggestionsResponse getSuggestions(UUID userId) {
-        ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
-        ZonedDateTime startOfDayUtc = utcNow.toLocalDate().atStartOfDay(ZoneOffset.UTC);
+        ZoneId zoneVN = ZoneId.of("Asia/Ho_Chi_Minh");
 
-        Date startOfDay = Date.from(startOfDayUtc.toInstant());
+        ZonedDateTime startOfDayVN = ZonedDateTime.now(zoneVN).toLocalDate().atStartOfDay(zoneVN);
+        ZonedDateTime endOfDayVN = startOfDayVN.plusDays(1);
 
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        cal.setTime(startOfDay);
-        cal.add(Calendar.DATE, 1);
-
-        Date endOfDay = cal.getTime();
+        Date startOfDay = Date.from(startOfDayVN.toInstant());
+        Date endOfDay = Date.from(endOfDayVN.toInstant());
 
         List<Suggestion> suggestions = suggestionRepository.findAllByUserIdAndCreatedAtBetween(userId, startOfDay, endOfDay);
 
@@ -78,34 +72,39 @@ public class SuggestionServiceImpl implements SuggestionService {
                 .toList();
 
         for (SuggestionDto suggestionDto : suggestionDtos) {
+            List<SectionReferenceDto> sectionReferenceDtos = new ArrayList<>();
             for (SectionReferenceDto sectionReferenceDto : suggestionDto.getSectionList()) {
-                LectureDto lectureDto = lectureInfoService.findLectureByLectureId(sectionReferenceDto.getLectureId());
-
-                TopicDto topicDto = topicQueryService.getTopicById(lectureDto.getTopicId());
-
-                Level level = levelQueryService.findLevelByLevelId(lectureDto.getLevelId());
+                LectureDto lectureDto = lectureInfoService.findLectureByLectureIdAndStatus(sectionReferenceDto.getLectureId(), ContentStatus.VERIFIED);
+                if (lectureDto == null) {
+                    continue;
+                }
+                TopicDto topicDto = topicInfoService.findTopicByTopicId(lectureDto.getTopicId());
+                LevelDto levelDto = levelInfoService.findLevelByLevelId(lectureDto.getLevelId());
 
                 sectionReferenceDto.setLectureTitle(lectureDto.getName());
                 sectionReferenceDto.setTopicTitle(topicDto.getName());
-                sectionReferenceDto.setLevelTitle(level.getName());
-                sectionReferenceDto.setSectionUrl(lectureDto
-                        .getSections()
-                        .get(sectionReferenceDto.getOrdinalNumber() - 1)
-                        .getUrl());
+                sectionReferenceDto.setLevelTitle(levelDto.getName());
+                String sectionUrl = lectureDto.getSections()
+                        .stream()
+                        .filter(section -> section.getOrdinalNumber().equals(sectionReferenceDto.getOrdinalNumber()))
+                        .findFirst()
+                        .map(SectionDto::getUrl)
+                        .orElse(null);
+                sectionReferenceDto.setSectionUrl(sectionUrl);
+                sectionReferenceDtos.add(sectionReferenceDto);
             }
+            suggestionDto.setSectionList(sectionReferenceDtos);
         }
         final String getSuggestionsSuccessMessage = generalMessageAccessor.getMessage(null, SUGGESTIONS_FOUND, userId);
-
         return new GetSuggestionsResponse(getSuggestionsSuccessMessage, suggestionDtos);
     }
 
     @Override
-    public UpdateSuggestionResponse updateSuggestion(UUID suggestionId, UpdateSuggestionRequest updateSuggestionRequest) {
-        Suggestion suggestion = suggestionRepository.findBySuggestionId(suggestionId);
+    public UpdateSuggestionResponse updateSuggestion(UUID userId, UUID suggestionId, UpdateSuggestionRequest updateSuggestionRequest) {
+        Suggestion suggestion = suggestionRepository.findBySuggestionIdAndUserId(suggestionId, userId);
 
         if (suggestion == null) {
             final String errorMessage = exceptionMessageAccessor.getMessage(null, SUGGESTION_NOT_FOUND, suggestionId);
-            log.error(errorMessage);
             throw new SuggestionNotFoundException(errorMessage);
         }
 
@@ -118,10 +117,13 @@ public class SuggestionServiceImpl implements SuggestionService {
         }
 
         Suggestion result = suggestionRepository.updateSuggestion(suggestion);
-
         final String updateSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_SUGGESTION_SUCCESS, suggestionId);
-
         return new UpdateSuggestionResponse(updateSuccessMessage);
+    }
+
+    @Override
+    public void deleteSuggestion(UUID userId) {
+        suggestionRepository.deleteAllByUserId(userId);
     }
 
     private List<Suggestion> createSuggestion(UUID userId, Date startOfDay) {
@@ -131,7 +133,6 @@ public class SuggestionServiceImpl implements SuggestionService {
 
         List<Suggestion> results = new ArrayList<>();
         List<LectureDto> suggestedLectures = new ArrayList<>();
-
 
         List<UUID> studiedLectureIds = lectureHistories.stream()
                 .map(LectureHistory::getLectureId)
@@ -143,19 +144,15 @@ public class SuggestionServiceImpl implements SuggestionService {
 
             if (history.getProgress() < 100) {
                 LectureDto lecture = lectureInfoService.findLectureByLectureId(history.getLectureId());
-
                 List<Integer> completedSectionNumbers = history.getCompletedSections().stream()
                         .map(LectureCompletedSection::getOrdinalNumber)
                         .toList();
 
                 for (SectionDto section : lecture.getSections()) {
-
                     if (!completedSectionNumbers.contains(section.getOrdinalNumber())) {
-
                         sectionReferences.add(new SectionReference(lecture.getLectureId(),
                                 section.getOrdinalNumber(),
                                 false));
-
                         isSuggested = true;
                     }
                 }
@@ -170,17 +167,13 @@ public class SuggestionServiceImpl implements SuggestionService {
                         lectureInfoService.findLectureOrdinalNumberByLectureId(history.getLectureId()) + 1);
 
                 if (lecture != null) {
-
                     if (!studiedLectureIds.contains(lecture.getLectureId())) {
-
                         for (SectionDto section : lecture.getSections()) {
-
                             sectionReferences.add(new SectionReference(
                                     lecture.getLectureId(),
                                     section.getOrdinalNumber(),
                                     false));
                         }
-
                         suggestedLectures.add(lecture);
                     }
                 }
@@ -193,9 +186,7 @@ public class SuggestionServiceImpl implements SuggestionService {
                         .createdAt(startOfDay)
                         .sectionList(sectionReferences)
                         .build();
-
                 results.add(suggestion);
-
                 sectionSize += sectionReferences.size();
             }
 
@@ -219,35 +210,25 @@ public class SuggestionServiceImpl implements SuggestionService {
                         lectureInfoService.findLectureOrdinalNumberByLectureId(lecture.getLectureId()) + 1);
 
                 if (nextLecture != null) {
-
                     if (!suggestedLectureIds.contains(nextLecture.getLectureId())) {
-
                         for (SectionDto section : nextLecture.getSections()) {
-
                             sectionReferences.add(new SectionReference(
                                     nextLecture.getLectureId(),
                                     section.getOrdinalNumber(),
                                     false));
                         }
-
                         suggestedLectures.add(nextLecture);
-
                         suggestedLectureIds.add(nextLecture.getLectureId());
-
                         Suggestion suggestion = Suggestion.builder()
                                 .suggestionId(UUID.randomUUID())
                                 .userId(userId)
                                 .createdAt(startOfDay)
                                 .sectionList(sectionReferences)
                                 .build();
-
                         results.add(suggestion);
-
                         sectionSize += sectionReferences.size();
                     }
                 }
-
-
                 if (sectionSize >= 3) {
                     break;
                 }
@@ -258,10 +239,6 @@ public class SuggestionServiceImpl implements SuggestionService {
             return List.of();
         }
 
-        try {
-            return suggestionRepository.saveAll(results);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        return suggestionRepository.saveAll(results);
     }
 }

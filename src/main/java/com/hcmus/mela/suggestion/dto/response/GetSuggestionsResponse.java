@@ -1,6 +1,6 @@
 package com.hcmus.mela.suggestion.dto.response;
 
-import com.hcmus.mela.suggestion.dto.SuggestionDto;
+import com.hcmus.mela.suggestion.dto.dto.SuggestionDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetSuggestionsResponse {
+    
     private String message;
 
     private List<SuggestionDto> suggestions;

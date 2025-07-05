@@ -114,34 +114,10 @@ public class TopicQueryServiceImpl implements TopicQueryService {
     }
 
     @Override
-    public void deleteTopic(TopicFilterStrategy strategy, UUID topicId, UUID userId) {
-        strategy.deleteTopic(userId, topicId);
-    }
-
-    @Override
     public List<TopicDto> getTopics() {
         List<Topic> topics = topicRepository.findAll();
         return topics.isEmpty()
                 ? Collections.emptyList()
                 : topics.stream().map(TopicMapper.INSTANCE::topicToTopicDto).toList();
-    }
-
-    @Override
-    public List<TopicDto> getVerifiedTopics() {
-        List<Topic> topics = topicRepository.findAllByStatus(ContentStatus.VERIFIED);
-        return topics.isEmpty()
-                ? Collections.emptyList()
-                : topics.stream().map(TopicMapper.INSTANCE::topicToTopicDto).toList();
-    }
-
-    @Override
-    public TopicDto getTopicById(UUID topicId) {
-        Topic topic = topicRepository.findById(topicId).orElse(null);
-
-        if (topic == null) {
-            return null;
-        }
-
-        return TopicMapper.INSTANCE.topicToTopicDto(topic);
     }
 }

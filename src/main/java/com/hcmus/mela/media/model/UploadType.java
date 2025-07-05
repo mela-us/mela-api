@@ -4,12 +4,12 @@ import lombok.Getter;
 
 @Getter
 public enum UploadType {
-    EXERCISE("exercise/"),
-    LECTURE("lecture/"),
-    TOPIC("topic/"),
-    LEVEL("level/"),
+    EXERCISE("exercises/"),
+    LECTURE("lectures/"),
+    TOPIC("topics/"),
+    LEVEL("levels/"),
     COMMON("common/"),
-    USER_AVATAR("user/avatar/");
+    USER_AVATAR("users/avatars/");
 
     private final String path;
 

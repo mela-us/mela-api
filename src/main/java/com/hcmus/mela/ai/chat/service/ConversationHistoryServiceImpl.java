@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @AllArgsConstructor
-public class ConversationHistoryServiceImpl implements ConversationHistoryService{
+public class ConversationHistoryServiceImpl implements ConversationHistoryService {
 
     private final ConversationRepository conversationRepository;
 
@@ -33,12 +33,12 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
         }
 
         // Apply pagination
-        if(request.getUpdatedAtAfter() != null) {
+        if (request.getUpdatedAtAfter() != null) {
             conversations = conversations.stream()
                     .filter(conversation -> conversation.getMetadata().getUpdatedAt().after(request.getUpdatedAtAfter()))
                     .toList();
         }
-        if(request.getUpdatedAtBefore() != null) {
+        if (request.getUpdatedAtBefore() != null) {
             conversations = conversations.stream()
                     .filter(conversation -> conversation.getMetadata().getUpdatedAt().before(request.getUpdatedAtBefore()))
                     .toList();
@@ -89,12 +89,17 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
     }
 
     @Override
-    public void deleteConversation(UUID conversationId) {
+    public void deleteConversationById(UUID conversationId) {
         // Check if the conversation exists
         if (!conversationRepository.existsByConversationId(conversationId)) {
             throw new RuntimeException("Conversation not found");
         }
         conversationRepository.deleteByConversationId(conversationId);
+    }
+
+    @Override
+    public void deleteConversationByUserId(UUID userId) {
+        conversationRepository.deleteAllByUserId(userId);
     }
 
     @Override

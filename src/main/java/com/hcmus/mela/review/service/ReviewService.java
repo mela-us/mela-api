@@ -10,7 +10,7 @@ public interface ReviewService {
 
     GetReviewsResponse getReviews(UUID userId);
 
-    UpdateReviewResponse updateReview(UUID reviewId, UpdateReviewRequest request);
+    UpdateReviewResponse updateReview(UUID userId, UUID reviewId, UpdateReviewRequest request);
 
     void deleteReview(UUID userId);
 }
