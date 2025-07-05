@@ -17,10 +17,8 @@ public class JwtTokenForgotPasswordService {
 
     public String generateToken(String username) {
         if (jwtForgotPasswordProperties.getSecretKey() == null) {
-            throw new ForgotPasswordException("Secret key is not configured!");
+            throw new ForgotPasswordException("Forgot password secret key is not configured!");
         }
-
-        //@formatter:off
         return JWT.create()
                 .withSubject(username)
                 .withIssuer(jwtForgotPasswordProperties.getIssuer())
@@ -28,15 +26,13 @@ public class JwtTokenForgotPasswordService {
                 .withExpiresAt(new Date(System.currentTimeMillis()
                         + jwtForgotPasswordProperties.getExpirationMinute() * 60 * 1000))
                 .sign(Algorithm.HMAC256(jwtForgotPasswordProperties.getSecretKey().getBytes()));
-        //@formatter:on
     }
 
     public boolean validateToken(String token, String username) {
         try {
             if (jwtForgotPasswordProperties.getSecretKey() == null) {
-                throw new ForgotPasswordException("Secret key is not configured!");
+                throw new ForgotPasswordException("Forgot password secret key is not configured!");
             }
-
             final JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(jwtForgotPasswordProperties.getSecretKey().getBytes())).build();
             DecodedJWT decodedJWT = jwtVerifier.verify(token);
             return (decodedJWT.getExpiresAt().after(new Date()) && decodedJWT.getSubject().equals(username));

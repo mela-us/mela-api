@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+
 @RequestMapping("/api/forgot-password")
 public class ForgotPasswordController {
 

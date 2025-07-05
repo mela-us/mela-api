@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
         final UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
-        User user = userRepository.findByUserId(userId);
+        User user = userRepository.findByUserId(userId).orElse(null);
 
         if (user == null) {
             final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
         final UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
-        User user = userRepository.findByUserId(userId);
+        User user = userRepository.findByUserId(userId).orElse(null);
 
         if (user == null) {
             final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
@@ -119,14 +119,14 @@ public class UserServiceImpl implements UserService {
 
             final UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
-            User user = userRepository.findByUserId(userId);
+            User user = userRepository.findByUserId(userId).orElse(null);
 
             if (user == null) {
                 final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
                 throw new BadRequestException(userNotFound);
             }
 
-            otpService.deleteOtpCodeByUserId(userId);
+            otpService.deleteOtp(user.getUsername());
 
             userRepository.delete(user);
 
@@ -136,7 +136,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UUID getLevelId(UUID userId) {
-        User user = userRepository.findByUserId(userId);
+        User user = userRepository.findByUserId(userId).orElse(null);
         if (user == null) {
             throw new BadRequestException(exceptionMessageAccessor.getMessage(null, "user_not_found"));
         }

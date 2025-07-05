@@ -1,51 +1,55 @@
 package com.hcmus.mela.auth.service;
 
-import com.hcmus.mela.auth.dto.dto.EmailDetailsDto;
 import com.hcmus.mela.auth.exception.ForgotPasswordException;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class EmailServiceImpl implements EmailService{
+public class EmailServiceImpl implements EmailService {
 
     @Value("${spring.mail.username}")
-    private String mailUsername;
-
+    private String fromEmail;
     private final JavaMailSender javaMailSender;
+    private final TemplateEngine emailTemplateEngine;
 
     @Override
-    public String generateOtpNotify(String username, String otpCode) {
-        return "<html>" +
-                "<body>" +
-                "<h3 style='color: #4CAF50;'>Xác thực OTP</h3>" +
-                "<p style='font-size: 16px;'>Xin chào <strong>" + username + "</strong>,</p>" +
-                "<p>Mã OTP của bạn: <span style='font-weight: bold; font-size: 20px; color: #f44336;'>" + otpCode + "</span></p>" +
-                "<p>OTP này sẽ mất hiệu lực trong 5 phút.</p>" +
-                "<hr>" +
-                "<p style='font-size: 12px; color: #888;'>Chân thành, <br> MELA</p>" +
-                "</body>" +
-                "</html>";
-    }
-
-    @Override
-    public void sendSimpleMail(EmailDetailsDto details) {
-        MimeMessage message = javaMailSender.createMimeMessage();
+    public void sendOtpEmail(String to, String otp) {
         try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(mailUsername);
-            helper.setTo(details.getRecipient());
-            helper.setSubject(details.getSubject());
-            helper.setText(details.getMsgBody(), true);
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message,
+                    MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                    StandardCharsets.UTF_8.name());
+
+            Context context = new Context();
+            context.setVariable("otpCode", otp);
+            context.setVariable("currentYear", ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).getYear());
+            context.setVariable("expirationMinutes", 5);
+
+            String htmlContent = emailTemplateEngine.process("email-otp", context);
+
+            helper.setTo(to);
+            helper.setFrom(fromEmail);
+            helper.setSubject("🔐 Mã OTP cho reset password");
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(message);
+            log.info("OTP email sent successfully to {}", to);
+
+        } catch (Exception e) {
+            throw new ForgotPasswordException("Failed to send OTP email, " + e.getMessage());
         }
-        catch (MessagingException e) {
-            throw new ForgotPasswordException(e.getMessage());
-        }
-        javaMailSender.send(message);
     }
 }

@@ -1,6 +1,5 @@
 package com.hcmus.mela.auth.service;
 
-import com.hcmus.mela.auth.dto.dto.EmailDetailsDto;
 import com.hcmus.mela.auth.dto.request.ForgotPasswordRequest;
 import com.hcmus.mela.auth.dto.request.OtpConfirmationRequest;
 import com.hcmus.mela.auth.dto.request.ResetPasswordRequest;
@@ -12,8 +11,6 @@ import com.hcmus.mela.auth.exception.InvalidTokenException;
 import com.hcmus.mela.auth.exception.UserNotFoundException;
 import com.hcmus.mela.auth.model.User;
 import com.hcmus.mela.auth.security.jwt.JwtTokenForgotPasswordService;
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,89 +20,44 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
-    private final ExceptionMessageAccessor exceptionMessageAccessor;
-
-    private final GeneralMessageAccessor generalMessageAccessor;
-
     private final AuthService authService;
-
     private final OtpService otpService;
-
-    private final EmailService emailService;
-
     private final JwtTokenForgotPasswordService jwtTokenForgotPasswordService;
 
     @Override
-    public ForgotPasswordResponse sendOtpCodeByEmail(ForgotPasswordRequest forgotPasswordRequest) {
-        User user = authService.findByUsername(forgotPasswordRequest.getUsername());
+    public ForgotPasswordResponse sendOtpCodeByEmail(ForgotPasswordRequest request) {
+        User user = authService.findByUsername(request.getUsername());
         if (user == null) {
-            throw new UserNotFoundException(
-                    "Sending otp via email failed! "
-                            + exceptionMessageAccessor.getMessage(
-                            null,
-                            "username_not_found",
-                            forgotPasswordRequest.getUsername()
-                    )
-            );
+            throw new UserNotFoundException("User not found with username: " + request.getUsername());
         }
-
-        String otpCode = otpService.generateOtpCode(6);
-        String otpMessage = emailService.generateOtpNotify(user.getUsername(), otpCode);
-        EmailDetailsDto details = EmailDetailsDto.builder()
-                .recipient(user.getUsername())
-                .subject("Xác thực OTP - Quên mật khẩu")
-                .msgBody(otpMessage)
-                .build();
-
-        otpService.cacheOtpCode(otpCode, user);
-        emailService.sendSimpleMail(details);
-        return new ForgotPasswordResponse(
-                generalMessageAccessor.getMessage(
-                        null,
-                        "send_email_success",
-                        forgotPasswordRequest.getUsername()
-                )
-        );
+        otpService.generateAndSendOtp(user.getUsername());
+        return new ForgotPasswordResponse("Send email successfully to " + user.getUsername());
     }
 
     @Override
-    public OtpConfirmationResponse validateOtp(OtpConfirmationRequest otpConfirmationRequest) {
-        User user = authService.findByUsername(otpConfirmationRequest.getUsername());
-        if (otpService.validateOtpOfUser(otpConfirmationRequest.getOtpCode(), user.getUserId())) {
-            String token = jwtTokenForgotPasswordService.generateToken(otpConfirmationRequest.getUsername());
-            OtpConfirmationResponse otpConfirmationResponse = new OtpConfirmationResponse();
-            otpConfirmationResponse.setUsername(otpConfirmationRequest.getUsername());
-            otpConfirmationResponse.setToken(token);
-            otpConfirmationResponse.setMessage(
-                    generalMessageAccessor.getMessage(
-                            null,
-                            "otp_validation_success"
-                    )
-            );
-            return otpConfirmationResponse;
+    public OtpConfirmationResponse validateOtp(OtpConfirmationRequest request) {
+        User user = authService.findByUsername(request.getUsername());
+        if (user == null) {
+            throw new UserNotFoundException("User not found with username: " + request.getUsername());
         }
-        throw new ForgotPasswordException(
-                exceptionMessageAccessor.getMessage(
-                        null,
-                        "otp_validation_fail",
-                        otpConfirmationRequest.getOtpCode()
-                )
-        );
+        if (!otpService.validateOtp(request.getUsername(), request.getOtpCode())) {
+            throw new ForgotPasswordException("Invalid OTP code for user " + request.getUsername());
+        }
+        String token = jwtTokenForgotPasswordService.generateToken(request.getUsername());
+        OtpConfirmationResponse otpConfirmationResponse = new OtpConfirmationResponse();
+        otpConfirmationResponse.setUsername(request.getUsername());
+        otpConfirmationResponse.setToken(token);
+        otpConfirmationResponse.setMessage("OTP code is valid. You can reset your password now.");
+        otpService.deleteOtp(request.getUsername());
+        return otpConfirmationResponse;
     }
 
     @Override
-    public ResetPasswordResponse resetPassword(ResetPasswordRequest resetPasswordRequest) {
-        if (jwtTokenForgotPasswordService.validateToken(
-                resetPasswordRequest.getToken(),
-                resetPasswordRequest.getUsername()
-        )) {
-            authService.updatePassword(resetPasswordRequest.getUsername(), resetPasswordRequest.getNewPassword());
-            return new ResetPasswordResponse(
-                    generalMessageAccessor.getMessage(null, "reset_pw_success")
-            );
+    public ResetPasswordResponse resetPassword(ResetPasswordRequest request) {
+        if (jwtTokenForgotPasswordService.validateToken(request.getToken(), request.getUsername())) {
+            authService.updatePassword(request.getUsername(), request.getNewPassword());
+            return new ResetPasswordResponse("Password reset successfully for user " + request.getUsername());
         }
-        throw new InvalidTokenException(
-                exceptionMessageAccessor.getMessage(null, "reset_pw_fail")
-        );
+        throw new InvalidTokenException("Invalid token for user " + request.getUsername() + " to reset password.");
     }
 }

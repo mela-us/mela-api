@@ -47,64 +47,6 @@ public class LevelQueryServiceImpl implements LevelQueryService {
     }
 
     @Override
-    public CreateLevelResponse getCreateLevelResponse(UUID creatorId, CreateLevelRequest createLevelRequest) {
-        Level level = LevelMapper.INSTANCE.createLevelRequestToLevel(createLevelRequest);
-        level.setLevelId(UUID.randomUUID());
-        level.setCreatedBy(creatorId);
-        level.setStatus(ContentStatus.PENDING);
-        Level savedLevel = levelRepository.save(level);
-
-        LevelDto levelDto = LevelMapper.INSTANCE.levelToLevelDto(savedLevel);
-
-        return new CreateLevelResponse(
-                "Create level successfully",
-                levelDto
-        );
-    }
-
-    @Override
-    public void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request) {
-        strategy.updateLevel(userId, levelId, request);
-    }
-
-    @Override
-    public void denyLevel(UUID levelId, String reason) {
-        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found"));
-        if (level.getStatus() == ContentStatus.VERIFIED || level.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Level cannot be denied");
-        }
-        level.setRejectedReason(reason);
-        level.setStatus(ContentStatus.DENIED);
-        levelRepository.save(level);
-    }
-
-    @Override
-    public void approveLevel(UUID levelId) {
-        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found"));
-        if (level.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Level cannot be approved");
-        }
-        level.setRejectedReason(null);
-        level.setStatus(ContentStatus.VERIFIED);
-        levelRepository.save(level);
-    }
-
-    @Override
-    public boolean isLevelAssignableToLecture(UUID levelId, UUID userId) {
-        if (levelId == null || userId == null) {
-            return false;
-        }
-        Level level = levelRepository.findById(levelId).orElse(null);
-        if (level == null) {
-            return false;
-        }
-        if (level.getStatus() == ContentStatus.VERIFIED) {
-            return true;
-        }
-        return level.getStatus() != ContentStatus.DELETED && level.getCreatedBy().equals(userId);
-    }
-
-    @Override
     public boolean checkLevelStatus(UUID levelId, ContentStatus status) {
         if (levelId == null || status == null) {
             return false;
@@ -114,17 +56,12 @@ public class LevelQueryServiceImpl implements LevelQueryService {
     }
 
     @Override
-    public void deleteLevel(LevelFilterStrategy strategy, UUID levelId, UUID userId) {
-        strategy.deleteLevel(userId, levelId);
-    }
-
-    @Override
     public Level findLevelByLevelId(UUID id) {
         return levelRepository.findById(id).orElse(null);
     }
 
     @Override
     public Level findLevelByLevelTitle(String title) {
-        return levelRepository.findByName(title);
+        return levelRepository.findByName(title).orElse(null);
     }
 }

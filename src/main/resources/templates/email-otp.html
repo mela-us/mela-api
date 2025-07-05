@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã OTP Đặt Lại Mật Khẩu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background: #ffffff;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #3498db;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .greeting {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            font-size: 14px;
+            color: #555555;
+            margin-bottom: 20px;
+        }
+
+        .otp-container {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .otp-label {
+            font-size: 12px;
+            color: #555555;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .otp-code {
+            font-size: 30px;
+            font-weight: bold;
+            color: #3498db;
+            letter-spacing: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            margin-bottom: 10px;
+        }
+
+        .otp-validity {
+            font-size: 12px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .security-notice {
+            background: #fff8e1;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+
+        .security-notice h4 {
+            color: #7f4c0a;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .security-notice p {
+            color: #7f4c0a;
+            font-size: 12px;
+        }
+
+        .footer {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #555555;
+            margin-bottom: 10px;
+        }
+
+        .copyright {
+            font-size: 12px;
+            color: #777777;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 4px;
+            }
+
+            .header, .content, .footer {
+                padding: 15px;
+            }
+
+            .otp-code {
+                font-size: 24px;
+                letter-spacing: 3px;
+            }
+
+            .greeting {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <div class="logo">📚 MELA</div>
+        <div class="header-subtitle">Học Toán Dễ Dàng</div>
+    </div>
+
+    <div class="content">
+        <h2 class="greeting">Xin chào!</h2>
+
+        <p class="message">
+            Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản MELA của mình. Vui lòng sử dụng mã OTP bên dưới để xác thực và tiếp tục quá trình đặt lại mật khẩu.
+        </p>
+
+        <div class="otp-container">
+            <div class="otp-label">Mã xác thực OTP</div>
+            <div class="otp-code" th:text="${otpCode}">000000</div>
+            <div class="otp-validity">⏰ Mã có hiệu lực trong <span th:text="${expirationMinutes}">5</span> phút</div>
+        </div>
+
+        <div class="security-notice">
+            <h4>🛡️ Lưu ý bảo mật</h4>
+            <p>
+                • Không chia sẻ mã OTP với bất kỳ ai<br>
+                • Chúng tôi không yêu cầu mã OTP qua điện thoại<br>
+                • Nếu bạn không thực hiện yêu cầu này, vui lòng liên hệ ngay với chúng tôi
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p class="footer-text">
+            Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+        <p class="copyright">
+            © <span th:text="${currentYear}">2025</span> MELA. Tất cả quyền được bảo lưu.
+        </p>
+    </div>
+</div>
+</body>
+</html>
