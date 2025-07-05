@@ -23,6 +23,9 @@ public class Review {
     @Field(name = "user_id")
     private UUID userId;
 
+    @Field(name = "ordinal_number")
+    private Integer ordinalNumber;
+
     @Field(name = "created_at")
     private Date createdAt;
 
