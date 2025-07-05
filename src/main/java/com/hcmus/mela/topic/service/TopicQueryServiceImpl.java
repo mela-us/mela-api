@@ -47,64 +47,6 @@ public class TopicQueryServiceImpl implements TopicQueryService {
     }
 
     @Override
-    public CreateTopicResponse getCreateTopicResponse(UUID creatorId, CreateTopicRequest createTopicRequest) {
-        Topic topic = TopicMapper.INSTANCE.createTopicRequestToTopic(createTopicRequest);
-        topic.setTopicId(UUID.randomUUID());
-        topic.setCreatedBy(creatorId);
-        topic.setStatus(ContentStatus.PENDING);
-        Topic savedTopic = topicRepository.save(topic);
-
-        TopicDto topicDto = TopicMapper.INSTANCE.topicToTopicDto(savedTopic);
-
-        return new CreateTopicResponse(
-                "Create topic successfully",
-                topicDto
-        );
-    }
-
-    @Override
-    public void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request) {
-        strategy.updateTopic(userId, topicId, request);
-    }
-
-    @Override
-    public void denyTopic(UUID topicId, String reason) {
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new TopicException("Topic not found"));
-        if (topic.getStatus() == ContentStatus.VERIFIED || topic.getStatus() == ContentStatus.DELETED) {
-            throw new TopicException("Topic cannot be denied");
-        }
-        topic.setRejectedReason(reason);
-        topic.setStatus(ContentStatus.DENIED);
-        topicRepository.save(topic);
-    }
-
-    @Override
-    public void approveTopic(UUID topicId) {
-        Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new TopicException("Topic not found"));
-        if (topic.getStatus() == ContentStatus.DELETED) {
-            throw new TopicException("Topic cannot be approved");
-        }
-        topic.setRejectedReason(null);
-        topic.setStatus(ContentStatus.VERIFIED);
-        topicRepository.save(topic);
-    }
-
-    @Override
-    public boolean isTopicAssignableToLecture(UUID topicId, UUID userId) {
-        if (topicId == null || userId == null) {
-            return false;
-        }
-        Topic topic = topicRepository.findById(topicId).orElse(null);
-        if (topic == null) {
-            return false;
-        }
-        if (topic.getStatus() == ContentStatus.VERIFIED) {
-            return true;
-        }
-        return topic.getStatus() != ContentStatus.DELETED && topic.getCreatedBy().equals(userId);
-    }
-
-    @Override
     public boolean checkTopicStatus(UUID topicId, ContentStatus status) {
         if (topicId == null || status == null) {
             return false;
