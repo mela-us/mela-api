@@ -69,6 +69,7 @@ public class SuggestionServiceImpl implements SuggestionService {
 
         List<SuggestionDto> suggestionDtos = suggestions.stream()
                 .map(SuggestionMapper.INSTANCE::suggestionToSuggestionDto)
+                .sorted(Comparator.comparing(SuggestionDto::getOrdinalNumber))
                 .toList();
 
         for (SuggestionDto suggestionDto : suggestionDtos) {
@@ -183,6 +184,7 @@ public class SuggestionServiceImpl implements SuggestionService {
                 Suggestion suggestion = Suggestion.builder()
                         .suggestionId(UUID.randomUUID())
                         .userId(userId)
+                        .ordinalNumber(results.size() + 1)
                         .createdAt(startOfDay)
                         .sectionList(sectionReferences)
                         .build();
@@ -222,6 +224,7 @@ public class SuggestionServiceImpl implements SuggestionService {
                         Suggestion suggestion = Suggestion.builder()
                                 .suggestionId(UUID.randomUUID())
                                 .userId(userId)
+                                .ordinalNumber(results.size() + 1)
                                 .createdAt(startOfDay)
                                 .sectionList(sectionReferences)
                                 .build();

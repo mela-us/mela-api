@@ -17,6 +17,8 @@ public class ReviewDto {
 
     private UUID userId;
 
+    private Integer ordinalNumber;
+
     private Date createdAt;
 
     private List<ExerciseReferenceDto> exerciseList;

@@ -16,6 +16,8 @@ public class SuggestionDto {
 
     private UUID userId;
 
+    private Integer ordinalNumber;
+
     private Date createdAt;
 
     private List<SectionReferenceDto> sectionList;
