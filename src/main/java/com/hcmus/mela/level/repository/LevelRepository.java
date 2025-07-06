@@ -3,6 +3,8 @@ package com.hcmus.mela.level.repository;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.shared.type.ContentStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,5 +24,7 @@ public interface LevelRepository extends MongoRepository<Level, UUID> {
 
     Optional<Level> findFirstByStatus(ContentStatus status);
 
-    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
+    @Query("{ 'createdBy' : ?0 }")
+    @Update("{ '$set' : { 'createdBy' : ?1 } }")
+    void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
 }

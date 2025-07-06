@@ -3,6 +3,8 @@ package com.hcmus.mela.lecture.repository;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.shared.type.ContentStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,5 +32,7 @@ public interface LectureRepository extends MongoRepository<Lecture, UUID>, Lectu
 
     List<Lecture> findAllByLevelIdAndCreatedBy(UUID levelId, UUID createdBy);
 
-    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
+    @Query("{ 'createdBy' : ?0 }")
+    @Update("{ '$set' : { 'createdBy' : ?1 } }")
+    void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
 }

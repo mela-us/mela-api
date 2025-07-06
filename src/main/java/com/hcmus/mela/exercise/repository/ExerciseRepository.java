@@ -3,6 +3,8 @@ package com.hcmus.mela.exercise.repository;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.shared.type.ContentStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,5 +28,7 @@ public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, Exe
 
     List<Exercise> findAllByStatus(ContentStatus status);
 
-    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
+    @Query("{ 'createdBy' : ?0 }")
+    @Update("{ '$set' : { 'createdBy' : ?1 } }")
+    void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
 }

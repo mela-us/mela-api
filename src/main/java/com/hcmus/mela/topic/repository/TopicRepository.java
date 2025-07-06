@@ -3,6 +3,8 @@ package com.hcmus.mela.topic.repository;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.model.Topic;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,5 +20,7 @@ public interface TopicRepository extends MongoRepository<Topic, UUID> {
 
     Optional<Topic> findByTopicIdAndStatus(UUID topicId, ContentStatus status);
 
-    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
+    @Query("{ 'createdBy' : ?0 }")
+    @Update("{ '$set' : { 'createdBy' : ?1 } }")
+    void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
 }
