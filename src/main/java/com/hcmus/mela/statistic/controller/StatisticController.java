@@ -9,38 +9,35 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/api/statistics")
 public class StatisticController {
 
     private final StatisticService statisticService;
     private final JwtTokenService jwtTokenService;
 
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping("/{levelId}")
-    @Operation(
-            tags = "Statistic Service",
-            summary = "Get statistics",
-            description = "Get statistics of user in the system."
-    )
+    @Operation(tags = "📊 Statistic Service", summary = "Get statistics",
+            description = "Get statistics of user in the system.")
     public ResponseEntity<GetStatisticsResponse> getStatisticsRequest(
             @Parameter(description = "Level Id", example = "c9dcb3d7-c80c-4431-afd7-c727c8e5ee5b")
             @PathVariable("levelId") UUID levelId,
             @Parameter(description = "Type of activity", example = "EXERCISE, TEST, LESSON, ALL, ...", required = false)
             @RequestParam(value = "type", required = false) String type,
-            @RequestHeader("Authorization") String authHeader) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader) {
         ActivityType activityType = ActivityType.fromValue(type);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
         log.info("Getting statistics for user {} with level {} and type {}", userId, levelId, activityType);
         GetStatisticsResponse response = statisticService.getStatisticByUserIdAndLevelIdAndType(
-                userId,
-                levelId,
-                activityType);
+                userId, levelId, activityType);
         return ResponseEntity.ok(response);
     }
 }

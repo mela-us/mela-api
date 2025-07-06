@@ -1,15 +1,14 @@
 package com.hcmus.mela.statistic.service;
 
-import com.hcmus.mela.history.dto.dto.TestHistoryDto;
-import com.hcmus.mela.history.service.TestHistoryService;
-import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
 import com.hcmus.mela.exercise.service.ExerciseInfoService;
 import com.hcmus.mela.history.dto.dto.CompletedSectionDto;
 import com.hcmus.mela.history.dto.dto.ExerciseHistoryDto;
 import com.hcmus.mela.history.dto.dto.LectureHistoryDto;
+import com.hcmus.mela.history.dto.dto.TestHistoryDto;
 import com.hcmus.mela.history.service.ExerciseHistoryService;
 import com.hcmus.mela.history.service.LectureHistoryService;
+import com.hcmus.mela.history.service.TestHistoryService;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
 import com.hcmus.mela.lecture.dto.dto.SectionDto;
 import com.hcmus.mela.lecture.service.LectureInfoService;
@@ -35,8 +34,8 @@ public class StatisticServiceImpl implements StatisticService {
     private final LectureInfoService lectureInfoService;
     private final ExerciseInfoService exerciseInfoService;
     private final ExerciseHistoryService exerciseHistoryService;
-    private final AsyncCustomService asyncService;
     private final TestHistoryService testHistoryService;
+    private final AsyncCustomService asyncService;
 
     public GetStatisticsResponse getStatisticByUserIdAndLevelIdAndType(UUID userId, UUID levelId, ActivityType activityType) {
         List<ActivityHistoryDto> activityHistoryDtoList = new ArrayList<>();
@@ -107,7 +106,6 @@ public class StatisticServiceImpl implements StatisticService {
                 activities.add(activity);
             }
         }
-
         return activities;
     }
 
@@ -166,29 +164,26 @@ public class StatisticServiceImpl implements StatisticService {
         if (testHistories.isEmpty()) {
             return Collections.emptyList();
         }
+
         List<ActivityHistoryDto> activities = new ArrayList<>();
-
         ActivityHistoryDto activity = new ActivityHistoryDto();
-
         activity.setType(ActivityType.TEST);
-
         TestActivityDto testActivity = new TestActivityDto();
 
         List<ScoreRecordDto> scoreRecords = testHistories.stream()
                 .map(history -> new ScoreRecordDto(history.getCompletedAt(), history.getScore()))
                 .sorted(Comparator.comparing(ScoreRecordDto::getDate).reversed())
                 .collect(Collectors.toList());
+        testActivity.setScoreRecords(scoreRecords);
 
-            testActivity.setScoreRecords(scoreRecords);
+        if (!scoreRecords.isEmpty()) {
+            ScoreRecordDto latestScore = scoreRecords.get(0);
+            testActivity.setLatestScore(latestScore.getScore());
+            activity.setLatestDate(latestScore.getDate());
+        }
 
-            if (!scoreRecords.isEmpty()) {
-                ScoreRecordDto latestScore = scoreRecords.get(0);
-                testActivity.setLatestScore(latestScore.getScore());
-                activity.setLatestDate(latestScore.getDate());
-            }
-
-            activity.setTest(testActivity);
-            activities.add(activity);
+        activity.setTest(testActivity);
+        activities.add(activity);
 
         return activities;
     }
