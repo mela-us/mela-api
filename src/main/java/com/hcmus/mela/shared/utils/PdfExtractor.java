@@ -1,28 +1,25 @@
 package com.hcmus.mela.shared.utils;
 
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
 public class PdfExtractor {
-
-    public static class ExtractedPdf {
-        public String text;
-        public List<String> imageBase64 = new ArrayList<>();
-    }
 
     public static ExtractedPdf extractFromUrl(String fileUrl, Integer startPage, Integer endPage) throws IOException {
         URL url = new URL(fileUrl);
@@ -57,6 +54,11 @@ public class PdfExtractor {
             result.imageBase64 = images64;
             return result;
         }
+    }
+
+    public static class ExtractedPdf {
+        public String text;
+        public List<String> imageBase64 = new ArrayList<>();
     }
 
 }
