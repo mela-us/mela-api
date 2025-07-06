@@ -30,7 +30,7 @@ public class LevelFilterForUserStrategy implements LevelFilterStrategy {
     }
 
     @Override
-    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
+    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest request) {
 
     }
 

@@ -14,13 +14,7 @@ public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, Exe
 
     Optional<Exercise> findByQuestionsQuestionIdAndStatus(UUID questionId, ContentStatus status);
 
-    Optional<Exercise> findByQuestionsQuestionId(UUID questionId);
-
     Optional<Exercise> findByExerciseIdAndCreatedBy(UUID exerciseId, UUID creatorId);
-
-    Boolean existsByExerciseId(UUID exerciseId);
-
-    Boolean existsByLectureId(UUID lectureId);
 
     List<Exercise> findAllByLectureId(UUID lectureId);
 

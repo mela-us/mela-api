@@ -5,6 +5,8 @@ import com.hcmus.mela.history.dto.request.SaveSectionRequest;
 import com.hcmus.mela.history.dto.response.SaveSectionResponse;
 import com.hcmus.mela.history.service.LectureHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,15 +25,12 @@ public class LectureHistoryController {
     private final JwtTokenService jwtTokenService;
 
     @PreAuthorize("hasAuthority('USER')")
-    @PostMapping()
-    @Operation(
-            tags = "History Service",
-            summary = "Save section",
-            description = "Save learning section of user in the system."
-    )
+    @PostMapping
+    @Operation(tags = "🧾 History Service", summary = "Save section",
+            description = "Save lecture section history for the user in the system.")
     public ResponseEntity<SaveSectionResponse> saveLectureSectionHistory(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody SaveSectionRequest request) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody SaveSectionRequest request) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
         log.info("Saving lecture section for user {}", userId);
         SaveSectionResponse response = lectureHistoryService.saveSection(userId, request);

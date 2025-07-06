@@ -13,6 +13,7 @@ import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
 import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -97,7 +98,7 @@ public class ExerciseController {
     @Operation(tags = "💯 Exercise Service", summary = "Create exercise",
             description = "Creates a new exercise in the system.")
     public ResponseEntity<CreateExerciseResponse> createExerciseRequest(
-            @RequestBody CreateExerciseRequest request,
+            @Valid @RequestBody CreateExerciseRequest request,
             @RequestHeader("Authorization") String authHeader) {
         log.info("Creating exercise {}", request.getExerciseName());
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
@@ -146,6 +147,9 @@ public class ExerciseController {
             @PathVariable UUID exerciseId,
             @RequestBody DenyExerciseRequest request) {
         log.info("Deny exercise {}", exerciseId);
+        if (request.getReason() == null || request.getReason().isEmpty()) {
+            request.setReason("Contact admin for more information");
+        }
         exerciseStatusService.denyExercise(exerciseId, request.getReason());
         return ResponseEntity.ok(new DenyExerciseResponse("Exercise denied successfully"));
     }

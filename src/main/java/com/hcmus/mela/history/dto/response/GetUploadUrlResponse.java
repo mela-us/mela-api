@@ -1,20 +1,17 @@
 package com.hcmus.mela.history.dto.response;
 
-import com.hcmus.mela.history.dto.dto.AnswerResultDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TestResultResponse {
+public class GetUploadUrlResponse {
 
-    private String message;
+    private String preSignedUrl;
 
-    private List<AnswerResultDto> answers;
+    private String fileUrl;
 }

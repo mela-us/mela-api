@@ -66,9 +66,7 @@ public class TestServiceImpl implements TestService {
     @Override
     public Question getQuestionById(UUID questionId) {
         TestQuestion test = testQuestionRepository.findByQuestionsQuestionId(questionId);
-
         if (test == null) return null;
-
         return test.getQuestions().stream()
                 .filter(q -> q.getQuestionId().equals(questionId))
                 .findFirst().orElse(null);

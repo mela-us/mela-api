@@ -3,20 +3,21 @@ package com.hcmus.mela.user.service;
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.auth.service.OtpService;
 import com.hcmus.mela.level.dto.dto.LevelDto;
-import com.hcmus.mela.level.service.LevelInfoServiceImpl;
+import com.hcmus.mela.level.service.LevelInfoService;
+import com.hcmus.mela.level.service.LevelQueryService;
 import com.hcmus.mela.shared.cache.RedisService;
 import com.hcmus.mela.shared.exception.BadRequestException;
-import com.hcmus.mela.level.model.Level;
-import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
+import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.user.dto.UserDto;
-import com.hcmus.mela.user.dto.request.*;
-import com.hcmus.mela.user.dto.response.*;
+import com.hcmus.mela.user.dto.request.DeleteAccountRequest;
+import com.hcmus.mela.user.dto.request.UpdateProfileRequest;
+import com.hcmus.mela.user.dto.response.GetUserProfileResponse;
+import com.hcmus.mela.user.dto.response.UpdateProfileResponse;
 import com.hcmus.mela.user.exception.EmptyUpdateDataException;
 import com.hcmus.mela.user.mapper.UserMapper;
 import com.hcmus.mela.user.model.User;
 import com.hcmus.mela.user.repository.UserRepository;
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     private final ExceptionMessageAccessor exceptionMessageAccessor;
     private final LevelQueryService levelQueryService;
-    private final LevelInfoServiceImpl levelInfoServiceImpl;
+    private final LevelInfoService levelInfoService;
 
     @Override
     public UpdateProfileResponse updateProfile(UpdateProfileRequest updateProfileRequest, String authorizationHeader) {
@@ -77,7 +78,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (updateProfileRequest.getLevelTitle() != null) {
-            Level level = levelQueryService.findLevelByLevelTitle(updateProfileRequest.getLevelTitle());
+            LevelDto level = levelInfoService.findLevelByLevelTitle(updateProfileRequest.getLevelTitle());
             user.setLevelId(level.getLevelId());
         }
 
@@ -103,16 +104,14 @@ public class UserServiceImpl implements UserService {
         }
         UserDto userDto = UserMapper.INSTANCE.userToUserDto(user);
         if (user.getLevelId() == null) {
-            LevelDto level = levelInfoServiceImpl.findLevelByLevelTitle("Lớp 1");
+            LevelDto level = levelInfoService.findLevelByLevelTitle("Lớp 1");
             user.setLevelId(level.getLevelId());
             userRepository.save(user);
             userDto.setLevelTitle(level.getName());
         } else {
-            LevelDto level = levelInfoServiceImpl.findLevelByLevelId(user.getLevelId());
+            LevelDto level = levelInfoService.findLevelByLevelId(user.getLevelId());
             userDto.setLevelTitle(level.getName());
         }
-
-
 
 
         final String getUserSuccessfully = generalMessageAccessor.getMessage(null, "get_user_successful", userId);
@@ -124,21 +123,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteAccount(DeleteAccountRequest deleteAccountRequest, String authorizationHeader) {
 
-            final UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
+        final UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
 
-            User user = userRepository.findByUserId(userId).orElse(null);
+        User user = userRepository.findByUserId(userId).orElse(null);
 
-            if (user == null) {
-                final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
-                throw new BadRequestException(userNotFound);
-            }
+        if (user == null) {
+            final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
+            throw new BadRequestException(userNotFound);
+        }
 
-            otpService.deleteOtp(user.getUsername());
+        otpService.deleteOtp(user.getUsername());
 
-            userRepository.delete(user);
+        userRepository.delete(user);
 
-            redisService.storeAccessToken(deleteAccountRequest.getAccessToken());
-            redisService.storeRefreshToken(deleteAccountRequest.getRefreshToken());
+        redisService.storeAccessToken(deleteAccountRequest.getAccessToken());
+        redisService.storeRefreshToken(deleteAccountRequest.getRefreshToken());
     }
 
     @Override

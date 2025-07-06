@@ -5,13 +5,13 @@ import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.prompts.AiGraderPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
-import com.hcmus.mela.exercise.exception.ExerciseException;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.exercise.model.QuestionType;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
 import com.hcmus.mela.history.dto.dto.ExerciseAnswerDto;
+import com.hcmus.mela.history.exception.HistoryException;
 import com.hcmus.mela.history.mapper.ExerciseAnswerMapper;
 import com.hcmus.mela.history.model.ExerciseAnswer;
 import com.hcmus.mela.shared.async.AsyncCustomService;
@@ -57,9 +57,9 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
     @Override
     public List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> answers) {
         Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED)
-                .orElseThrow(() -> new ExerciseException("Exercise not found with id: " + exerciseId));
+                .orElseThrow(() -> new HistoryException("Exercise not found with id " + exerciseId));
         if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty()) {
-            throw new ExerciseException("Exercise does not contain any questions");
+            throw new HistoryException("Exercise does not contain any questions");
         }
 
         List<Question> questions = exercise.getQuestions();
@@ -71,7 +71,7 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
             CompletableFuture<ExerciseAnswer> future = asyncService.runComplexAsync(
                     () -> {
                         if (exeAnswer.getQuestionId() == null) {
-                            throw new ExerciseException("Question is unknown");
+                            throw new HistoryException("Question is unknown");
                         }
                         Question question = questions.stream()
                                 .filter(q -> q.getQuestionId().equals(exeAnswer.getQuestionId()))
@@ -104,34 +104,46 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
         } else if (question.getQuestionType() == QuestionType.ESSAY) {
             return checkEssayAnswer(answer, question);
         } else {
-            throw new ExerciseException("Unsupported question type: " + question.getQuestionType());
+            throw new HistoryException("Unsupported question type " + question.getQuestionType());
         }
     }
 
     private Map<String, Object> checkMultipleChoiceAnswer(ExerciseAnswerDto answer, Question question) {
         if (question.getOptions() == null || question.getOptions().isEmpty()) {
-            return Map.of("isCorrect", false, "feedback", "");
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", "");
         }
         if (answer.getSelectedOption() == null || answer.getSelectedOption() < 1 || answer.getSelectedOption() > question.getOptions().size()) {
-            return Map.of("isCorrect", false, "feedback", "");
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", "");
         }
         Option option = question.getOptions().stream()
                 .filter(opt -> opt.getOrdinalNumber() == answer.getSelectedOption().intValue())
                 .findFirst()
                 .orElse(null);
         if (option != null && option.getIsCorrect()) {
-            return Map.of("isCorrect", true, "feedback", "");
+            return Map.of(
+                    "isCorrect", true,
+                    "feedback", "");
         }
-        return Map.of("isCorrect", false, "feedback", "");
+        return Map.of(
+                "isCorrect", false,
+                "feedback", "");
     }
 
     private Map<String, Object> checkBlankAnswer(ExerciseAnswerDto answer, Question question) {
         if (question.getBlankAnswer() == null || question.getBlankAnswer().isEmpty()) {
-            return Map.of("isCorrect", false, "feedback", "");
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", "");
         }
         String normalizedAnswer = TextUtils.normalizeText(answer.getBlankAnswer());
         String normalizedSolution = TextUtils.normalizeText(question.getBlankAnswer());
-        return Map.of("isCorrect", normalizedAnswer.equalsIgnoreCase(normalizedSolution), "feedback", "");
+        return Map.of(
+                "isCorrect", normalizedAnswer.equalsIgnoreCase(normalizedSolution),
+                "feedback", "");
     }
 
     private Map<String, Object> checkEssayAnswer(ExerciseAnswerDto answer, Question question) {
@@ -142,7 +154,6 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
                 answer.getBlankAnswer(),
                 answer.getImages(),
                 aiGraderProperties);
-
         Object responseObject = aiWebClient.fetchAiResponse(aiGraderProperties, requestBody);
         String responseText = aiResponseFilter.getMessage(responseObject);
         Map<String, Object> jsonResponse = TextUtils.extractResponseFromJsonText(responseText, "score", "feedback");
@@ -150,13 +161,19 @@ public class ExerciseGradeServiceImpl implements ExerciseGradeService {
             float score = Float.parseFloat(jsonResponse.get("score").toString());
             String feedback = jsonResponse.get("feedback") != null ? jsonResponse.get("feedback").toString() : "";
             if (score >= CORRECT_SCORE) {
-                return Map.of("isCorrect", true, "feedback", feedback);
+                return Map.of(
+                        "isCorrect", true,
+                        "feedback", feedback);
             } else {
-                return Map.of("isCorrect", false, "feedback", feedback);
+                return Map.of(
+                        "isCorrect", false,
+                        "feedback", feedback);
             }
         } else {
             String feedback = jsonResponse.get("feedback") != null ? jsonResponse.get("feedback").toString() : "";
-            return Map.of("isCorrect", false, "feedback", feedback);
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", feedback);
         }
     }
 }

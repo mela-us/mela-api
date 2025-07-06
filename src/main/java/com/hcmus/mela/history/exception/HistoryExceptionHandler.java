@@ -1,8 +1,10 @@
 package com.hcmus.mela.history.exception;
 
+import com.hcmus.mela.history.controller.ExerciseHistoryController;
+import com.hcmus.mela.history.controller.LectureHistoryController;
+import com.hcmus.mela.history.controller.TestHistoryController;
 import com.hcmus.mela.shared.configuration.RequestIdFilter;
 import com.hcmus.mela.shared.exception.ApiErrorResponse;
-import com.hcmus.mela.statistic.controller.StatisticController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +16,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Slf4j
-@RestControllerAdvice(basePackageClasses = StatisticController.class)
+@RestControllerAdvice(basePackageClasses = {
+        ExerciseHistoryController.class,
+        LectureHistoryController.class,
+        TestHistoryController.class
+})
 public class HistoryExceptionHandler {
 
     @ExceptionHandler(HistoryException.class)
-    ResponseEntity<ApiErrorResponse> handleMathContentException(HistoryException exception, WebRequest request) {
+    ResponseEntity<ApiErrorResponse> handleHistoryException(HistoryException exception, WebRequest request) {
         log.error("HistoryException occurred: {}", exception.getMessage(), exception);
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),

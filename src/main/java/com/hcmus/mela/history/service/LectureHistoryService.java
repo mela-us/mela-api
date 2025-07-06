@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface LectureHistoryService {
 
-    SaveSectionResponse saveSection(UUID userId, SaveSectionRequest saveSectionRequest);
+    SaveSectionResponse saveSection(UUID userId, SaveSectionRequest request);
 
     List<LectureHistoryDto> getLectureHistoryByUserAndLevel(UUID userId, UUID levelId);
 

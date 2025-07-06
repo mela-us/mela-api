@@ -100,7 +100,6 @@ public class UserSkillServiceImpl implements UserSkillService {
         int bonusPoints = correctAnswers - incorrectAnswers;
         int points = Math.max(userSkill.getPoints() + bonusPoints, 0);
         userSkill.setPoints(points);
-
         userSkillRepository.updateUserSkill(userSkill);
     }
 

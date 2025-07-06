@@ -12,9 +12,5 @@ public interface LectureCustomRepository {
 
     List<Lecture> findLecturesByKeyword(String keyword);
 
-    List<LectureActivity> findRecentLectureByUserExerciseHistory(UUID userId, Integer size);
-
-    List<LectureActivity> findRecentLectureByUserSectionHistory(UUID userId, Integer size);
-
     List<Lecture> findCompleteLecturesWithWrongExercises(UUID userId);
 }

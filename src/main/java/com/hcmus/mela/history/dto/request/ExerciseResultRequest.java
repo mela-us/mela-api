@@ -1,7 +1,9 @@
 package com.hcmus.mela.history.dto.request;
 
 import com.hcmus.mela.history.dto.dto.ExerciseAnswerDto;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,15 +19,16 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ExerciseResultRequest {
 
-    @Schema(description = "Id of the exercise", example = "904553a4-186e-4889-bb5f-19de4c64522d")
+    @NotNull(message = "Exercise id cannot be null")
     private UUID exerciseId;
 
-    @Schema(description = "Start time of the exercise", example = "2025-04-02T00:00:00")
+    @NotNull(message = "Started time cannot be null")
     private LocalDateTime startedAt;
 
-    @Schema(description = "End time of the exercise", example = "2025-04-02T00:01:00")
+    @NotNull(message = "Completed time cannot be null")
     private LocalDateTime completedAt;
 
-    @Schema(description = "List of answers")
-    private List<ExerciseAnswerDto> answers;
+    @NotNull(message = "Answers cannot be null")
+    @NotEmpty(message = "Answers cannot be empty")
+    private List<@Valid ExerciseAnswerDto> answers;
 }

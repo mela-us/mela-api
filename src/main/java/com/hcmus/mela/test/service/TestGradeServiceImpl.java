@@ -5,22 +5,23 @@ import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.prompts.AiGraderPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
-import com.hcmus.mela.exercise.repository.ExerciseRepository;
+import com.hcmus.mela.history.dto.dto.TestAnswerDto;
+import com.hcmus.mela.history.exception.HistoryException;
 import com.hcmus.mela.history.mapper.TestAnswerMapper;
-import com.hcmus.mela.test.model.QuestionType;
+import com.hcmus.mela.history.model.TestAnswer;
+import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.utils.TextUtils;
 import com.hcmus.mela.test.exception.QuestionResultEmptyException;
 import com.hcmus.mela.test.model.Option;
-import com.hcmus.mela.history.dto.dto.TestAnswerDto;
-import com.hcmus.mela.history.model.TestAnswer;
-import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.test.model.Question;
-import com.hcmus.mela.test.repository.TestQuestionRepository;
-import lombok.RequiredArgsConstructor;
+import com.hcmus.mela.test.model.QuestionType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -33,41 +34,32 @@ public class TestGradeServiceImpl implements TestGradeService {
     private final AiGraderPrompt aiGraderPrompt;
     private final AiRequestBodyFactory aiRequestBodyFactory;
     private final AiResponseFilter aiResponseFilter;
-    private final TestQuestionRepository testRepository;
     private final AsyncCustomService asyncService;
     private final TestService testService;
 
     public TestGradeServiceImpl(AiWebClient aiWebClient,
-                                    AiClientProperties aiClientProperties,
-                                    AiGraderPrompt aiGraderPrompt,
-                                    AiRequestBodyFactory aiRequestBodyFactory,
-                                    TestQuestionRepository testRepository,
-                                    AiResponseFilter aiResponseFilter,
-                                    AsyncCustomService asyncService,
-                                    TestService testService) {
+                                AiClientProperties aiClientProperties,
+                                AiGraderPrompt aiGraderPrompt,
+                                AiRequestBodyFactory aiRequestBodyFactory,
+                                AiResponseFilter aiResponseFilter,
+                                AsyncCustomService asyncService,
+                                TestService testService) {
         this.aiWebClient = aiWebClient;
         this.aiGraderProperties = aiClientProperties.getAiGrader();
         this.aiGraderPrompt = aiGraderPrompt;
         this.aiRequestBodyFactory = aiRequestBodyFactory;
-        this.testRepository = testRepository;
         this.aiResponseFilter = aiResponseFilter;
         this.asyncService = asyncService;
         this.testService = testService;
     }
 
-
-
-
     @Override
     public List<TestAnswer> gradeTest(List<TestAnswerDto> testAnswerList) {
-
         List<CompletableFuture<TestAnswer>> answersFutures = new ArrayList<>();
         for (TestAnswerDto TestAnswerDto : testAnswerList) {
-            TestAnswer answer = TestAnswerMapper.INSTANCE.convertToTestAnswer(TestAnswerDto);
-
+            TestAnswer answer = TestAnswerMapper.INSTANCE.testAnswerDtoToTestAnswer(TestAnswerDto);
             answer.setFeedback("");
             answer.setIsCorrect(false);
-
             CompletableFuture<TestAnswer> future = asyncService.runComplexAsync(
                     () -> {
                         Map<String, Object> result = checkQuestionAnswer(TestAnswerDto);
@@ -77,7 +69,6 @@ public class TestGradeServiceImpl implements TestGradeService {
                     },
                     answer
             );
-
             answersFutures.add(future);
         }
         CompletableFuture.allOf(answersFutures.toArray(new CompletableFuture[0])).join();
@@ -91,8 +82,8 @@ public class TestGradeServiceImpl implements TestGradeService {
     public Map<String, Object> checkQuestionAnswer(TestAnswerDto answerDto) {
         Question questionResult = testService.getQuestionById(answerDto.getQuestionId());
 
-        if(questionResult == null) {
-            throw new IllegalArgumentException("Question does not exist.");
+        if (questionResult == null) {
+            throw new HistoryException("Question does not exist.");
         }
 
         if (questionResult.getQuestionType() == QuestionType.FILL_IN_THE_BLANK) {
@@ -102,7 +93,7 @@ public class TestGradeServiceImpl implements TestGradeService {
         } else if (questionResult.getQuestionType() == QuestionType.ESSAY) {
             return checkEssayAnswer(answerDto, questionResult);
         } else {
-            throw new IllegalArgumentException("Unsupported question type: " + questionResult.getQuestionType());
+            throw new HistoryException("Unsupported question type " + questionResult.getQuestionType());
         }
     }
 
@@ -111,30 +102,33 @@ public class TestGradeServiceImpl implements TestGradeService {
             throw new QuestionResultEmptyException("Question multiple choice options is empty.");
         }
         if (answerDto.getSelectedOption() == null) {
-            return Map.of("isCorrect", false, "feedback", "Học sinh chưa nhập câu trả lời.");
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", "Học sinh chưa nhập câu trả lời.");
         }
         Option option = question.getOptions().stream()
-                .filter(opt ->  opt.getOrdinalNumber() == answerDto.getSelectedOption().intValue())
+                .filter(opt -> opt.getOrdinalNumber() == answerDto.getSelectedOption().intValue())
                 .findFirst()
                 .orElse(null);
-        
         if (option != null && option.getIsCorrect()) {
-            return Map.of("isCorrect", true, "feedback", "");
+            return Map.of(
+                    "isCorrect", true,
+                    "feedback", "");
         }
-        
-        return Map.of("isCorrect", false, "feedback", "");
+        return Map.of(
+                "isCorrect", false,
+                "feedback", "");
     }
 
     private Map<String, Object> checkBlankAnswer(TestAnswerDto answerDto, Question question) {
         if (question.getBlankAnswer() == null || question.getBlankAnswer().isEmpty()) {
             throw new QuestionResultEmptyException("Question blank answer is empty.");
         }
-        
         String normalizedAnswer = TextUtils.normalizeText(answerDto.getBlankAnswer());
-        
         String normalizedSolution = TextUtils.normalizeText(question.getBlankAnswer());
-        
-        return Map.of("isCorrect", normalizedAnswer.equalsIgnoreCase(normalizedSolution), "feedback", "");
+        return Map.of(
+                "isCorrect", normalizedAnswer.equalsIgnoreCase(normalizedSolution),
+                "feedback", "");
     }
 
     private Map<String, Object> checkEssayAnswer(TestAnswerDto answerDto, Question question) {
@@ -153,14 +147,19 @@ public class TestGradeServiceImpl implements TestGradeService {
             float score = Float.parseFloat(jsonResponse.get("score").toString());
             String feedback = jsonResponse.get("feedback") != null ? jsonResponse.get("feedback").toString() : "";
             if (score >= CORRECT_SCORE) {
-                return Map.of("isCorrect", true, "feedback", feedback);
+                return Map.of(
+                        "isCorrect", true,
+                        "feedback", feedback);
             } else {
-                return Map.of("isCorrect", false, "feedback", feedback);
+                return Map.of(
+                        "isCorrect", false,
+                        "feedback", feedback);
             }
         } else {
             String feedback = jsonResponse.get("feedback") != null ? jsonResponse.get("feedback").toString() : "";
-            return Map.of("isCorrect", false, "feedback", feedback);
+            return Map.of(
+                    "isCorrect", false,
+                    "feedback", feedback);
         }
     }
-
 }

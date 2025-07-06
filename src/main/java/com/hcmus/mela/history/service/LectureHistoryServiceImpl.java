@@ -26,34 +26,34 @@ public class LectureHistoryServiceImpl implements LectureHistoryService {
     private final LectureInfoService lectureInfoService;
 
     @Override
-    public SaveSectionResponse saveSection(UUID userId, SaveSectionRequest saveSectionRequest) {
-        LectureHistory lectureHistory = lectureHistoryRepository.findByLectureIdAndUserId(saveSectionRequest.getLectureId(), userId);
+    public SaveSectionResponse saveSection(UUID userId, SaveSectionRequest request) {
+        LectureHistory lectureHistory = lectureHistoryRepository.findByLectureIdAndUserId(
+                request.getLectureId(), userId);
         LectureDto lectureInfo = lectureInfoService.findLectureByLectureIdAndStatus(
-                saveSectionRequest.getLectureId(), ContentStatus.VERIFIED);
+                request.getLectureId(), ContentStatus.VERIFIED);
         if (lectureInfo == null) {
-            throw new HistoryException("Lecture not found for id " + saveSectionRequest.getLectureId());
+            throw new HistoryException("Lecture not found or not verified with id " + request.getLectureId());
         }
-
         boolean isUpdated = (lectureHistory != null && lectureHistory.getCompletedSections() != null);
         boolean isCompleted = false;
         if (!isUpdated) {
             lectureHistory = new LectureHistory();
-            lectureHistory.setStartedAt(saveSectionRequest.getCompletedAt());
+            lectureHistory.setStartedAt(request.getCompletedAt());
         } else {
             isCompleted = lectureHistory.getProgress().equals(100);
         }
 
-        List<LectureCompletedSection> completedSections = updateCompletedSections(lectureHistory, saveSectionRequest);
+        List<LectureCompletedSection> completedSections = updateCompletedSections(lectureHistory, request);
 
         Integer progress = calculateProgress(completedSections, lectureInfo);
 
         if (progress.equals(100) && !isCompleted) {
-            lectureHistory.setCompletedAt(saveSectionRequest.getCompletedAt());
+            lectureHistory.setCompletedAt(request.getCompletedAt());
         }
 
         lectureHistory.setId(isUpdated ? lectureHistory.getId() : UUID.randomUUID());
         lectureHistory.setUserId(userId);
-        lectureHistory.setLectureId(saveSectionRequest.getLectureId());
+        lectureHistory.setLectureId(request.getLectureId());
         lectureHistory.setTopicId(lectureInfo.getTopicId());
         lectureHistory.setLevelId(lectureInfo.getLevelId());
         lectureHistory.setProgress(progress);
@@ -65,8 +65,8 @@ public class LectureHistoryServiceImpl implements LectureHistoryService {
             lectureHistoryRepository.save(lectureHistory);
         }
         log.info("Lecture section saved successfully for user {}, lecture {}, progress {}",
-                userId, saveSectionRequest.getLectureId(), progress);
-        return new SaveSectionResponse("Lecture section saved successfully for user: " + userId);
+                userId, request.getLectureId(), progress);
+        return new SaveSectionResponse("Lecture section saved successfully for user " + userId);
     }
 
     private List<LectureCompletedSection> updateCompletedSections(LectureHistory lectureHistory, SaveSectionRequest request) {

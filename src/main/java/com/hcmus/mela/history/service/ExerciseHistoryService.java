@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface ExerciseHistoryService {
 
-    ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest);
+    ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest request);
 
     Map<UUID, Integer> getPassedExerciseCountOfUser(UUID userId);
 

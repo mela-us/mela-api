@@ -7,6 +7,7 @@ import com.hcmus.mela.test.model.TestQuestion;
 import java.util.UUID;
 
 public interface TestService {
+
     TestDto getTestDto(UUID userId);
 
     Question getQuestionById(UUID questionId);

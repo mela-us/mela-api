@@ -15,6 +15,7 @@ import java.util.UUID;
 @Document
 @ToString
 public class TestAnswer {
+
     @Field("question_id")
     private UUID questionId;
 

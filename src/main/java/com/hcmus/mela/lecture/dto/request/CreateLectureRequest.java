@@ -17,10 +17,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateLectureRequest {
 
-    @NotNull(message = "Topic ID cannot be null")
+    @NotNull(message = "Topic id cannot be null")
     private UUID topicId;
 
-    @NotNull(message = "Level ID cannot be null")
+    @NotNull(message = "Level id cannot be null")
     private UUID levelId;
 
     @NotNull(message = "Name cannot be null")

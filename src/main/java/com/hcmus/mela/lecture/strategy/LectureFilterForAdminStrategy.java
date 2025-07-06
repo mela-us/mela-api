@@ -8,9 +8,9 @@ import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
-import com.hcmus.mela.level.service.LevelQueryService;
+import com.hcmus.mela.level.service.LevelStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.topic.service.TopicQueryService;
+import com.hcmus.mela.topic.service.TopicStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +22,8 @@ import java.util.UUID;
 public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
 
     private final LectureRepository lectureRepository;
-
-    private final TopicQueryService topicQueryService;
-
-    private final LevelQueryService levelQueryService;
+    private final TopicStatusService topicStatusService;
+    private final LevelStatusService levelStatusService;
 
     private final ExerciseFilterForAdminStrategy exerciseFilterForAdminStrategy;
 
@@ -36,16 +34,17 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
             return List.of();
         }
         return lectures.stream()
+                .filter(lecture -> lecture.getStatus() != ContentStatus.DELETED)
                 .map(LectureMapper.INSTANCE::lectureToLectureDto)
                 .toList();
     }
 
     @Override
     public LectureDto createLecture(UUID userId, Lecture lecture) {
-        if (lecture.getTopicId() == null || topicQueryService.checkTopicStatus(lecture.getTopicId(), ContentStatus.DELETED)) {
+        if (lecture.getTopicId() == null || topicStatusService.isTopicInStatus(lecture.getTopicId(), ContentStatus.DELETED)) {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (lecture.getLevelId() == null || levelQueryService.checkLevelStatus(lecture.getLevelId(), ContentStatus.DELETED)) {
+        if (lecture.getLevelId() == null || levelStatusService.isLevelInStatus(lecture.getLevelId(), ContentStatus.DELETED)) {
             throw new LectureException("Level is not assignable to this lecture");
         }
         Lecture savedLecture = lectureRepository.save(lecture);
@@ -95,31 +94,31 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
     }
 
     @Override
-    public void updateLecture(UUID userId, UUID lectureId, UpdateLectureRequest updateLectureRequest) {
+    public void updateLecture(UUID userId, UUID lectureId, UpdateLectureRequest request) {
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException("Lecture not found"));
         if (lecture.getStatus() == ContentStatus.DELETED) {
             throw new LectureException("Cannot update a deleted lecture");
         }
-        if (updateLectureRequest.getName() != null && !updateLectureRequest.getName().isEmpty()) {
-            lecture.setName(updateLectureRequest.getName());
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            lecture.setName(request.getName());
         }
-        if (updateLectureRequest.getOrdinalNumber() != null && updateLectureRequest.getOrdinalNumber() > 0) {
-            lecture.setOrdinalNumber(updateLectureRequest.getOrdinalNumber());
+        if (request.getOrdinalNumber() != null && request.getOrdinalNumber() > 0) {
+            lecture.setOrdinalNumber(request.getOrdinalNumber());
         }
-        if (updateLectureRequest.getDescription() != null && !updateLectureRequest.getDescription().isEmpty()) {
-            lecture.setDescription(updateLectureRequest.getDescription());
+        if (request.getDescription() != null && !request.getDescription().isEmpty()) {
+            lecture.setDescription(request.getDescription());
         }
-        if (!updateLectureRequest.getSections().isEmpty()) {
-            lecture.setSections(updateLectureRequest.getSections().stream().map(LectureSectionMapper.INSTANCE::updateSectionRequestToSection).toList());
+        if (!request.getSections().isEmpty()) {
+            lecture.setSections(request.getSections().stream().map(LectureSectionMapper.INSTANCE::updateSectionRequestToSection).toList());
         }
-        if (!topicQueryService.checkTopicStatus(updateLectureRequest.getTopicId(), ContentStatus.DELETED)) {
-            lecture.setTopicId(updateLectureRequest.getTopicId());
+        if (!topicStatusService.isTopicInStatus(request.getTopicId(), ContentStatus.DELETED)) {
+            lecture.setTopicId(request.getTopicId());
         } else {
             throw new LectureException("Topic is not assignable to this lecture");
         }
-        if (!levelQueryService.checkLevelStatus(updateLectureRequest.getLevelId(), ContentStatus.DELETED)) {
-            lecture.setLevelId(updateLectureRequest.getLevelId());
+        if (!levelStatusService.isLevelInStatus(request.getLevelId(), ContentStatus.DELETED)) {
+            lecture.setLevelId(request.getLevelId());
         } else {
             throw new LectureException("Level is not assignable to this lecture");
         }

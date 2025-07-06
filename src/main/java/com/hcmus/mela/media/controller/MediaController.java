@@ -1,11 +1,12 @@
 package com.hcmus.mela.media.controller;
 
+import com.hcmus.mela.media.dto.GetUploadUrlResponse;
 import com.hcmus.mela.media.model.UploadType;
 import com.hcmus.mela.shared.storage.StorageService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -19,21 +20,19 @@ public class MediaController {
 
     private final StorageService storageService;
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR', 'USER')")
     @GetMapping("/upload")
-    public ResponseEntity<Map<String, String>> getUploadUrl(
-            @RequestHeader("Authorization") String authHeader,
+    @Operation(tags = "📷 Media Service", summary = "Get upload URL",
+            description = "Get pre-signed URL for uploading files to the storage service.")
+    public ResponseEntity<GetUploadUrlResponse> getUploadUrl(
             @RequestParam(required = false) String name,
-            @RequestHeader(required = false) String type
-    ) {
-        // UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+            @RequestHeader(required = false) String type) {
         UploadType uploadType = UploadType.fromTypeName(type);
         name = UUID.randomUUID().toString().substring(5) + "_" + name;
         String path = String.format("%s%s", uploadType.getPath(), name);
         Map<String, String> urls = storageService.getUploadMelaFilePreSignedUrl(path);
-        return ResponseEntity.ok().body(Map.of(
-                "preSignedUrl", urls.get("preSignedUrl"),
-                "fileUrl", urls.get("storedUrl"))
-        );
+        return ResponseEntity.ok(new GetUploadUrlResponse(
+                urls.get("preSignedUrl"),
+                urls.get("storedUrl")
+        ));
     }
 }

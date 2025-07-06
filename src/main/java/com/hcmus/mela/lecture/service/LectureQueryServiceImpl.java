@@ -6,16 +6,12 @@ import com.hcmus.mela.lecture.dto.response.*;
 import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.mapper.LectureSectionMapper;
 import com.hcmus.mela.lecture.model.Lecture;
-import com.hcmus.mela.lecture.model.LectureActivity;
-import com.hcmus.mela.lecture.repository.LectureCustomRepositoryImpl;
 import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.service.TopicInfoService;
-import com.hcmus.mela.topic.service.TopicQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +22,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class LectureQueryServiceImpl implements LectureQueryService {
 
-    private final GeneralMessageAccessor generalMessageAccessor;
-    private final TopicQueryService topicQueryService;
     private final TopicInfoService topicInfoService;
     private final LectureRepository lectureRepository;
     private final ExerciseHistoryService exerciseHistoryService;
@@ -78,7 +72,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 .stream().filter(dto -> !dto.getLectures().isEmpty()).toList();
 
         return new GetLecturesByLevelResponse(
-                generalMessageAccessor.getMessage(null, "get_lectures_success"),
+                "Get lectures successfully",
                 lecturesByTopicDtoList.size(),
                 lecturesByTopicDtoList
         );
@@ -100,7 +94,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
 
         if (lectures == null || lectures.isEmpty()) {
             return new GetLecturesWithStatsResponse(
-                    generalMessageAccessor.getMessage(null, "search_lectures_success"),
+                    "Search lectures successfully",
                     0,
                     Collections.emptyList()
             );
@@ -109,53 +103,20 @@ public class LectureQueryServiceImpl implements LectureQueryService {
     }
 
     @Override
-    public GetLecturesWithStatsResponse getLecturesByRecent(UUID userId, Integer size) {
-        CompletableFuture<List<LectureActivity>> exerciseHistoryFuture = asyncService.runAsync(
-                () -> lectureRepository.findRecentLectureByUserExerciseHistory(userId, size),
-                Collections.emptyList());
-        CompletableFuture<List<LectureActivity>> sectionHistoryFuture = asyncService.runAsync(
-                () -> lectureRepository.findRecentLectureByUserSectionHistory(userId, size),
-                Collections.emptyList());
-        CompletableFuture<Map<UUID, Integer>> passMapFuture = asyncService.runAsync(
-                () -> exerciseHistoryService.getPassedExerciseCountOfUser(userId),
-                Collections.emptyMap());
-        CompletableFuture.allOf(exerciseHistoryFuture, sectionHistoryFuture, passMapFuture).join();
-
-        List<LectureActivity> exerciseHistory = Optional.ofNullable(exerciseHistoryFuture.join()).orElse(Collections.emptyList());
-        List<LectureActivity> sectionHistory = Optional.ofNullable(sectionHistoryFuture.join()).orElse(Collections.emptyList());
-
-        List<LectureActivity> recentLectures = mergeActivity(exerciseHistory, sectionHistory);
-        if (recentLectures.isEmpty()) {
-            return new GetLecturesWithStatsResponse(
-                    generalMessageAccessor.getMessage(null, "get_recent_lectures_success"),
-                    0,
-                    Collections.emptyList()
-            );
-        }
-        List<Lecture> lectures = recentLectures.stream()
-                .sorted(Comparator.comparing(LectureActivity::getCompletedAt).reversed())
-                .limit(size)
-                .map(LectureMapper.INSTANCE::lectureActivityToLecture)
-                .toList();
-
-        return getLectureStatListResponse(passMapFuture.join(), lectures);
-    }
-
-    @Override
     public GetLectureSectionsResponse getLectureSectionsByLectureId(UUID lectureId) {
-        Lecture lecture = lectureRepository.findByLectureId(lectureId);
-        if (lecture == null || lecture.getStatus() != ContentStatus.VERIFIED) {
+        Lecture lecture = lectureRepository.findByLectureIdAndStatus(lectureId, ContentStatus.VERIFIED).orElse(null);
+        if (lecture == null) {
             return new GetLectureSectionsResponse(
-                    generalMessageAccessor.getMessage(null, "get_sections_success"),
+                    "No lecture found with the given id",
                     0,
                     null,
                     Collections.emptyList()
             );
         }
         LectureOfSectionDto lectureInfo = LectureMapper.INSTANCE.lectureToLectureOfSectionDto(lecture);
-        if (lecture.getSections() == null) {
+        if (lecture.getSections() == null || lecture.getSections().isEmpty()) {
             return new GetLectureSectionsResponse(
-                    generalMessageAccessor.getMessage(null, "get_sections_success"),
+                    "Sections not found for the lecture",
                     0,
                     lectureInfo,
                     Collections.emptyList()
@@ -167,47 +128,11 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 .toList();
 
         return new GetLectureSectionsResponse(
-                generalMessageAccessor.getMessage(null, "get_sections_success"),
+                "Get lecture sections successfully",
                 sectionDtoList.size(),
                 lectureInfo,
                 sectionDtoList
         );
-    }
-
-    private List<LectureActivity> mergeActivity(List<LectureActivity> first, List<LectureActivity> second) {
-        List<LectureActivity> recentLecture = new ArrayList<>();
-
-        List<LectureActivity> modifiableFirst = new ArrayList<>(first);
-        List<LectureActivity> modifiableSecond = new ArrayList<>(second);
-        modifiableFirst.sort(Comparator.comparing(LectureActivity::getLectureId));
-        modifiableSecond.sort(Comparator.comparing(LectureActivity::getLectureId));
-
-        int n = modifiableFirst.size() + modifiableSecond.size();
-        int firstIndex = 0;
-        int secondIndex = 0;
-        while (firstIndex + secondIndex <= n && firstIndex < modifiableFirst.size() && secondIndex < modifiableSecond.size()) {
-            if (modifiableFirst.get(firstIndex).compareTo(modifiableSecond.get(secondIndex)) < 0) {
-                recentLecture.add(modifiableFirst.get(firstIndex));
-                firstIndex++;
-            } else if (modifiableFirst.get(firstIndex).compareTo(modifiableSecond.get(secondIndex)) > 0) {
-                recentLecture.add(modifiableSecond.get(secondIndex));
-                secondIndex++;
-            } else if (modifiableFirst.get(firstIndex++).getCompletedAt()
-                    .isAfter(modifiableSecond.get(secondIndex++).getCompletedAt())) {
-                recentLecture.add(modifiableFirst.get(firstIndex - 1));
-            } else {
-                recentLecture.add(modifiableSecond.get(secondIndex - 1));
-            }
-        }
-
-        if (firstIndex < modifiableFirst.size()) {
-            recentLecture.addAll(modifiableFirst.subList(firstIndex, modifiableFirst.size()));
-        }
-        if (secondIndex < modifiableSecond.size()) {
-            recentLecture.addAll(modifiableSecond.subList(secondIndex, modifiableSecond.size()));
-        }
-        recentLecture.sort(Comparator.comparing(LectureActivity::getCompletedAt).reversed());
-        return recentLecture;
     }
 
     private GetLecturesWithStatsResponse getLectureStatListResponse(Map<UUID, Integer> passExerciseTotalsMap, List<Lecture> lectures) {
@@ -215,7 +140,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 passExerciseTotalsMap,
                 lectures);
         return new GetLecturesWithStatsResponse(
-                "Get lectures success!",
+                "Get lectures success",
                 lectureStatDetailDtoList.size(),
                 lectureStatDetailDtoList);
     }

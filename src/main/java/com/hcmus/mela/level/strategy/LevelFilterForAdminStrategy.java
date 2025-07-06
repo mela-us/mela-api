@@ -29,22 +29,23 @@ public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
             return List.of();
         }
         return levels.stream()
+                .filter(level -> level.getStatus() != ContentStatus.DELETED)
                 .map(LevelMapper.INSTANCE::levelToLevelDto)
                 .toList();
     }
 
     @Override
-    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
+    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest request) {
         Level level = levelRepository.findById(levelId)
                 .orElseThrow(() -> new LevelException("Level not found"));
         if (level.getStatus() == ContentStatus.DELETED) {
             throw new LevelException("Cannot update a deleted level");
         }
-        if (updateLevelRequest.getName() != null && !updateLevelRequest.getName().isEmpty()) {
-            level.setName(updateLevelRequest.getName());
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            level.setName(request.getName());
         }
-        if (updateLevelRequest.getImageUrl() != null && !updateLevelRequest.getImageUrl().isEmpty()) {
-            level.setImageUrl(updateLevelRequest.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            level.setImageUrl(request.getImageUrl());
         }
         levelRepository.save(level);
     }

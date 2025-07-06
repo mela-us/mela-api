@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,16 +41,16 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
     private final UserSkillService userSkillService;
 
     @Override
-    public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
+    public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest request) {
         List<ExerciseAnswer> exerciseAnswerList = exerciseGradeService.gradeExercise(
-                exerciseResultRequest.getExerciseId(),
-                exerciseResultRequest.getAnswers()
+                request.getExerciseId(),
+                request.getAnswers()
         );
         saveExerciseHistory(
                 userId,
-                exerciseResultRequest.getStartedAt(),
-                exerciseResultRequest.getCompletedAt(),
-                exerciseResultRequest.getExerciseId(),
+                request.getStartedAt(),
+                request.getCompletedAt(),
+                request.getExerciseId(),
                 exerciseAnswerList
         );
         log.info("Exercise result saved successfully for user: {}", userId);
@@ -73,6 +74,12 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
             throw new HistoryException("Exercise not found or not verified");
         }
         LectureDto lectureInfo = lectureInfoService.findLectureByLectureId(exerciseInfo.getLectureId());
+        if (startedAt == null) {
+            startedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        }
+        if (completedAt == null) {
+            completedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        }
         Double score = answers.stream()
                 .filter(ExerciseAnswer::getIsCorrect)
                 .count() * 1.0 / answers.size() * 100;
@@ -90,7 +97,8 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .answers(answers)
                 .build();
         exerciseHistoryRepository.save(exerciseHistory);
-        userSkillService.updateUserSkill(userId,
+        userSkillService.updateUserSkill(
+                userId,
                 lectureInfo.getLevelId(),
                 lectureInfo.getTopicId(),
                 correctAnswers.intValue(),

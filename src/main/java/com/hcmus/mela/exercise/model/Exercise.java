@@ -40,7 +40,7 @@ public class Exercise {
     @Field(name = "created_by")
     private UUID createdBy;
 
-    @Field(name= "rejected_reason")
+    @Field(name = "rejected_reason")
     private String rejectedReason;
 
     @PrePersist

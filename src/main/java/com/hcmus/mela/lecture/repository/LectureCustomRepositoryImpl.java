@@ -1,7 +1,6 @@
 package com.hcmus.mela.lecture.repository;
 
 import com.hcmus.mela.lecture.model.Lecture;
-import com.hcmus.mela.lecture.model.LectureActivity;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.domain.Sort;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +25,6 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
     public List<Lecture> findLecturesByTopicAndLevel(UUID topicId, UUID levelId) {
         Criteria criteria = Criteria.where("topic_id").is(topicId)
                 .and("level_id").is(levelId);
-
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
     }
@@ -39,40 +36,6 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                 : new Criteria(); // match all
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
-    }
-
-    @Override
-    public List<LectureActivity> findRecentLectureByUserExerciseHistory(UUID userId, Integer size) {
-        List<AggregationOperation> pipeline = new ArrayList<>();
-        pipeline.add(Aggregation.match(Criteria.where("user_id").is(userId)));
-
-        pipeline.addAll(buildLectureJoinAggregation(size));
-
-        Aggregation aggregation = Aggregation.newAggregation(pipeline);
-        AggregationResults<LectureActivity> results = mongoTemplate.aggregate(
-                aggregation,
-                "exercise_histories",
-                LectureActivity.class);
-        return results.getMappedResults();
-    }
-
-    @Override
-    public List<LectureActivity> findRecentLectureByUserSectionHistory(UUID userId, Integer size) {
-        List<AggregationOperation> pipeline = new ArrayList<>();
-        pipeline.add(Aggregation.match(Criteria.where("user_id").is(userId)));
-        pipeline.add(Aggregation.project("lecture_id", "completed_sections"));
-        pipeline.add(Aggregation.unwind("completed_sections"));
-        pipeline.add(Aggregation.project("lecture_id")
-                .and("completed_sections.completed_at").as("completed_at"));
-
-        pipeline.addAll(buildLectureJoinAggregation(size));
-
-        Aggregation aggregation = Aggregation.newAggregation(pipeline);
-        AggregationResults<LectureActivity> results = mongoTemplate.aggregate(
-                aggregation,
-                "lecture_histories",
-                LectureActivity.class);
-        return results.getMappedResults();
     }
 
     @Override

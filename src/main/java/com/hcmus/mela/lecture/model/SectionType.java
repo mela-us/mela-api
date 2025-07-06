@@ -9,6 +9,6 @@ public enum SectionType {
                 return sectionType;
             }
         }
-        throw new IllegalArgumentException("Unknown section type: " + type);
+        throw new IllegalArgumentException("Unknown section type " + type);
     }
 }

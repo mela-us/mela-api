@@ -1,10 +1,8 @@
 package com.hcmus.mela.lecture.exception;
 
+import com.hcmus.mela.level.controller.LevelController;
 import com.hcmus.mela.shared.configuration.RequestIdFilter;
 import com.hcmus.mela.shared.exception.ApiErrorResponse;
-import com.hcmus.mela.lecture.controller.LectureController;
-import com.hcmus.mela.level.controller.LevelController;
-import com.hcmus.mela.topic.controller.TopicController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,26 +11,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
-@RestControllerAdvice(basePackageClasses = {
-        LevelController.class,
-        TopicController.class,
-        LectureController.class
-})
+@RestControllerAdvice(basePackageClasses = LevelController.class)
 public class LectureExceptionHandler {
 
     @ExceptionHandler(LectureException.class)
-    ResponseEntity<ApiErrorResponse> handleMathContentException(LectureException exception, WebRequest request) {
-
+    ResponseEntity<ApiErrorResponse> handleLectureException(LectureException exception, WebRequest request) {
+        log.error("LectureException occurred: {}", exception.getMessage(), exception);
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
                 HttpStatus.BAD_REQUEST.value(),
                 exception.getMessage(),
                 request.getDescription(false),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
-
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

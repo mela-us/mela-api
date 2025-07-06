@@ -15,7 +15,5 @@ public interface LectureQueryService {
 
     GetLecturesWithStatsResponse getLecturesByKeyword(UUID userId, String keyword);
 
-    GetLecturesWithStatsResponse getLecturesByRecent(UUID userId, Integer size);
-
     GetLectureSectionsResponse getLectureSectionsByLectureId(UUID lectureId);
 }

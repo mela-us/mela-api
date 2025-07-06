@@ -39,17 +39,17 @@ public class LevelFilterForContributorStrategy implements LevelFilterStrategy {
     }
 
     @Override
-    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest updateLevelRequest) {
+    public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest request) {
         Level level = levelRepository.findByLevelIdAndCreatedBy(levelId, userId)
                 .orElseThrow(() -> new LevelException("Level of the contributor not found"));
         if (level.getStatus() == ContentStatus.DELETED || level.getStatus() == ContentStatus.VERIFIED) {
             throw new LevelException("Contributor cannot update a deleted or verified level");
         }
-        if (updateLevelRequest.getName() != null && !updateLevelRequest.getName().isEmpty()) {
-            level.setName(updateLevelRequest.getName());
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            level.setName(request.getName());
         }
-        if (updateLevelRequest.getImageUrl() != null && !updateLevelRequest.getImageUrl().isEmpty()) {
-            level.setImageUrl(updateLevelRequest.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            level.setImageUrl(request.getImageUrl());
         }
         level.setStatus(ContentStatus.PENDING);
         level.setRejectedReason(null);
