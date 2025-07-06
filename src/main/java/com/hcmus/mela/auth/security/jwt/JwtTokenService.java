@@ -3,6 +3,7 @@ package com.hcmus.mela.auth.security.jwt;
 import com.hcmus.mela.auth.model.User;
 import com.hcmus.mela.auth.repository.AuthRepository;
 import com.hcmus.mela.auth.security.utils.SecurityConstants;
+import com.hcmus.mela.user.model.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
@@ -17,7 +18,6 @@ import java.util.UUID;
 public class JwtTokenService {
 
     private final AuthRepository authRepository;
-
     private final JwtTokenManager jwtTokenManager;
 
     public UUID getUserIdFromToken(String token) {
@@ -26,6 +26,10 @@ public class JwtTokenService {
 
     public String getUsernameFromToken(String token) {
         return jwtTokenManager.getUsernameFromToken(token);
+    }
+
+    public String getRoleFromToken(String token) {
+        return jwtTokenManager.getRoleFromToken(token);
     }
 
     public boolean validateToken(String token) {
@@ -49,7 +53,7 @@ public class JwtTokenService {
         return jwtTokenManager.getExpirationDate(token);
     }
 
-    public long getRemainingTimeBeforeExpiration(String token){
+    public long getRemainingTimeBeforeExpiration(String token) {
         return jwtTokenManager.getRemainingTimeBeforeExpiration(token);
     }
 
@@ -59,5 +63,9 @@ public class JwtTokenService {
 
     public UUID getUserIdFromAuthorizationHeader(String authorizationHeader) {
         return jwtTokenManager.getUserIdFromToken(extractTokenFromAuthorizationHeader(authorizationHeader));
+    }
+
+    public UserRole getRoleFromAuthorizationHeader(String authorizationHeader) {
+        return UserRole.valueOf(jwtTokenManager.getRoleFromToken(extractTokenFromAuthorizationHeader(authorizationHeader)));
     }
 }

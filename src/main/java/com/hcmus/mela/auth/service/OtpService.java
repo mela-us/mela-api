@@ -6,11 +6,9 @@ import java.util.UUID;
 
 public interface OtpService {
 
-    String generateOtpCode(int length);
+    void generateAndSendOtp(String email);
 
-    void cacheOtpCode(String otpCode, User user);
+    boolean validateOtp(String email, String inputOtp);
 
-    boolean validateOtpOfUser(String otpCode, UUID userId);
-
-    void deleteOtpCodeByUserId(UUID userId);
+    void deleteOtp(String email);
 }

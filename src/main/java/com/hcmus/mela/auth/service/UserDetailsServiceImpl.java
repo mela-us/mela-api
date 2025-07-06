@@ -19,17 +19,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private static final String USERNAME_OR_PASSWORD_INVALID = "Invalid username or password.";
-
     private final AuthRepository authRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-
         final User user = authRepository.findByUsername(username);
-
         if (Objects.isNull(user)) {
-            throw new UsernameNotFoundException(USERNAME_OR_PASSWORD_INVALID);
+            throw new UsernameNotFoundException("Invalid username or password");
         }
 
         final String authenticatedUsername = user.getUsername();

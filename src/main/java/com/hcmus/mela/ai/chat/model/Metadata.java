@@ -15,6 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Document
 public class Metadata {
+
     @Field(name = "status")
     @Enumerated(EnumType.STRING)
     private ConversationStatus status;

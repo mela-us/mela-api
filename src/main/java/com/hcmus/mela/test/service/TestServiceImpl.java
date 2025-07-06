@@ -1,11 +1,14 @@
 package com.hcmus.mela.test.service;
 
+import com.hcmus.mela.level.service.LevelStatusService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.test.dto.TestDto;
 import com.hcmus.mela.test.mapper.QuestionMapper;
 import com.hcmus.mela.test.model.Question;
 import com.hcmus.mela.test.model.TestQuestion;
 import com.hcmus.mela.test.repository.TestQuestionRepository;
-import com.hcmus.mela.user.service.UserService;
+import com.hcmus.mela.topic.service.TopicStatusService;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +21,18 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TestServiceImpl implements TestService {
 
-    private TestQuestionRepository testQuestionRepository;
-    private UserService userService;
-    private final int QUESTION_CAPACITY = 20;
+    private final static int QUESTION_CAPACITY = 20;
+    private final TestQuestionRepository testQuestionRepository;
+    private final UserInfoService userInfoService;
+    private final TopicStatusService topicStatusService;
+    private final LevelStatusService levelStatusService;
 
     @Override
     public TestDto getTestDto(UUID userId) {
-        UUID levelId = userService.getLevelId(userId);
+        UUID levelId = userInfoService.getLevelIdOfUser(userId);
 
         List<TestQuestion> testQuestionList = testQuestionRepository.findAllByLevelId(levelId);
+        testQuestionList.removeIf(testQuestion -> !topicStatusService.isTopicInStatus(testQuestion.getTopicId(), ContentStatus.VERIFIED));
         List<Question> finalQuestions = new ArrayList<>();
 
         int numberOfTopics = testQuestionList.size();
@@ -58,7 +64,7 @@ public class TestServiceImpl implements TestService {
         }
 
         return TestDto.builder()
-                .questions(QuestionMapper.INSTANCE.convertToQuestionDtoList(finalQuestions))
+                .questions(QuestionMapper.INSTANCE.questionsToQuestionDtoList(finalQuestions))
                 .total(finalQuestions.size())
                 .build();
     }
@@ -66,9 +72,13 @@ public class TestServiceImpl implements TestService {
     @Override
     public Question getQuestionById(UUID questionId) {
         TestQuestion test = testQuestionRepository.findByQuestionsQuestionId(questionId);
-
         if (test == null) return null;
-
+        if (!topicStatusService.isTopicInStatus(test.getTopicId(), ContentStatus.VERIFIED)) {
+            return null; // Topic is not in VERIFIED status
+        }
+        if (!levelStatusService.isLevelInStatus(test.getLevelId(), ContentStatus.VERIFIED)) {
+            return null; // Level is not in VERIFIED status
+        }
         return test.getQuestions().stream()
                 .filter(q -> q.getQuestionId().equals(questionId))
                 .findFirst().orElse(null);
@@ -76,7 +86,13 @@ public class TestServiceImpl implements TestService {
 
     @Override
     public TestQuestion getTestByQuestionId(UUID questionId) {
-        return testQuestionRepository.findByQuestionsQuestionId(questionId);
+        TestQuestion test = testQuestionRepository.findByQuestionsQuestionId(questionId);
+        if (!topicStatusService.isTopicInStatus(test.getTopicId(), ContentStatus.VERIFIED)) {
+            return null; // Topic is not in VERIFIED status
+        }
+        if (!levelStatusService.isLevelInStatus(test.getLevelId(), ContentStatus.VERIFIED)) {
+            return null; // Level is not in VERIFIED status
+        }
+        return test;
     }
-
 }

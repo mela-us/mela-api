@@ -11,11 +11,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class LogoutRequest {
 
-    @NotEmpty(message = "{access_token_not_empty}")
-    @NotNull(message = "{access_token_not_empty}")
+    @NotEmpty(message = "Access token must not be empty")
+    @NotNull(message = "Access token must not be null")
     private String accessToken;
 
-    @NotEmpty(message = "{refresh_token_not_empty}")
-    @NotNull(message = "{refresh_token_not_empty}")
+    @NotEmpty(message = "Refresh token must not be empty")
+    @NotNull(message = "Refresh token must not be null")
     private String refreshToken;
 }

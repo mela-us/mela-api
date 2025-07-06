@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class ApiErrorResponse {
+
     private String requestId;
     private int status;
     private String message;

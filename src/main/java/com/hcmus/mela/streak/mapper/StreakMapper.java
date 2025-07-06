@@ -8,7 +8,8 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface StreakMapper {
+
     StreakMapper INSTANCE = Mappers.getMapper(StreakMapper.class);
 
-    GetStreakResponse convertToGetStreakResponse(Streak streak);
+    GetStreakResponse streakToGetStreakResponse(Streak streak);
 }

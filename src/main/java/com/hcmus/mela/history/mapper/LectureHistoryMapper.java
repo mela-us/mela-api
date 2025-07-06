@@ -7,11 +7,11 @@ import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = LectureCompletedSectionMapper.class)
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = CompletedSectionMapper.class)
 public interface LectureHistoryMapper {
 
     LectureHistoryMapper INSTANCE = Mappers.getMapper(LectureHistoryMapper.class);
 
-    @Mapping(source = "completedSections", target = "completedSections", qualifiedByName = "convertToLectureCompletedSectionDtoList")
-    LectureHistoryDto converToLectureHistoryDto(LectureHistory lectureHistory);
+    @Mapping(source = "completedSections", target = "completedSections", qualifiedByName = "lectureCompletedSectionsToCompletedSectionDtos")
+    LectureHistoryDto lectureHistoryToLectureHistoryDto(LectureHistory lectureHistory);
 }

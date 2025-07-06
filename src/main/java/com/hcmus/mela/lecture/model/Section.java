@@ -25,5 +25,5 @@ public class Section {
     private String url;
 
     @Field("section_type")
-    private String sectionType;
+    private SectionType sectionType;
 }

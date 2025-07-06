@@ -20,14 +20,14 @@ import java.time.LocalDateTime;
 public class SuggestionExceptionHandler {
     @ExceptionHandler(SuggestionNotFoundException.class)
     ResponseEntity<ApiErrorResponse> handleSuggestionNotFoundException(SuggestionNotFoundException ex, WebRequest request) {
+        log.error("SuggestionNotFoundException occurred: {}", ex.getMessage(), ex);
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
-                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 request.getDescription(false),
                 LocalDateTime.now()
         );
-
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

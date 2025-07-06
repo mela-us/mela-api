@@ -1,13 +1,16 @@
 package com.hcmus.mela.history.controller;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
-import com.hcmus.mela.history.dto.request.SaveLectureSectionRequest;
-import com.hcmus.mela.history.dto.response.SaveLectureSectionResponse;
+import com.hcmus.mela.history.dto.request.SaveSectionRequest;
+import com.hcmus.mela.history.dto.response.SaveSectionResponse;
 import com.hcmus.mela.history.service.LectureHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -19,23 +22,18 @@ import java.util.UUID;
 public class LectureHistoryController {
 
     private final LectureHistoryService lectureHistoryService;
-
     private final JwtTokenService jwtTokenService;
 
-    @PostMapping()
-    @Operation(
-            tags = "History Service",
-            summary = "Save section",
-            description = "Save learning section of user in the system."
-    )
-    public ResponseEntity<SaveLectureSectionResponse> saveExerciseHistory(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody SaveLectureSectionRequest saveLectureSectionRequest) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-
-        log.info("Saving lecture section for user: {}", userId);
-        SaveLectureSectionResponse response = lectureHistoryService.saveSection(userId, saveLectureSectionRequest);
-
+    @PreAuthorize("hasAuthority('USER')")
+    @PostMapping
+    @Operation(tags = "🧾 History Service", summary = "Save section",
+            description = "Save lecture section history for the user in the system.")
+    public ResponseEntity<SaveSectionResponse> saveLectureSectionHistory(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody SaveSectionRequest request) {
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        log.info("Saving lecture section for user {}", userId);
+        SaveSectionResponse response = lectureHistoryService.saveSection(userId, request);
         return ResponseEntity.ok(response);
     }
 }

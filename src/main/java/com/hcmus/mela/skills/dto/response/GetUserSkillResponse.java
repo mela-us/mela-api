@@ -1,6 +1,6 @@
 package com.hcmus.mela.skills.dto.response;
 
-import com.hcmus.mela.skills.dto.UserSkillDto;
+import com.hcmus.mela.skills.dto.dto.UserSkillDto;
 import lombok.*;
 
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetUserSkillResponse {
+
     private String message;
 
     private List<UserSkillDto> detailedStats;

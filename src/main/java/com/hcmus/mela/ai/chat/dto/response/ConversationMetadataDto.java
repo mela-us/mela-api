@@ -1,6 +1,8 @@
 package com.hcmus.mela.ai.chat.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
 
@@ -8,7 +10,10 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 public class ConversationMetadataDto {
+
     private String status;
+
     private Date createdAt;
+
     private Date updatedAt;
 }

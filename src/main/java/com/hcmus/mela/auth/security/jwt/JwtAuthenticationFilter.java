@@ -1,8 +1,8 @@
 package com.hcmus.mela.auth.security.jwt;
 
-import com.hcmus.mela.shared.cache.RedisService;
-import com.hcmus.mela.auth.service.UserDetailsServiceImpl;
 import com.hcmus.mela.auth.security.utils.SecurityConstants;
+import com.hcmus.mela.auth.service.UserDetailsServiceImpl;
+import com.hcmus.mela.shared.cache.RedisService;
 import com.hcmus.mela.shared.exception.ApiErrorResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +23,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -45,7 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (isValidHeader(header)) {
             authToken = header.replace(SecurityConstants.TOKEN_PREFIX, Strings.EMPTY);
-
             try {
                 username = jwtTokenManager.getUsernameFromToken(authToken);
             } catch (Exception e) {
@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        log.info("Authentication successful for username: {}", username);
+        log.info("Authentication successful for username {}", username);
     }
 
     private String getRequestId() {
@@ -107,17 +107,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void sendErrorResponse(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
+        log.error("Unauthorized request {}, {}", request.getRequestURI(), message);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
-
         ApiErrorResponse apiErrorResponse = new ApiErrorResponse(
                 getRequestId(),
                 HttpStatus.UNAUTHORIZED.value(),
                 message,
                 request.getRequestURI(),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
-
         response.getWriter().write(apiErrorResponse.toJson());
     }
 }

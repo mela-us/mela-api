@@ -16,5 +16,4 @@ public class JwtForgotPasswordProperties {
     private String secretKey;
 
     private long expirationMinute;
-
 }

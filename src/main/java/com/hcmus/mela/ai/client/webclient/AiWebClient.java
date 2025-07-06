@@ -2,14 +2,14 @@ package com.hcmus.mela.ai.client.webclient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hcmus.mela.ai.client.exception.ApiException;
-import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
+import com.hcmus.mela.ai.client.exception.ApiException;
+import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class AiWebClient {
+
     private final AiClientProperties aiClientProperties;
     private final AiResponseFilter aiResponseFilter;
 
@@ -28,7 +29,7 @@ public class AiWebClient {
      * Makes an API request to the AI provider and fetches the response.
      *
      * @param aiFeatureProperties The properties for the AI feature
-     * @param requestBody The request payload to send to the AI provider
+     * @param requestBody         The request payload to send to the AI provider
      * @return The response from the AI provider, or null if there was an error
      */
     public Object fetchAiResponse(AiFeatureProperties aiFeatureProperties, Object requestBody) {
@@ -60,8 +61,6 @@ public class AiWebClient {
         } catch (WebClientResponseException e) {
             throw new ApiException(e.getStatusCode().value(), e.getResponseBodyAsString());
         }
-
-
     }
 
     /**
@@ -82,6 +81,4 @@ public class AiWebClient {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
-
-
 }

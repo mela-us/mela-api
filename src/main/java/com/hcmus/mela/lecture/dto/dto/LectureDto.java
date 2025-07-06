@@ -1,5 +1,6 @@
 package com.hcmus.mela.lecture.dto.dto;
 
+import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.*;
 
 import java.util.List;
@@ -20,7 +21,15 @@ public class LectureDto {
 
     private String name;
 
+    private Integer ordinalNumber;
+
     private String description;
 
     private List<SectionDto> sections;
+
+    private ContentStatus status;
+
+    private UUID createdBy;
+
+    private String rejectReason;
 }

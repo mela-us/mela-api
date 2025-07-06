@@ -11,6 +11,7 @@ import java.util.List;
  * of this interface to format requests according to the provider's API.
  */
 public interface AiRequestBodyBuilder {
+
     Object buildRequestBodyForQuestionHint(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties);
 
     Object buildRequestBodyForChatBot(String prompt, List<Message> message, AiFeatureProperties aiFeatureProperties);

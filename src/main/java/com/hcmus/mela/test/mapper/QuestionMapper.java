@@ -15,8 +15,8 @@ public interface QuestionMapper {
 
     QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
 
-    QuestionDto convertToQuestionDto(Question question);
+    QuestionDto questionToQuestionDto(Question question);
 
-    @Named("convertToQuestionDtoList")
-    List<QuestionDto> convertToQuestionDtoList(List<Question> questions);
+    @Named("questionsToQuestionDtoList")
+    List<QuestionDto> questionsToQuestionDtoList(List<Question> questions);
 }

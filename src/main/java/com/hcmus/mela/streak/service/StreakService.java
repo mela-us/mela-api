@@ -10,4 +10,6 @@ public interface StreakService {
     GetStreakResponse getStreak(UUID userId);
 
     UpdateStreakResponse updateStreak(UUID userId);
+
+    void deleteStreak(UUID userId);
 }

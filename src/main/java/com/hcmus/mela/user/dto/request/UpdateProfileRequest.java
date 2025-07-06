@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import java.util.Date;
 
 @Getter
@@ -14,6 +15,8 @@ public class UpdateProfileRequest {
     private String fullname;
 
     private String imageUrl;
+
+    private String password;
 
     @JsonFormat(pattern = "dd-MM-yyyy")
     private Date birthday;

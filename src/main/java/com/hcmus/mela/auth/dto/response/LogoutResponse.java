@@ -8,5 +8,6 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 public class LogoutResponse {
+
     private String message;
 }

@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IncreaseUserTokenResponse {
+
     private String message;
 
     private Integer token;

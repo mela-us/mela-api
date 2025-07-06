@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "prompt.ai-grader")
 public class AiGraderPrompt {
+
     private String instruction;
 
     public String formatInstruction(Float correctScore) {

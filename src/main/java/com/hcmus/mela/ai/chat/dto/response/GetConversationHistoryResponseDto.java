@@ -11,9 +11,14 @@ import java.util.List;
 @Setter
 @Builder
 public class GetConversationHistoryResponseDto {
+
     private String object;
+
     private List<ConversationInfoDto> data;
+
     private Date firstUpdatedAt;
+
     private Date lastUpdatedAt;
+    
     private Boolean hasMore;
 }

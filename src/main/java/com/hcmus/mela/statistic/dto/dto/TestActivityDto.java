@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestActivityDto {
+
     private double latestScore;
 
     private List<ScoreRecordDto> scoreRecords;

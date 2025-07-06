@@ -9,9 +9,10 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TestAnswerMapper {
+
     TestAnswerMapper INSTANCE = Mappers.getMapper(TestAnswerMapper.class);
 
-    TestAnswer convertToTestAnswer(TestAnswerDto testAnswerDto);
+    TestAnswer testAnswerDtoToTestAnswer(TestAnswerDto testAnswerDto);
 
-    AnswerResultDto convertToAnswerResultDto(TestAnswer testAnswer);
+    AnswerResultDto testAnswerToAnswerResultDto(TestAnswer testAnswer);
 }

@@ -11,4 +11,6 @@ public interface StorageService {
     Map<String, String> getUploadUserFilePreSignedUrl(String fileName);
 
     Map<String, String> getUploadAdminFilePreSignedUrl(String fileName);
+
+    Map<String, String> getUploadMelaFilePreSignedUrl(String fileName);
 }

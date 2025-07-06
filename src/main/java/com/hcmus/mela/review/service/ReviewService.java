@@ -7,7 +7,10 @@ import com.hcmus.mela.review.dto.response.UpdateReviewResponse;
 import java.util.UUID;
 
 public interface ReviewService {
+
     GetReviewsResponse getReviews(UUID userId);
 
-    UpdateReviewResponse updateReview(UUID reviewId, UpdateReviewRequest updateReviewRequest);
+    UpdateReviewResponse updateReview(UUID userId, UUID reviewId, UpdateReviewRequest request);
+
+    void deleteReview(UUID userId);
 }

@@ -3,6 +3,7 @@ package com.hcmus.mela.ai.chat.service;
 import com.hcmus.mela.ai.chat.dto.request.GetConversationHistoryRequestDto;
 import com.hcmus.mela.ai.chat.dto.request.GetListMessagesRequestDto;
 import com.hcmus.mela.ai.chat.dto.response.*;
+import com.hcmus.mela.ai.chat.exception.ChatBotException;
 import com.hcmus.mela.ai.chat.model.Conversation;
 import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.chat.repository.ConversationRepository;
@@ -17,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @AllArgsConstructor
-public class ConversationHistoryServiceImpl implements ConversationHistoryService{
+public class ConversationHistoryServiceImpl implements ConversationHistoryService {
 
     private final ConversationRepository conversationRepository;
 
@@ -33,12 +34,12 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
         }
 
         // Apply pagination
-        if(request.getUpdatedAtAfter() != null) {
+        if (request.getUpdatedAtAfter() != null) {
             conversations = conversations.stream()
                     .filter(conversation -> conversation.getMetadata().getUpdatedAt().after(request.getUpdatedAtAfter()))
                     .toList();
         }
-        if(request.getUpdatedAtBefore() != null) {
+        if (request.getUpdatedAtBefore() != null) {
             conversations = conversations.stream()
                     .filter(conversation -> conversation.getMetadata().getUpdatedAt().before(request.getUpdatedAtBefore()))
                     .toList();
@@ -74,7 +75,7 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
     @Override
     public ConversationInfoDto getConversation(UUID conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("Conversation not found"));
+                .orElseThrow(() -> new ChatBotException("Conversation not found"));
 
         return ConversationInfoDto.builder()
                 .conversationId(conversation.getConversationId())
@@ -89,12 +90,17 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
     }
 
     @Override
-    public void deleteConversation(UUID conversationId) {
+    public void deleteConversationById(UUID conversationId) {
         // Check if the conversation exists
         if (!conversationRepository.existsByConversationId(conversationId)) {
-            throw new RuntimeException("Conversation not found");
+            throw new ChatBotException("Conversation not found");
         }
         conversationRepository.deleteByConversationId(conversationId);
+    }
+
+    @Override
+    public void deleteConversationByUserId(UUID userId) {
+        conversationRepository.deleteAllByUserId(userId);
     }
 
     @Override
@@ -136,5 +142,4 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
                 .hasMore(hasMoreHolder.get())
                 .build();
     }
-
 }

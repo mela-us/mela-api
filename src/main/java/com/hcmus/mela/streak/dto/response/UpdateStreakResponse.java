@@ -8,5 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class UpdateStreakResponse {
+
     private String message;
 }

@@ -6,11 +6,16 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ReviewRepository extends MongoRepository<Review, UUID>, ReviewCustomRepository {
     @Query("{ 'user_id': ?0, 'created_at': { $gte: ?1, $lt: ?2 } }")
     List<Review> findAllByUserIdAndCreatedAtBetween(UUID userId, Date startOfDay, Date endOfDay);
 
-    Review findByReviewId(UUID reviewId);
+    Optional<Review> findByReviewId(UUID reviewId);
+
+    Optional<Review> findByReviewIdAndUserId(UUID reviewId, UUID userId);
+
+    void deleteAllByUserId(UUID userId);
 }

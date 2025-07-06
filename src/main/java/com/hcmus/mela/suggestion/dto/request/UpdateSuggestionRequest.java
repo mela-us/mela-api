@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateSuggestionRequest {
+
     private UUID itemId;
 
     private Integer ordinalNumber;

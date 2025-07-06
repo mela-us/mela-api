@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestResultResponse {
+
     private String message;
 
     private List<AnswerResultDto> answers;
