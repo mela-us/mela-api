@@ -1,6 +1,5 @@
 package com.hcmus.mela.exercise.dto.request;
 
-import com.hcmus.mela.lecture.dto.request.CreateSectionRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateExerciseRequest {
 
-    @NotNull(message = "Lecture ID cannot be null")
+    @NotNull(message = "Lecture id cannot be null")
     private UUID lectureId;
 
     @NotNull(message = "Exercise name cannot be null")

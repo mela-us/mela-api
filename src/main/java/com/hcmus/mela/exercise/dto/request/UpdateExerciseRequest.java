@@ -1,9 +1,5 @@
 package com.hcmus.mela.exercise.dto.request;
 
-import com.hcmus.mela.lecture.dto.request.UpdateSectionRequest;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

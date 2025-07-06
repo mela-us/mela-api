@@ -35,7 +35,7 @@ public class ExerciseCommandServiceImpl implements ExerciseCommandService {
     }
 
     @Override
-    public void deleteExercise(ExerciseFilterStrategy strategy, UUID exerciseId, UUID userId) {
+    public void deleteExercise(ExerciseFilterStrategy strategy, UUID userId, UUID exerciseId) {
         strategy.deleteExercise(userId, exerciseId);
     }
 }

@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateQuestionRequest {
 
-    @NotNull(message = "Question ID cannot be null")
+    @NotNull(message = "Question id cannot be null")
     private UUID questionId;
 
     @NotNull(message = "Ordinal number cannot be null")

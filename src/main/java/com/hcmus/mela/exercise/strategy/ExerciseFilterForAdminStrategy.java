@@ -31,11 +31,21 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
         }
         return exercises.stream()
                 .map(exercise -> {
+                    if (exercise.getStatus() == ContentStatus.DELETED) {
+                        return null;
+                    }
                     ExerciseDetailDto exerciseDetailDto = ExerciseMapper.INSTANCE.exerciseToExerciseDetailDto(exercise);
                     exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
                     return exerciseDetailDto;
                 })
                 .toList();
+    }
+
+    @Override
+    public ExerciseDto getExerciseById(UUID userId, UUID exerciseId) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+        return ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
     }
 
     @Override
@@ -45,13 +55,6 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
         }
         Exercise savedExercise = exerciseRepository.save(exercise);
         return ExerciseMapper.INSTANCE.exerciseToExerciseDto(savedExercise);
-    }
-
-    @Override
-    public ExerciseDto getExerciseById(UUID userId, UUID exerciseId) {
-        Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
-        return ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
     }
 
     @Override

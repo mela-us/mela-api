@@ -26,10 +26,10 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
     @Override
     public QuestionResponse findQuestionsByExerciseId(UUID exerciseId, UUID userId) {
         Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED)
-                .orElseThrow(() -> new ExerciseException("Exercise not found with id: " + exerciseId));
+                .orElseThrow(() -> new ExerciseException("Exercise not found with id " + exerciseId));
         ExerciseDto exerciseDto = ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
         List<QuestionDto> questionDtoList = exerciseDto.getQuestions();
-        String message = String.format("Found %d questions for exercise with id: %s", questionDtoList.size(), exerciseId);
+        String message = String.format("Found %d questions for exercise with id %s", questionDtoList.size(), exerciseId);
         log.info(message);
         return new QuestionResponse(message, questionDtoList.size(), questionDtoList);
     }

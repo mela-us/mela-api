@@ -2,6 +2,8 @@ package com.hcmus.mela.user.service;
 
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.auth.service.OtpService;
+import com.hcmus.mela.level.dto.dto.LevelDto;
+import com.hcmus.mela.level.service.LevelInfoServiceImpl;
 import com.hcmus.mela.shared.cache.RedisService;
 import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.level.model.Level;
@@ -40,6 +42,7 @@ public class UserServiceImpl implements UserService {
 
     private final ExceptionMessageAccessor exceptionMessageAccessor;
     private final LevelQueryService levelQueryService;
+    private final LevelInfoServiceImpl levelInfoServiceImpl;
 
     @Override
     public UpdateProfileResponse updateProfile(UpdateProfileRequest updateProfileRequest, String authorizationHeader) {
@@ -98,14 +101,18 @@ public class UserServiceImpl implements UserService {
             final String userNotFound = exceptionMessageAccessor.getMessage(null, "user_not_found");
             throw new BadRequestException(userNotFound);
         }
-
         UserDto userDto = UserMapper.INSTANCE.userToUserDto(user);
-
-        if (user.getLevelId() != null) {
-            Level level = levelQueryService.findLevelByLevelId(user.getLevelId());
-
+        if (user.getLevelId() == null) {
+            LevelDto level = levelInfoServiceImpl.findLevelByLevelTitle("Lớp 1");
+            user.setLevelId(level.getLevelId());
+            userRepository.save(user);
+            userDto.setLevelTitle(level.getName());
+        } else {
+            LevelDto level = levelInfoServiceImpl.findLevelByLevelId(user.getLevelId());
             userDto.setLevelTitle(level.getName());
         }
+
+
 
 
         final String getUserSuccessfully = generalMessageAccessor.getMessage(null, "get_user_successful", userId);

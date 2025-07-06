@@ -19,7 +19,6 @@ import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +32,6 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class ExerciseQueryServiceImpl implements ExerciseQueryService {
 
-    private static final String EXERCISES_FOUND = "exercises_of_lecture_found_successful";
-    private final GeneralMessageAccessor generalMessageAccessor;
     private final ExerciseRepository exerciseRepository;
     private final LectureInfoService lectureInfoService;
     private final LectureStatusService lectureStatusService;
@@ -60,9 +57,7 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
         List<Exercise> exercises = exerciseFuture.join();
 
         if (exercises == null || exercises.isEmpty() || lecture == null) {
-            final String exercisesNotFoundMessage = generalMessageAccessor.getMessage(null, "exercises_not_found", lectureId);
-            log.info(exercisesNotFoundMessage);
-            return new GetExercisesInLectureResponse(exercisesNotFoundMessage, 0, new ArrayList<>());
+            return new GetExercisesInLectureResponse("No exercise found", 0, new ArrayList<>());
         }
 
         List<ExerciseStatDetailDto> exerciseStatDetailDtoList = mapExercisesToStatDetails(
@@ -73,11 +68,8 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
                 lecture.getLevelId()
         );
 
-        final String exercisesSuccessMessage = generalMessageAccessor.getMessage(null, EXERCISES_FOUND, lectureId);
-        log.info(exercisesSuccessMessage);
-
         return new GetExercisesInLectureResponse(
-                exercisesSuccessMessage,
+                "Get exercises in lecture successful",
                 exerciseStatDetailDtoList.size(),
                 exerciseStatDetailDtoList);
     }
@@ -88,7 +80,7 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
         if (exercises.isEmpty()) {
             return new GetAllExercisesResponse("No exercises found", Collections.emptyList());
         }
-        return new GetAllExercisesResponse("Get exercises success", exercises);
+        return new GetAllExercisesResponse("Get exercises successfully", exercises);
     }
 
 
