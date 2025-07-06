@@ -1,7 +1,6 @@
 package com.hcmus.mela.test.model;
 
 import lombok.*;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -27,5 +26,4 @@ public class TestQuestion {
 
     @Field(name = "level_id")
     private UUID levelId;
-
 }

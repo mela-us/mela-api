@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface TopicFilterStrategy {
     List<TopicDto> getTopics(UUID userId);
 
-    void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest);
+    void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request);
 
     void deleteTopic(UUID userId, UUID topicId);
 }

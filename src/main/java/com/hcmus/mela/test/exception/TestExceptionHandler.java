@@ -13,21 +13,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(basePackageClasses = TestController.class)
 public class TestExceptionHandler {
-    @ExceptionHandler(QuestionResultEmptyException.class)
-    ResponseEntity<ApiErrorResponse> handleQuestionResultEmptyException(QuestionResultEmptyException ex, WebRequest request) {
+
+    @ExceptionHandler(TestException.class)
+    ResponseEntity<ApiErrorResponse> handleQuestionResultEmptyException(TestException ex, WebRequest request) {
+        log.error("QuestionResultEmptyException: {}", ex.getMessage());
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 request.getDescription(false),
-                LocalDateTime.now()
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
         );
-
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

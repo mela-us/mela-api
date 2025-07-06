@@ -10,6 +10,8 @@ import java.util.List;
 @Setter
 @Builder
 public class TestDto {
+
     private Integer total;
+
     private List<QuestionDto> questions;
 }

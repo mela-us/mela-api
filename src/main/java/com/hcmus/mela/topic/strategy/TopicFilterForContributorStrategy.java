@@ -39,17 +39,17 @@ public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
     }
 
     @Override
-    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request) {
         Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
                 .orElseThrow(() -> new TopicException("Topic of the contributor not found"));
         if (topic.getStatus() == ContentStatus.DELETED || topic.getStatus() == ContentStatus.VERIFIED) {
             throw new TopicException("Contributor cannot update a deleted or verified topic");
         }
-        if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
-            topic.setName(updateTopicRequest.getName());
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            topic.setName(request.getName());
         }
-        if (updateTopicRequest.getImageUrl() != null && !updateTopicRequest.getImageUrl().isEmpty()) {
-            topic.setImageUrl(updateTopicRequest.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            topic.setImageUrl(request.getImageUrl());
         }
         topic.setStatus(ContentStatus.PENDING);
         topic.setRejectedReason(null);

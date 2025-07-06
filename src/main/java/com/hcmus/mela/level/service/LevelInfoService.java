@@ -14,6 +14,8 @@ public interface LevelInfoService {
 
     LevelDto findLevelByLevelTitle(String title);
 
+    LevelDto findAvailableLevel();
+
     List<LevelDto> findAllLevels();
 
     List<LevelDto> findAllLevelsInStatus(ContentStatus status);

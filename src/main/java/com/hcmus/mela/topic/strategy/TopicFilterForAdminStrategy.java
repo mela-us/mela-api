@@ -1,7 +1,6 @@
 package com.hcmus.mela.topic.strategy;
 
 import com.hcmus.mela.lecture.strategy.LectureFilterForAdminStrategy;
-import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.dto.request.UpdateTopicRequest;
@@ -30,22 +29,23 @@ public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
             return List.of();
         }
         return topics.stream()
+                .filter(topic -> topic.getStatus() != ContentStatus.DELETED)
                 .map(TopicMapper.INSTANCE::topicToTopicDto)
                 .toList();
     }
 
     @Override
-    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request) {
         Topic topic = topicRepository.findById(topicId)
                 .orElseThrow(() -> new TopicException("Topic not found"));
         if (topic.getStatus() == ContentStatus.DELETED) {
             throw new TopicException("Cannot update a deleted topic");
         }
-        if (updateTopicRequest.getName() != null && !updateTopicRequest.getName().isEmpty()) {
-            topic.setName(updateTopicRequest.getName());
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            topic.setName(request.getName());
         }
-        if (updateTopicRequest.getImageUrl() != null && !updateTopicRequest.getImageUrl().isEmpty()) {
-            topic.setImageUrl(updateTopicRequest.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            topic.setImageUrl(request.getImageUrl());
         }
         topicRepository.save(topic);
     }

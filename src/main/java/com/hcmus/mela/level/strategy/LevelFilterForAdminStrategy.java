@@ -19,7 +19,6 @@ import java.util.UUID;
 public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
 
     private final LevelRepository levelRepository;
-
     private final LectureFilterForAdminStrategy lectureFilterStrategy;
 
     @Override

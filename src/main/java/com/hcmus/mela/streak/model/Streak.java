@@ -15,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "streaks")
 public class Streak {
+
     @Id
     @Field(name = "_id")
     private UUID userId;

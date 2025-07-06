@@ -11,7 +11,6 @@ import com.hcmus.mela.history.mapper.TestAnswerMapper;
 import com.hcmus.mela.history.model.TestAnswer;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.utils.TextUtils;
-import com.hcmus.mela.test.exception.QuestionResultEmptyException;
 import com.hcmus.mela.test.model.Option;
 import com.hcmus.mela.test.model.Question;
 import com.hcmus.mela.test.model.QuestionType;
@@ -99,7 +98,7 @@ public class TestGradeServiceImpl implements TestGradeService {
 
     private Map<String, Object> checkMultipleChoiceAnswer(TestAnswerDto answerDto, Question question) {
         if (question.getOptions() == null || question.getOptions().isEmpty()) {
-            throw new QuestionResultEmptyException("Question multiple choice options is empty.");
+            throw new HistoryException("Question multiple choice options is empty.");
         }
         if (answerDto.getSelectedOption() == null) {
             return Map.of(
@@ -122,7 +121,7 @@ public class TestGradeServiceImpl implements TestGradeService {
 
     private Map<String, Object> checkBlankAnswer(TestAnswerDto answerDto, Question question) {
         if (question.getBlankAnswer() == null || question.getBlankAnswer().isEmpty()) {
-            throw new QuestionResultEmptyException("Question blank answer is empty.");
+            throw new HistoryException("Question blank answer is empty.");
         }
         String normalizedAnswer = TextUtils.normalizeText(answerDto.getBlankAnswer());
         String normalizedSolution = TextUtils.normalizeText(question.getBlankAnswer());

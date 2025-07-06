@@ -21,7 +21,6 @@ import com.hcmus.mela.review.model.ReviewType;
 import com.hcmus.mela.review.model.SectionReference;
 import com.hcmus.mela.review.repository.ReviewRepository;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.service.TopicInfoService;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +36,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ReviewServiceImpl implements ReviewService {
 
-    private final String REVIEWS_FOUND = "reviews_found_successful";
-    private final String UPDATE_REVIEW_SUCCESS = "update_review_successful";
-
-    private final GeneralMessageAccessor generalMessageAccessor;
     private final ReviewRepository reviewRepository;
     private final ExerciseInfoService exerciseInfoService;
     private final TopicInfoService topicInfoService;
@@ -112,8 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
             reviewDto.setSectionList(sectionReferenceDtos);
         }
 
-        final String getReviewsSuccessMessage = generalMessageAccessor.getMessage(null, REVIEWS_FOUND, userId);
-        return new GetReviewsResponse(getReviewsSuccessMessage, reviewDtos);
+        return new GetReviewsResponse("Reviews for user " + userId + " found successfully", reviewDtos);
     }
 
     @Override
@@ -140,8 +134,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review result = reviewRepository.updateReview(review);
-        final String updateReviewsSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_REVIEW_SUCCESS, reviewId);
-        return new UpdateReviewResponse(updateReviewsSuccessMessage);
+        return new UpdateReviewResponse("Review id " + reviewId + " update successfully.");
     }
 
     @Override

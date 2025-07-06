@@ -6,6 +6,7 @@ import com.hcmus.mela.review.dto.response.GetReviewsResponse;
 import com.hcmus.mela.review.dto.response.UpdateReviewResponse;
 import com.hcmus.mela.review.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,22 +14,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
-@Slf4j
 public class ReviewController {
 
     private final ReviewService reviewService;
     private final JwtTokenService jwtTokenService;
 
     @GetMapping
-    @Operation(
-            tags = "Review Service",
-            summary = "Get reviews by user ID",
-            description = "Retrieves all reviews of the user with given user ID."
-    )
-    public ResponseEntity<GetReviewsResponse> getReviews(@RequestHeader("Authorization") String authHeader) {
+    @Operation(tags = "🔃 Review Service", summary = "Get reviews",
+            description = "Retrieves all reviews of the user with given user id.")
+    public ResponseEntity<GetReviewsResponse> getReviews(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
         log.info("Get review sections and exercises for user {}", userId);
         GetReviewsResponse response = reviewService.getReviews(userId);
@@ -36,13 +35,10 @@ public class ReviewController {
     }
 
     @PostMapping("/{reviewId}")
-    @Operation(
-            tags = "Review Service",
-            summary = "Update review with review ID",
-            description = "Update review that has given ID."
-    )
+    @Operation(tags = "🔃 Review Service", summary = "Update Review",
+            description = "Updates the review with the given id for the user.")
     public ResponseEntity<UpdateReviewResponse> updateReview(
-            @RequestHeader("Authorization") String authHeader,
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader,
             @PathVariable("reviewId") String reviewId,
             @RequestBody UpdateReviewRequest request) {
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);

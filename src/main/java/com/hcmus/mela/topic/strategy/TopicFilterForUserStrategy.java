@@ -30,7 +30,7 @@ public class TopicFilterForUserStrategy implements TopicFilterStrategy {
     }
 
     @Override
-    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest updateTopicRequest) {
+    public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request) {
 
     }
 

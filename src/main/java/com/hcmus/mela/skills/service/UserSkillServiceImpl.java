@@ -2,9 +2,9 @@ package com.hcmus.mela.skills.service;
 
 import com.hcmus.mela.level.service.LevelStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.skills.dto.dto.UserSkillDto;
 import com.hcmus.mela.skills.dto.response.GetUserSkillResponse;
+import com.hcmus.mela.skills.exception.SkillsException;
 import com.hcmus.mela.skills.mapper.UserSkillMapper;
 import com.hcmus.mela.skills.model.UserSkill;
 import com.hcmus.mela.skills.repository.UserSkillRepository;
@@ -25,24 +25,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserSkillServiceImpl implements UserSkillService {
 
-    private final String GET_USER_SKILL = "user_skill_found";
-
-    private final GeneralMessageAccessor generalMessageAccessor;
     private final UserSkillRepository userSkillRepository;
     private final UserInfoService userInfoService;
     private final TopicInfoService topicInfoService;
     private final LevelStatusService levelStatusService;
 
-
     @Override
     public GetUserSkillResponse getUserSkillsByUserId(UUID userId) {
         User user = userInfoService.getUserById(userId);
-
         boolean isLevelVerified = levelStatusService.isLevelInStatus(user.getLevelId(), ContentStatus.VERIFIED);
         if (!isLevelVerified) {
-            return new GetUserSkillResponse("Level of user is invalid", List.of());
+            throw new SkillsException("User's level is not verified, cannot get user skills.");
         }
-
         List<UserSkill> userSkills = getUserSkillsByLevelId(userId, user.getLevelId());
         List<UserSkillDto> userSkillDtos = userSkills.stream()
                 .map(userSkill -> {
@@ -56,8 +50,7 @@ public class UserSkillServiceImpl implements UserSkillService {
                     return skill;
                 }).toList();
 
-        String getUserSkillSuccessMessage = generalMessageAccessor.getMessage(null, GET_USER_SKILL, userId);
-        return new GetUserSkillResponse(getUserSkillSuccessMessage, userSkillDtos);
+        return new GetUserSkillResponse("Get user skills successfully", userSkillDtos);
     }
 
     @Override

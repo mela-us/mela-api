@@ -36,6 +36,13 @@ public class LevelInfoServiceImpl implements LevelInfoService {
     }
 
     @Override
+    public LevelDto findAvailableLevel() {
+        Level level = levelRepository.findFirstByStatus(ContentStatus.VERIFIED).orElseThrow(
+                () -> new IllegalStateException("No available level found"));
+        return LevelMapper.INSTANCE.levelToLevelDto(level);
+    }
+
+    @Override
     public List<LevelDto> findAllLevels() {
         List<Level> levels = levelRepository.findAll();
         return levels.isEmpty()

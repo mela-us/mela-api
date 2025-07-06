@@ -16,6 +16,7 @@ import java.util.UUID;
 @Builder
 @Document(collection = "test_histories")
 public class TestHistory {
+
     @Id
     @Field(name = "_id")
     private UUID id;

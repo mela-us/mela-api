@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface TestQuestionRepository extends MongoRepository<TestQuestion, UUID> {
+
     List<TestQuestion> findAllByLevelId(UUID levelId);
 
     TestQuestion findByQuestionsQuestionId(UUID questionsQuestionId);

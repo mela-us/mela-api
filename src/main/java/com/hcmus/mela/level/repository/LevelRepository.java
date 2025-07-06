@@ -18,4 +18,6 @@ public interface LevelRepository extends MongoRepository<Level, UUID> {
     Optional<Level> findByLevelIdAndCreatedBy(UUID levelId, UUID userId);
 
     Optional<Level> findByLevelIdAndStatus(UUID levelId, ContentStatus status);
+
+    Optional<Level> findFirstByStatus(ContentStatus status);
 }

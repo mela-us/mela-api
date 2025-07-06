@@ -1,7 +1,5 @@
 package com.hcmus.mela.streak.service;
 
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.streak.dto.response.GetStreakResponse;
 import com.hcmus.mela.streak.dto.response.UpdateStreakResponse;
 import com.hcmus.mela.streak.model.Streak;
@@ -23,12 +21,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StreakServiceImpl implements StreakService {
 
-    private static final String STREAK_FOUND = "streak_found_successful";
-    private static final String UPDATE_STREAK_SUCCESS = "update_streak_successful";
-    private static final String STREAK_ALREADY_UPDATED = "streak_already_updated";
-
-    private final GeneralMessageAccessor generalMessageAccessor;
-    private final ExceptionMessageAccessor exceptionMessageAccessor;
     private final StreakRepository streakRepository;
     private final TokenService tokenService;
 
@@ -41,30 +33,24 @@ public class StreakServiceImpl implements StreakService {
         if (streak == null) {
             streak = new Streak(userId, 0, now, now, 0);
             streakRepository.save(streak);
-            final String getStreakSuccessMessage = generalMessageAccessor.getMessage(null, STREAK_FOUND, userId);
-            log.info(getStreakSuccessMessage);
             return new GetStreakResponse(
                     streak.getStreakDays(),
                     streak.getUpdatedAt(),
                     streak.getLongestStreak(),
-                    getStreakSuccessMessage);
+                    "Get streak successful, but no streak found. A new streak has been created.");
         }
 
         if (ChronoUnit.DAYS.between(
                 streak.getUpdatedAt().toInstant().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate(),
                 Instant.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()) > 1) {
-
             streak.setStreakDays(0);
             streakRepository.updateStreak(streak);
         }
-
-        final String getStreakSuccessMessage = generalMessageAccessor.getMessage(null, STREAK_FOUND, userId);
-        log.info(getStreakSuccessMessage);
         return new GetStreakResponse(
                 streak.getStreakDays(),
                 streak.getUpdatedAt(),
                 streak.getLongestStreak(),
-                getStreakSuccessMessage);
+                "Get streak successful, streak found.");
     }
 
     @Override
@@ -76,17 +62,14 @@ public class StreakServiceImpl implements StreakService {
         if (streak == null) {
             streak = new Streak(userId, 1, now, now, 1);
             streakRepository.save(streak);
-            final String updateStreakSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_STREAK_SUCCESS, userId);
-            log.info(updateStreakSuccessMessage);
-            return new UpdateStreakResponse(updateStreakSuccessMessage);
+            return new UpdateStreakResponse("New streak created successfully.");
         }
 
         if (ChronoUnit.DAYS.between(
                 streak.getUpdatedAt().toInstant().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate(),
                 Instant.now().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()) == 0
                 && streak.getStreakDays() != 0) {
-            final String streakAlreadyUpdated = exceptionMessageAccessor.getMessage(null, STREAK_ALREADY_UPDATED, userId);
-            return new UpdateStreakResponse(streakAlreadyUpdated);
+            return new UpdateStreakResponse("Streak already updated today. No changes made.");
         }
 
         streak.setStreakDays(streak.getStreakDays() + 1);
@@ -97,9 +80,7 @@ public class StreakServiceImpl implements StreakService {
         streakRepository.updateStreak(streak);
         tokenService.increaseUserToken(userId, streak.getStreakDays() / 3);
 
-        final String updateStreakSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_STREAK_SUCCESS, userId);
-        log.info(updateStreakSuccessMessage);
-        return new UpdateStreakResponse(updateStreakSuccessMessage);
+        return new UpdateStreakResponse("Streak updated successfully. Current streak: " + streak.getStreakDays() + " days.");
     }
 
     @Override
