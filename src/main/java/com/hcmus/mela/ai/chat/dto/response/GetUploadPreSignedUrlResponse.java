@@ -4,16 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @AllArgsConstructor
-public class ConversationMetadataDto {
+public class GetUploadPreSignedUrlResponse {
 
-    private String status;
+    private String preSignedUrl;
 
-    private Date createdAt;
-
-    private Date updatedAt;
+    private String fileUrl;
 }

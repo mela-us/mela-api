@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ConversationService {
+
     Object identifyProblem(Message message);
 
     Object resolveConfusion(List<Message> messageList, String context);

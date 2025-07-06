@@ -37,7 +37,11 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
     @Override
     public Question findQuestionByQuestionId(UUID questionId) {
         Exercise exercise = findExerciseByQuestionId(questionId);
-        if (exercise.getQuestions() == null) {
+        if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty() || questionId == null) {
+            return null;
+        }
+        if (exercise.getStatus() != ContentStatus.VERIFIED) {
+            log.warn("Exercise with id {} is not verified", exercise.getExerciseId());
             return null;
         }
         return exercise.getQuestions().stream()

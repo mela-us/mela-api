@@ -10,9 +10,14 @@ import java.util.List;
 @Setter
 @Builder
 public class GetListMessagesResponseDto {
+
     private String object;
+
     private List<MessageResponseDto> data;
+
     private String firstId;
+
     private String lastId;
+
     private Boolean hasMore;
 }

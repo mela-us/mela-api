@@ -30,7 +30,8 @@ public interface ConversationRepository extends MongoRepository<Conversation, UU
                     .filter(message -> keyMessageIds.contains(message.getMessageId()))
                     .collect(Collectors.toList());
         } else {
-            return null; // Or return an empty list: return Collections.emptyList();
+            return null;
+            // Or return an empty list: return Collections.emptyList();
         }
     }
 
@@ -45,9 +46,7 @@ public interface ConversationRepository extends MongoRepository<Conversation, UU
         }
 
         List<Message> messages = conversation.get().getMessages();
-
         List<Message> result;
-
         if (afterMessageId != null) {
             result = messages.stream()
                     .dropWhile(msg -> !msg.getMessageId().equals(afterMessageId))
@@ -59,7 +58,6 @@ public interface ConversationRepository extends MongoRepository<Conversation, UU
                     .filter(i -> messages.get(i).getMessageId().equals(beforeMessageId))
                     .findFirst()
                     .orElse(-1);
-
             if (beforeIndex > 0) {
                 int fromIndex = Math.max(0, beforeIndex - limit);
                 result = messages.subList(fromIndex, beforeIndex);

@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GetListMessagesRequestDto {
+
     /**
      * A cursor for use in pagination. 'after' is an object ID that defines your place in the list.
      * For instance, if you make a list request and receive 100 objects, ending with obj_foo,

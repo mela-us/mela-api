@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class AzureMessage {
+
     private String role;
+
     private Object content;
 }

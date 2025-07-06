@@ -9,6 +9,7 @@ import com.hcmus.mela.ai.chat.dto.response.GetListMessagesResponseDto;
 import java.util.UUID;
 
 public interface ConversationHistoryService {
+
     GetConversationHistoryResponseDto getConversationHistory(GetConversationHistoryRequestDto request, UUID userId);
 
     ConversationInfoDto getConversation(UUID conversationId);

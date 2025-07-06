@@ -52,7 +52,7 @@ public class AuthExceptionHandler {
     }
 
     @ExceptionHandler(RegistrationException.class)
-    ResponseEntity<ApiErrorResponse> handleLoginException(RegistrationException exception, WebRequest request) {
+    ResponseEntity<ApiErrorResponse> handleRegistrationException(RegistrationException exception, WebRequest request) {
         log.error("RegistrationException occurred: {}", exception.getMessage());
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
@@ -65,7 +65,7 @@ public class AuthExceptionHandler {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    ResponseEntity<ApiErrorResponse> handleLoginException(BadCredentialsException exception, WebRequest request) {
+    ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException exception, WebRequest request) {
         log.error("BadCredentialsException occurred: {}", exception.getMessage());
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),

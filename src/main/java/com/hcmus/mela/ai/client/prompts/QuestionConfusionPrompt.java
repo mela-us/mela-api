@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "prompt.question-confusion")
 public class QuestionConfusionPrompt {
+
     private ClarifyQuestion clarifyQuestion;
     private ExplainSolution explainSolution;
     private CustomText customText;

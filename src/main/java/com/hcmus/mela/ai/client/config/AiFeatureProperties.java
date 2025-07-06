@@ -6,7 +6,10 @@ package com.hcmus.mela.ai.client.config;
  * to ensure consistency in configuration across different features.
  */
 public interface AiFeatureProperties {
+
     String getModel();
+
     String getProvider();
+
     String getPath();
 }

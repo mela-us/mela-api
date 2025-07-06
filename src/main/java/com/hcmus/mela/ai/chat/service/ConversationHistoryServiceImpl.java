@@ -3,6 +3,7 @@ package com.hcmus.mela.ai.chat.service;
 import com.hcmus.mela.ai.chat.dto.request.GetConversationHistoryRequestDto;
 import com.hcmus.mela.ai.chat.dto.request.GetListMessagesRequestDto;
 import com.hcmus.mela.ai.chat.dto.response.*;
+import com.hcmus.mela.ai.chat.exception.ChatBotException;
 import com.hcmus.mela.ai.chat.model.Conversation;
 import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.chat.repository.ConversationRepository;
@@ -74,7 +75,7 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
     @Override
     public ConversationInfoDto getConversation(UUID conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new RuntimeException("Conversation not found"));
+                .orElseThrow(() -> new ChatBotException("Conversation not found"));
 
         return ConversationInfoDto.builder()
                 .conversationId(conversation.getConversationId())
@@ -92,7 +93,7 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
     public void deleteConversationById(UUID conversationId) {
         // Check if the conversation exists
         if (!conversationRepository.existsByConversationId(conversationId)) {
-            throw new RuntimeException("Conversation not found");
+            throw new ChatBotException("Conversation not found");
         }
         conversationRepository.deleteByConversationId(conversationId);
     }
@@ -141,5 +142,4 @@ public class ConversationHistoryServiceImpl implements ConversationHistoryServic
                 .hasMore(hasMoreHolder.get())
                 .build();
     }
-
 }

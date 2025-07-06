@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class LectureConfusionServiceImpl implements LectureConfusionService {
+
     private final AiWebClient aiWebClient;
     private final AiFeatureProperties aiClientProperties;
     private final AiRequestBodyFactory aiRequestBodyFactory;
@@ -39,7 +40,6 @@ public class LectureConfusionServiceImpl implements LectureConfusionService {
                 requestDto.getFileUrl(),
                 requestDto.getCurrentPage(),
                 aiClientProperties);
-
         Object response = aiWebClient.fetchAiResponse(aiClientProperties, requestBody);
         AiResponseFilter aiResponseFilter = new AiResponseFilter();
         return new LectureConfusionResponseDto(aiResponseFilter.getMessage(response));

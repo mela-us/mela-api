@@ -10,5 +10,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "prompt.lecture-confusion")
 public class LectureConfusionPrompt {
+    
     private String instruction;
 }
