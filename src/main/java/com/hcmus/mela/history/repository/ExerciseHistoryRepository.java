@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface ExerciseHistoryRepository extends MongoRepository<ExerciseHistory, UUID>, ExerciseHistoryCustomRepository {
 
     List<ExerciseHistory> findAllByUserIdAndLevelId(UUID userId, UUID levelId);
+
+    void deleteAllByUserId(UUID userId);
 }

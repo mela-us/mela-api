@@ -7,5 +7,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TestHistoryRepository extends MongoRepository<TestHistory, UUID> {
+
     List<TestHistory> findAllByUserIdAndLevelId(UUID userId, UUID levelId);
+
+    void deleteAllByUserId(UUID userId);
 }

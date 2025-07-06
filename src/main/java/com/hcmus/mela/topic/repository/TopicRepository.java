@@ -17,4 +17,6 @@ public interface TopicRepository extends MongoRepository<Topic, UUID> {
     Optional<Topic> findByTopicIdAndCreatedBy(UUID topicId, UUID userId);
 
     Optional<Topic> findByTopicIdAndStatus(UUID topicId, ContentStatus status);
+
+    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
 }

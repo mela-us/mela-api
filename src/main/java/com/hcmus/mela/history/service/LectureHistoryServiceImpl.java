@@ -113,4 +113,9 @@ public class LectureHistoryServiceImpl implements LectureHistoryService {
         }
         return lectureHistories;
     }
+
+    @Override
+    public void deleteAllLectureHistoryByUserId(UUID userId) {
+        lectureHistoryRepository.deleteAllByUserId(userId);
+    }
 }

@@ -12,4 +12,6 @@ public interface TestHistoryService {
     TestResultResponse getTestResultResponse(UUID userId, TestResultRequest request);
 
     List<TestHistoryDto> getTestHistoryByUserAndLevel(UUID userId, UUID levelId);
+
+    void deleteAllTestHistoryByUserId(UUID userId);
 }

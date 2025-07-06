@@ -13,7 +13,7 @@ import com.hcmus.mela.skills.service.UserSkillService;
 import com.hcmus.mela.test.model.TestQuestion;
 import com.hcmus.mela.test.service.TestGradeService;
 import com.hcmus.mela.test.service.TestService;
-import com.hcmus.mela.user.service.UserService;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ import java.util.UUID;
 public class TestHistoryServiceImpl implements TestHistoryService {
 
     private final TestGradeService testGradeService;
-    private final UserService userService;
+    private final UserInfoService userInfoService;
     private final TestHistoryRepository testHistoryRepository;
     private final UserSkillService userSkillService;
     private final TestService testService;
@@ -58,6 +58,11 @@ public class TestHistoryServiceImpl implements TestHistoryService {
                 .toList();
     }
 
+    @Override
+    public void deleteAllTestHistoryByUserId(UUID userId) {
+        testHistoryRepository.deleteAllByUserId(userId);
+    }
+
     private void saveTestHistory(UUID userId, LocalDateTime startedAt, LocalDateTime completedAt, List<TestAnswer> answers) {
         Double score = answers.stream()
                 .filter(TestAnswer::getIsCorrect)
@@ -65,7 +70,7 @@ public class TestHistoryServiceImpl implements TestHistoryService {
         TestHistory testHistory = TestHistory.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
-                .levelId(userService.getLevelId(userId))
+                .levelId(userInfoService.getLevelIdOfUser(userId))
                 .score(score)
                 .startedAt(startedAt)
                 .completedAt(completedAt)
@@ -77,7 +82,7 @@ public class TestHistoryServiceImpl implements TestHistoryService {
             TestQuestion testQuestion = testService.getTestByQuestionId(testAnswer.getQuestionId());
             int correctAnswer = testAnswer.getIsCorrect() ? 1 : 0;
             userSkillService.updateUserSkill(userId,
-                    userService.getLevelId(userId),
+                    userInfoService.getLevelIdOfUser(userId),
                     testQuestion.getTopicId(),
                     correctAnswer * 2,
                     1 - correctAnswer);

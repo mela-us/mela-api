@@ -137,4 +137,9 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
         }
         return exerciseHistories.stream().map(ExerciseHistoryMapper.INSTANCE::exerciseHistoryToExerciseHistoryDto).toList();
     }
+
+    @Override
+    public void deleteAllExerciseHistoryByUserId(UUID userId) {
+        exerciseHistoryRepository.deleteAllByUserId(userId);
+    }
 }

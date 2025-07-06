@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class StreakController {
     private final StreakService streakService;
     private final JwtTokenService jwtTokenService;
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     @Operation(tags = "🔥 Streak Service", summary = "Get user's streak",
             description = "Retrieves a user's streak and the information belonging to the streak.")
@@ -33,6 +35,7 @@ public class StreakController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     @Operation(tags = "🔥 Streak Service", summary = "Update user's streak",
             description = "Updates a user's streak.")

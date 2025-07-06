@@ -25,4 +25,6 @@ public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, Exe
     List<Exercise> findAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
 
     List<Exercise> findAllByStatus(ContentStatus status);
+
+    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
 }

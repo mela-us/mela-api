@@ -5,6 +5,7 @@ import com.hcmus.mela.exercise.mapper.ExerciseMapper;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,5 +53,10 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
         return exercises.stream()
                 .map(ExerciseMapper.INSTANCE::exerciseToExerciseDto)
                 .toList();
+    }
+
+    @Override
+    public void changeExerciseOwnerToAdmin(UUID previousUserId) {
+        exerciseRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
     }
 }

@@ -5,6 +5,7 @@ import com.hcmus.mela.level.mapper.LevelMapper;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.repository.LevelRepository;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,5 +57,10 @@ public class LevelInfoServiceImpl implements LevelInfoService {
         return levels.isEmpty()
                 ? List.of()
                 : levels.stream().map(LevelMapper.INSTANCE::levelToLevelDto).toList();
+    }
+
+    @Override
+    public void changeLevelOwnerToAdmin(UUID previousUserId) {
+        levelRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
     }
 }

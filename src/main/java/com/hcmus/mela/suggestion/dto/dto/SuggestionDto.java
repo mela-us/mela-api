@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SuggestionDto {
+
     private UUID suggestionId;
 
     private UUID userId;

@@ -9,8 +9,6 @@ import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.level.dto.dto.LevelDto;
 import com.hcmus.mela.level.service.LevelInfoService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.ExceptionMessageAccessor;
-import com.hcmus.mela.shared.utils.GeneralMessageAccessor;
 import com.hcmus.mela.suggestion.dto.dto.SectionReferenceDto;
 import com.hcmus.mela.suggestion.dto.dto.SuggestionDto;
 import com.hcmus.mela.suggestion.dto.request.UpdateSuggestionRequest;
@@ -36,12 +34,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class SuggestionServiceImpl implements SuggestionService {
 
-    private final String SUGGESTIONS_FOUND = "suggestions_found_successful";
-    private final String SUGGESTION_NOT_FOUND = "suggestion_not_found";
-    private final String UPDATE_SUGGESTION_SUCCESS = "update_suggestion_successful";
-
-    private final GeneralMessageAccessor generalMessageAccessor;
-    private final ExceptionMessageAccessor exceptionMessageAccessor;
     private final LectureHistoryService lectureHistoryService;
     private final SuggestionRepository suggestionRepository;
     private final TopicInfoService topicInfoService;
@@ -93,30 +85,26 @@ public class SuggestionServiceImpl implements SuggestionService {
             }
             suggestionDto.setSectionList(sectionReferenceDtos);
         }
-        final String getSuggestionsSuccessMessage = generalMessageAccessor.getMessage(null, SUGGESTIONS_FOUND, userId);
-        return new GetSuggestionsResponse(getSuggestionsSuccessMessage, suggestionDtos);
+        return new GetSuggestionsResponse("Get suggestions successfully", suggestionDtos);
     }
 
     @Override
-    public UpdateSuggestionResponse updateSuggestion(UUID userId, UUID suggestionId, UpdateSuggestionRequest updateSuggestionRequest) {
+    public UpdateSuggestionResponse updateSuggestion(UUID userId, UUID suggestionId, UpdateSuggestionRequest request) {
         Suggestion suggestion = suggestionRepository.findBySuggestionIdAndUserId(suggestionId, userId);
-
         if (suggestion == null) {
-            final String errorMessage = exceptionMessageAccessor.getMessage(null, SUGGESTION_NOT_FOUND, suggestionId);
-            throw new SuggestionNotFoundException(errorMessage);
+            throw new SuggestionNotFoundException("Suggestion not found for user with id " + suggestionId);
         }
 
         for (SectionReference sectionReference : suggestion.getSectionList()) {
-            if (sectionReference.getLectureId().equals(updateSuggestionRequest.getItemId())
-                    && sectionReference.getOrdinalNumber().equals(updateSuggestionRequest.getOrdinalNumber())) {
-                sectionReference.setIsDone(updateSuggestionRequest.getIsDone());
+            if (sectionReference.getLectureId().equals(request.getItemId())
+                    && sectionReference.getOrdinalNumber().equals(request.getOrdinalNumber())) {
+                sectionReference.setIsDone(request.getIsDone());
                 break;
             }
         }
 
         Suggestion result = suggestionRepository.updateSuggestion(suggestion);
-        final String updateSuccessMessage = generalMessageAccessor.getMessage(null, UPDATE_SUGGESTION_SUCCESS, suggestionId);
-        return new UpdateSuggestionResponse(updateSuccessMessage);
+        return new UpdateSuggestionResponse("Update suggestion successfully");
     }
 
     @Override
@@ -126,15 +114,16 @@ public class SuggestionServiceImpl implements SuggestionService {
 
     private List<Suggestion> createSuggestion(UUID userId, Date startOfDay) {
         List<LectureHistory> lectureHistories = lectureHistoryService.getBestProgressHistoriesGroupedByLecture(userId);
+        if (lectureHistories.isEmpty()) {
+            return List.of();
+        }
 
         int sectionSize = 0;
-
         List<Suggestion> results = new ArrayList<>();
         List<LectureDto> suggestedLectures = new ArrayList<>();
-
-        List<UUID> studiedLectureIds = lectureHistories.stream()
+        List<UUID> studiedLectureIds = new ArrayList<>(lectureHistories.stream()
                 .map(LectureHistory::getLectureId)
-                .toList();
+                .toList());
 
         for (LectureHistory history : lectureHistories) {
             List<SectionReference> sectionReferences = new ArrayList<>();
@@ -173,6 +162,7 @@ public class SuggestionServiceImpl implements SuggestionService {
                                     false));
                         }
                         suggestedLectures.add(lecture);
+                        studiedLectureIds.add(lecture.getLectureId());
                     }
                 }
             }
@@ -234,11 +224,6 @@ public class SuggestionServiceImpl implements SuggestionService {
                 }
             }
         }
-
-        if (lectureHistories.isEmpty()) {
-            return List.of();
-        }
-
         return suggestionRepository.saveAll(results);
     }
 }

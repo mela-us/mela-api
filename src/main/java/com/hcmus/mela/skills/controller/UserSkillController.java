@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class UserSkillController {
     private final UserSkillService userSkillService;
     private final JwtTokenService jwtTokenService;
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     @Operation(tags = "🎇 User skill Service", summary = "Get user's skills",
             description = "Retrieve a list of skills belonging to a user in their current level from the system")

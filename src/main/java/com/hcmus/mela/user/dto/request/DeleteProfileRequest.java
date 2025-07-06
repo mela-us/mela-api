@@ -6,7 +6,8 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class DeleteAccountRequest {
+public class DeleteProfileRequest {
+
     @NotEmpty(message = "Access token is required.")
     private String accessToken;
 

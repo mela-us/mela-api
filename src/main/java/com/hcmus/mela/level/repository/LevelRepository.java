@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface LevelRepository extends MongoRepository<Level, UUID> {
+
     List<Level> findAllByStatus(ContentStatus status);
 
     List<Level> findAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
@@ -20,4 +21,6 @@ public interface LevelRepository extends MongoRepository<Level, UUID> {
     Optional<Level> findByLevelIdAndStatus(UUID levelId, ContentStatus status);
 
     Optional<Level> findFirstByStatus(ContentStatus status);
+
+    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
 }

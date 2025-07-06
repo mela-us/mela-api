@@ -2,7 +2,8 @@ package com.hcmus.mela.user.exception;
 
 import com.hcmus.mela.shared.configuration.RequestIdFilter;
 import com.hcmus.mela.shared.exception.ApiErrorResponse;
-import com.hcmus.mela.user.controller.UserController;
+import com.hcmus.mela.user.controller.UserManagementController;
+import com.hcmus.mela.user.controller.UserProfileController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -17,7 +18,10 @@ import java.time.ZoneId;
 
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(basePackageClasses = UserController.class)
+@RestControllerAdvice(basePackageClasses = {
+        UserProfileController.class,
+        UserManagementController.class
+})
 public class UserExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
@@ -46,10 +50,22 @@ public class UserExceptionHandler {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
-
     @ExceptionHandler(EmptyUpdateDataException.class)
     ResponseEntity<ApiErrorResponse> handleEmptyUpdateDataException(EmptyUpdateDataException exception, WebRequest request) {
         log.error("EmptyUpdateDataException occurred: {}", exception.getMessage());
+        final ApiErrorResponse response = new ApiErrorResponse(
+                RequestIdFilter.getRequestId(),
+                HttpStatus.BAD_REQUEST.value(),
+                exception.getMessage(),
+                request.getDescription(false),
+                LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+        );
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(UserException.class)
+    ResponseEntity<ApiErrorResponse> handleUserException(UserException exception, WebRequest request) {
+        log.error("UserException occurred: {}", exception.getMessage());
         final ApiErrorResponse response = new ApiErrorResponse(
                 RequestIdFilter.getRequestId(),
                 HttpStatus.BAD_REQUEST.value(),

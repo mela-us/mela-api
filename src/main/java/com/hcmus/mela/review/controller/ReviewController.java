@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final JwtTokenService jwtTokenService;
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping
     @Operation(tags = "🔃 Review Service", summary = "Get reviews",
             description = "Retrieves all reviews of the user with given user id.")
@@ -34,6 +36,7 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{reviewId}")
     @Operation(tags = "🔃 Review Service", summary = "Update Review",
             description = "Updates the review with the given id for the user.")

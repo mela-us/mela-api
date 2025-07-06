@@ -15,4 +15,6 @@ public interface TopicInfoService {
     TopicDto findTopicByTopicId(UUID topicId);
 
     TopicDto findTopicByTopicIdAndStatus(UUID topicId, ContentStatus status);
+
+    void changeTopicOwnerToAdmin(UUID previousUserId);
 }

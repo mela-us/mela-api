@@ -1,6 +1,7 @@
 package com.hcmus.mela.exercise.model;
 
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import jakarta.persistence.PrePersist;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -49,7 +50,7 @@ public class Exercise {
             this.status = ContentStatus.PENDING;
         }
         if (this.createdBy == null) {
-            this.createdBy = UUID.fromString("00000000-0000-0000-0000-000000000000");
+            this.createdBy = ProjectConstants.ADMIN_ID;
         }
     }
 }

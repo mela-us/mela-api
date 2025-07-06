@@ -35,4 +35,6 @@ public interface LectureHistoryRepository extends MongoRepository<LectureHistory
             "{ '$sort': { 'completed_at': -1 } }"
     })
     List<LectureHistory> findBestProgressHistoriesGroupedByLecture(UUID userId);
+
+    void deleteAllByUserId(UUID userId);
 }

@@ -1,6 +1,5 @@
-package com.hcmus.mela.user.dto;
+package com.hcmus.mela.user.dto.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,11 +11,12 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class UserDto {
+
     private UUID userId;
 
-    private String fullname;
-
     private String username;
+
+    private String fullname;
 
     private Date birthday;
 

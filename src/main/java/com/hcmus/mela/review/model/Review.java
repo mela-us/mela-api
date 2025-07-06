@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "reviews")
 public class Review {
+
     @Id
     @Field(name = "_id")
     private UUID reviewId;

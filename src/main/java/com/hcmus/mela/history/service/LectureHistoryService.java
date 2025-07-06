@@ -15,4 +15,6 @@ public interface LectureHistoryService {
     List<LectureHistoryDto> getLectureHistoryByUserAndLevel(UUID userId, UUID levelId);
 
     List<LectureHistory> getBestProgressHistoriesGroupedByLecture(UUID userId);
+
+    void deleteAllLectureHistoryByUserId(UUID userId);
 }

@@ -15,4 +15,6 @@ public interface ExerciseInfoService {
     List<ExerciseDto> findExercisesByLectureId(UUID lectureId);
 
     List<ExerciseDto> findExercisesByLectureIdAndStatus(UUID lectureId, ContentStatus status);
+
+    void changeExerciseOwnerToAdmin(UUID previousUserId);
 }

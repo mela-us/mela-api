@@ -10,6 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SectionReferenceDto {
+
     private UUID lectureId;
 
     private Integer ordinalNumber;

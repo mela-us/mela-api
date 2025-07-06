@@ -19,4 +19,6 @@ public interface LevelInfoService {
     List<LevelDto> findAllLevels();
 
     List<LevelDto> findAllLevelsInStatus(ContentStatus status);
+
+    void changeLevelOwnerToAdmin(UUID previousUserId);
 }

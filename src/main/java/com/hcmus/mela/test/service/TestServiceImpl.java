@@ -8,7 +8,7 @@ import com.hcmus.mela.test.model.Question;
 import com.hcmus.mela.test.model.TestQuestion;
 import com.hcmus.mela.test.repository.TestQuestionRepository;
 import com.hcmus.mela.topic.service.TopicStatusService;
-import com.hcmus.mela.user.service.UserService;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +22,14 @@ import java.util.UUID;
 public class TestServiceImpl implements TestService {
 
     private final static int QUESTION_CAPACITY = 20;
-    private TestQuestionRepository testQuestionRepository;
-    private UserService userService;
+    private final TestQuestionRepository testQuestionRepository;
+    private final UserInfoService userInfoService;
     private final TopicStatusService topicStatusService;
     private final LevelStatusService levelStatusService;
 
     @Override
     public TestDto getTestDto(UUID userId) {
-        UUID levelId = userService.getLevelId(userId);
+        UUID levelId = userInfoService.getLevelIdOfUser(userId);
 
         List<TestQuestion> testQuestionList = testQuestionRepository.findAllByLevelId(levelId);
         testQuestionList.removeIf(testQuestion -> !topicStatusService.isTopicInStatus(testQuestion.getTopicId(), ContentStatus.VERIFIED));

@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.model;
 
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.ProjectConstants;
 import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -57,7 +58,7 @@ public class Lecture {
             this.status = ContentStatus.PENDING;
         }
         if (this.createdBy == null) {
-            this.createdBy = UUID.fromString("00000000-0000-0000-0000-000000000000");
+            this.createdBy = ProjectConstants.ADMIN_ID;
         }
         if (this.totalExercises != null) {
             this.totalExercises = null;

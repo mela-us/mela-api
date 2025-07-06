@@ -17,4 +17,6 @@ public interface ExerciseHistoryService {
     Map<UUID, Double> getExerciseBestScoresOfUserByLecture(UUID userId, UUID lectureId);
 
     List<ExerciseHistoryDto> getExerciseHistoryByUserAndLevel(UUID userId, UUID levelId);
+
+    void deleteAllExerciseHistoryByUserId(UUID userId);
 }

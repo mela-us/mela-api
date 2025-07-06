@@ -32,7 +32,7 @@ public class UserSkillServiceImpl implements UserSkillService {
 
     @Override
     public GetUserSkillResponse getUserSkillsByUserId(UUID userId) {
-        User user = userInfoService.getUserById(userId);
+        User user = userInfoService.getUserByUserId(userId);
         boolean isLevelVerified = levelStatusService.isLevelInStatus(user.getLevelId(), ContentStatus.VERIFIED);
         if (!isLevelVerified) {
             throw new SkillsException("User's level is not verified, cannot get user skills.");

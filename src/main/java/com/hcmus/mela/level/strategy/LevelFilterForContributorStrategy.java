@@ -8,7 +8,7 @@ import com.hcmus.mela.level.mapper.LevelMapper;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.repository.LevelRepository;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.user.service.UserService;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class LevelFilterForContributorStrategy implements LevelFilterStrategy {
 
     private final LevelRepository levelRepository;
-    private final UserService userService;
+    private final UserInfoService userInfoService;
     private final LectureFilterForContributorStrategy lectureFilterStrategy;
 
     @Override
@@ -67,6 +67,6 @@ public class LevelFilterForContributorStrategy implements LevelFilterStrategy {
         lectureFilterStrategy.deleteLecturesByLevel(userId, levelId);
         level.setStatus(ContentStatus.DELETED);
         levelRepository.save(level);
-        userService.updateLevel(level.getLevelId());
+        userInfoService.updateLevelForAllUser(level.getLevelId());
     }
 }

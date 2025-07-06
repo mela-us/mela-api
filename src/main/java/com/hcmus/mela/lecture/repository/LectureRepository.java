@@ -29,4 +29,6 @@ public interface LectureRepository extends MongoRepository<Lecture, UUID>, Lectu
     List<Lecture> findAllByLevelId(UUID levelId);
 
     List<Lecture> findAllByLevelIdAndCreatedBy(UUID levelId, UUID createdBy);
+
+    void updateAllByCreatedBy(UUID previousUserId, UUID newUserId);
 }
