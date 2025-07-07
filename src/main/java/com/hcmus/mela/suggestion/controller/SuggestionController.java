@@ -24,7 +24,7 @@ public class SuggestionController {
     private final SuggestionService suggestionService;
     private final JwtTokenService jwtTokenService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping
     @Operation(tags = "➕ Suggestion Service", summary = "Get suggestions by user",
             description = "Retrieves all suggestions of the user with given user id.")
@@ -36,7 +36,7 @@ public class SuggestionController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{suggestionId}")
     @Operation(tags = "➕ Suggestion Service", summary = "Update suggestion",
             description = "Update suggestion that has given id.")
