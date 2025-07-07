@@ -24,7 +24,7 @@ public class TokenController {
     private final TokenService tokenService;
     private final JwtTokenService jwtTokenService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping
     @Operation(tags = "💰 Token Service", summary = "Get tokens by user",
             description = "Retrieves all tokens of the user with given user id.")
@@ -36,7 +36,7 @@ public class TokenController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @PutMapping
     @Operation(tags = "💰 Token Service", summary = "Increase tokens by user",
             description = "Increase the token amount of the user with given user id.")

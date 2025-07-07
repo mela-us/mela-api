@@ -25,7 +25,7 @@ public class UserSkillController {
     private final UserSkillService userSkillService;
     private final JwtTokenService jwtTokenService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping
     @Operation(tags = "🎇 User skill Service", summary = "Get user's skills",
             description = "Retrieve a list of skills belonging to a user in their current level from the system")

@@ -23,7 +23,7 @@ public class StreakController {
     private final StreakService streakService;
     private final JwtTokenService jwtTokenService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping
     @Operation(tags = "🔥 Streak Service", summary = "Get user's streak",
             description = "Retrieves a user's streak and the information belonging to the streak.")
@@ -35,7 +35,7 @@ public class StreakController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping
     @Operation(tags = "🔥 Streak Service", summary = "Update user's streak",
             description = "Updates a user's streak.")

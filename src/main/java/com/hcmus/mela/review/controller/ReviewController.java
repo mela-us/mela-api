@@ -24,7 +24,7 @@ public class ReviewController {
     private final ReviewService reviewService;
     private final JwtTokenService jwtTokenService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @GetMapping
     @Operation(tags = "🔃 Review Service", summary = "Get reviews",
             description = "Retrieves all reviews of the user with given user id.")
@@ -36,7 +36,7 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{reviewId}")
     @Operation(tags = "🔃 Review Service", summary = "Update Review",
             description = "Updates the review with the given id for the user.")
