@@ -46,4 +46,24 @@ public class RedisService {
     public void removeRefreshToken(String token) {
         redisTemplate.delete("refresh_token:" + token);
     }
+
+    // Store the reset password OTP
+    public void storeResetPasswordOtp(String email, String otp, int otpExpiryMinutes) {
+        redisTemplate.opsForValue().set("email_otp:" + email, otp, Duration.ofMinutes(otpExpiryMinutes));
+    }
+
+    // Validate the reset password OTP
+    public boolean validateResetPasswordOtp(String email, String otp) {
+        String storedOtp = (String) redisTemplate.opsForValue().get("email_otp:" + email);
+        if (storedOtp != null && storedOtp.equals(otp)) {
+            redisTemplate.delete("email_otp:" + email);
+            return true;
+        }
+        return false;
+    }
+
+    // Remove the reset password OTP
+    public void removeResetPasswordOtp(String email) {
+        redisTemplate.delete("email_otp:" + email);
+    }
 }

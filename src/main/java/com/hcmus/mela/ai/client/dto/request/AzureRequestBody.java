@@ -10,6 +10,8 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class AzureRequestBody {
+
     private String model;
+
     private List<AzureMessage> messages;
 }

@@ -18,5 +18,4 @@ public class JwtProperties {
     private long accessTokenExpirationMinute;
 
     private long refreshTokenExpirationDay;
-
 }

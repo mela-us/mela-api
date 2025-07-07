@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface ExerciseGradeService {
 
-    List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> exerciseAnswerList);
+    List<ExerciseAnswer> gradeExercise(UUID exerciseId, List<ExerciseAnswerDto> answers);
 
-    Map<String, Object> checkQuestionAnswer(ExerciseAnswerDto answerDto, Question question);
+    Map<String, Object> evaluateQuestion(ExerciseAnswerDto answer, Question question);
 }

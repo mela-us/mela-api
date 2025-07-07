@@ -15,9 +15,7 @@ public class ExerciseCustomRepositoryImpl implements ExerciseCustomRepository {
     @Override
     public Exercise updateQuestionHint(Exercise exercise) {
         Query query = new Query(Criteria.where("_id").is(exercise.getExerciseId()));
-
         Update update = new Update().set("questions", exercise.getQuestions());
-
         return mongoTemplate.findAndModify(query, update, Exercise.class);
     }
 }

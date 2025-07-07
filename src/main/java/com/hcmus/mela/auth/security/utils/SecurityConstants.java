@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class SecurityConstants {
+
     /**
      * Token Prefix
      * We will use this prefix when parsing JWT Token
@@ -18,12 +19,7 @@ public class SecurityConstants {
      */
     public static final String HEADER_STRING = "Authorization";
 
-    public static final String LOGIN_REQUEST_URI = "/login";
-
-    public static final String REGISTRATION_REQUEST_URI = "/register";
-
     private SecurityConstants() {
-
         throw new UnsupportedOperationException();
     }
 
@@ -31,11 +27,8 @@ public class SecurityConstants {
      * @return authenticated username from Security Context
      */
     public static String getAuthenticatedUsername() {
-
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
         return userDetails.getUsername();
     }
-
 }

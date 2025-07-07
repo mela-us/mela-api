@@ -1,0 +1,18 @@
+package com.hcmus.mela.lecture.dto.response;
+
+import com.hcmus.mela.lecture.dto.dto.LectureDto;
+import lombok.*;
+
+import java.util.List;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class GetLectureInfoResponse {
+
+    private String message;
+
+    private LectureDto data;
+}

@@ -1,5 +1,6 @@
 package com.hcmus.mela.exercise.dto.dto;
 
+import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.*;
 
 import java.util.List;
@@ -21,4 +22,10 @@ public class ExerciseDto {
     private Integer ordinalNumber;
 
     private List<QuestionDto> questions;
+
+    private ContentStatus status;
+
+    private UUID createdBy;
+
+    private String rejectReason;
 }

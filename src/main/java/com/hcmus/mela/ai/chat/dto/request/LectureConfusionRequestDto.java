@@ -8,14 +8,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AtLeastOneNotEmpty(fields = {"text", "imageUrl"}, message = "Field must not be empty")
+@AtLeastOneNotEmpty(fields = {"text", "imageUrl"}, message = "At least one of text or image url must be provided")
 public class LectureConfusionRequestDto {
+
     String text;
+
     String imageUrl;
 
-    @NotEmpty(message = "Field fileUrl must not be empty")
+    @NotEmpty(message = "File url must not be empty")
     String fileUrl;
 
-    @NotNull(message = "Field fileUrl must not be empty")
+    @NotNull(message = "Current page must not be empty")
     Integer currentPage;
 }

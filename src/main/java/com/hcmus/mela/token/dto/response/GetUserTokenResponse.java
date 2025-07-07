@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetUserTokenResponse {
+
     private String message;
 
     private Integer token;

@@ -13,6 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document
 public class SectionReference {
+
     @Field("item_id")
     private UUID lectureId;
 

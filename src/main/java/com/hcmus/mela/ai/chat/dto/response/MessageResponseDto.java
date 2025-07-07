@@ -13,8 +13,12 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 public class MessageResponseDto {
+
     private UUID messageId;
+
     private String role;
+
     private Object content;
+
     private Date timestamp;
 }

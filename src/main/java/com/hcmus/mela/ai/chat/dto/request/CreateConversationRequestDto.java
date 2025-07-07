@@ -8,7 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateConversationRequestDto {
-    @NotNull(message = "Message cannot be null")
+
     @Valid
+    @NotNull(message = "Message cannot be null")
     private MessageRequestDto message;
 }

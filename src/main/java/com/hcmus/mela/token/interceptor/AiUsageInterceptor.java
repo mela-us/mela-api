@@ -18,20 +18,19 @@ public class AiUsageInterceptor implements HandlerInterceptor {
 
     private final TokenService tokenService;
     private final JwtTokenService jwtTokenService;
-
-    private static final int TOKEN_COST = 1;
-
     private final ThreadLocal<UUID> currentUserId = new ThreadLocal<>();
+    private static final int TOKEN_COST = 1;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+        if (!"POST".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
         String authHeader = request.getHeader("Authorization");
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-
         if (!tokenService.validateUserToken(userId)) {
             throw new BadRequestException("Not enough token");
         }
-
         currentUserId.set(userId);
         return true;
     }

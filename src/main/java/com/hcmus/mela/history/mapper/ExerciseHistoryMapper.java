@@ -12,6 +12,6 @@ public interface ExerciseHistoryMapper {
 
     ExerciseHistoryMapper INSTANCE = Mappers.getMapper(ExerciseHistoryMapper.class);
 
-    @Mapping(source = "answers", target = "answers", qualifiedByName = "convertToExerciseAnswerDtoList")
-    ExerciseHistoryDto converToExerciseHistoryDto(ExerciseHistory exerciseHistory);
+    @Mapping(source = "answers", target = "answers", qualifiedByName = "exerciseAnswersToExerciseAnswerDtos")
+    ExerciseHistoryDto exerciseHistoryToExerciseHistoryDto(ExerciseHistory exerciseHistory);
 }

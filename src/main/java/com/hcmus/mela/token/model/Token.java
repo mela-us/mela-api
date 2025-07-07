@@ -14,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "tokens")
 public class Token {
+
     @Id
     @Field(name = "_id")
     private UUID userId;

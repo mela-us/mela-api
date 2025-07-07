@@ -16,12 +16,16 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "reviews")
 public class Review {
+
     @Id
     @Field(name = "_id")
     private UUID reviewId;
 
     @Field(name = "user_id")
     private UUID userId;
+
+    @Field(name = "ordinal_number")
+    private Integer ordinalNumber;
 
     @Field(name = "created_at")
     private Date createdAt;

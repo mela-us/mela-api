@@ -9,8 +9,9 @@ import java.util.Map;
 
 @Getter
 @Setter
-@AtLeastOneNotEmpty(fields = {"text", "imageUrl"}, message = "Field must not be empty")
+@AtLeastOneNotEmpty(fields = {"text", "imageUrl"}, message = "At least one of text or image url must be provided")
 public class MessageRequestDto {
+
     private String text;
 
     private String imageUrl;

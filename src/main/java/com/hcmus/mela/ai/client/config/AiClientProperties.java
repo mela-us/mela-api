@@ -17,6 +17,7 @@ import java.util.Map;
 @Configuration
 @ConfigurationProperties(prefix = "ai")
 public class AiClientProperties {
+
     private Map<String, Provider> providers;
     private ChatBot chatBot;
     private QuestionHint questionHint;
@@ -31,7 +32,7 @@ public class AiClientProperties {
 
     @Setter
     @Getter
-    public static class ChatBot implements AiFeatureProperties{
+    public static class ChatBot implements AiFeatureProperties {
         private String provider;
         private String model;
         private String path;
@@ -39,7 +40,7 @@ public class AiClientProperties {
 
     @Setter
     @Getter
-    public static class QuestionHint implements AiFeatureProperties{
+    public static class QuestionHint implements AiFeatureProperties {
         private String provider;
         private String model;
         private String path;
@@ -47,7 +48,7 @@ public class AiClientProperties {
 
     @Setter
     @Getter
-    public static class AiGrader implements AiFeatureProperties{
+    public static class AiGrader implements AiFeatureProperties {
         private String provider;
         private String model;
         private String path;

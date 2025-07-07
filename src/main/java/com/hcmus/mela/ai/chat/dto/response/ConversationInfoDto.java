@@ -10,6 +10,7 @@ import java.util.UUID;
 @Getter
 @Builder
 public class ConversationInfoDto {
+
     private UUID conversationId;
 
     private String title;

@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface StatisticService {
 
-    GetStatisticsResponse getStatisticByUserAndLevelAndType(UUID userId, UUID levelId, ActivityType activityType);
+    GetStatisticsResponse getStatisticByUserIdAndLevelIdAndType(UUID userId, UUID levelId, ActivityType activityType);
 }

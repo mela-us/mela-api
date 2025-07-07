@@ -9,8 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SuggestionRepository extends MongoRepository<Suggestion, UUID>, SuggestionCustomRepository {
+
     @Query("{ 'user_id': ?0, 'created_at': { $gte: ?1, $lt: ?2 } }")
     List<Suggestion> findAllByUserIdAndCreatedAtBetween(UUID userId, Date start, Date end);
 
     Suggestion findBySuggestionId(UUID suggestionId);
+
+    Suggestion findBySuggestionIdAndUserId(UUID suggestionId, UUID userId);
+
+    void deleteAllByUserId(UUID userId);
 }

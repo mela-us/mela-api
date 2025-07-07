@@ -2,6 +2,7 @@ package com.hcmus.mela.ai.chat.service;
 
 import com.hcmus.mela.ai.chat.dto.request.QuestionConfusionRequestDto;
 import com.hcmus.mela.ai.chat.dto.response.QuestionConfusionResponseDto;
+import com.hcmus.mela.ai.chat.exception.ChatBotException;
 import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
 import com.hcmus.mela.ai.client.config.AiClientProperties;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
@@ -11,8 +12,7 @@ import com.hcmus.mela.ai.client.webclient.AiWebClient;
 import com.hcmus.mela.exercise.model.Option;
 import com.hcmus.mela.exercise.model.Question;
 import com.hcmus.mela.exercise.model.QuestionType;
-import com.hcmus.mela.exercise.service.QuestionService;
-import com.hcmus.mela.shared.exception.BadRequestException;
+import com.hcmus.mela.exercise.service.ExerciseQuestionService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,20 +23,21 @@ import java.util.regex.Pattern;
 
 @Service
 public class QuestionConfusionServiceImpl implements QuestionConfusionService {
-    private final QuestionService questionService;
+
+    private final ExerciseQuestionService exerciseQuestionService;
     private final AiWebClient aiWebClient;
     private final AiFeatureProperties aiClientProperties;
     private final AiRequestBodyFactory aiRequestBodyFactory;
     private final QuestionConfusionPrompt questionConfusionPrompt;
 
     public QuestionConfusionServiceImpl(
-            QuestionService questionService,
+            ExerciseQuestionService exerciseQuestionService,
             AiWebClient aiWebClient,
             AiClientProperties aiClientProperties,
             AiRequestBodyFactory aiRequestBodyFactory,
             QuestionConfusionPrompt questionConfusionPrompt
     ) {
-        this.questionService = questionService;
+        this.exerciseQuestionService = exerciseQuestionService;
         this.aiWebClient = aiWebClient;
         this.aiClientProperties = aiClientProperties.getChatBot();
         this.aiRequestBodyFactory = aiRequestBodyFactory;
@@ -48,19 +49,17 @@ public class QuestionConfusionServiceImpl implements QuestionConfusionService {
         String regex = "<img\\s+src='([^\"]*)'>";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(text);
-
         while (matcher.find()) {
             imageSources.add(matcher.group(1));
         }
-
         return imageSources;
     }
 
     @Override
     public QuestionConfusionResponseDto resolveQuestionConfusion(UUID questionId, QuestionConfusionRequestDto requestDto) {
-        Question question = questionService.findByQuestionId(questionId);
+        Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
         if (question == null) {
-            throw new BadRequestException("Question with id " + questionId + " not found");
+            throw new ChatBotException("Question with id " + questionId + " not found");
         }
 
         StringBuilder textData = new StringBuilder("Đề bài: ").append(question.getContent());
@@ -80,14 +79,14 @@ public class QuestionConfusionServiceImpl implements QuestionConfusionService {
             case CUSTOM -> {
                 prompt = questionConfusionPrompt.getCustomText().getInstruction();
                 textData.append("Thắc mắc của học sinh: ").append(requestDto.getText());
-                if(requestDto.getImageUrl() != null && !requestDto.getImageUrl().isBlank()) {
+                if (requestDto.getImageUrl() != null && !requestDto.getImageUrl().isBlank()) {
                     textData.append("Link ảnh học sinh gửi: ").append(requestDto.getImageUrl());
                     imageSources.add(requestDto.getImageUrl());
                 }
             }
             case CLARIFY_QUESTION -> prompt = questionConfusionPrompt.getClarifyQuestion().getInstruction();
             case EXPLAIN_SOLUTION -> prompt = questionConfusionPrompt.getExplainSolution().getInstruction();
-            default -> throw new BadRequestException("Unsupported type: " + requestDto.getType());
+            default -> throw new ChatBotException("Unsupported type: " + requestDto.getType());
         }
 
         Object requestBody = aiRequestBodyFactory.buildRequestBodyForQuestionConfusion(

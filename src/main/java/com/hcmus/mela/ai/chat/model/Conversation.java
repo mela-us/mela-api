@@ -15,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "conversations")
 public class Conversation {
+
     @Id
     @Field(name = "_id")
     private UUID conversationId;

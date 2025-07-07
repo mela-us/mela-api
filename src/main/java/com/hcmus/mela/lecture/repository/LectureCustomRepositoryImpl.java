@@ -1,7 +1,6 @@
 package com.hcmus.mela.lecture.repository;
 
 import com.hcmus.mela.lecture.model.Lecture;
-import com.hcmus.mela.lecture.model.LectureActivity;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.domain.Sort;
@@ -11,7 +10,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +25,6 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
     public List<Lecture> findLecturesByTopicAndLevel(UUID topicId, UUID levelId) {
         Criteria criteria = Criteria.where("topic_id").is(topicId)
                 .and("level_id").is(levelId);
-
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
     }
@@ -36,55 +34,22 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
         Criteria criteria = (keyword != null && !keyword.trim().isEmpty())
                 ? Criteria.where("name").regex(keyword, "i")
                 : new Criteria(); // match all
-
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
     }
 
     @Override
-    public List<LectureActivity> findRecentLectureByUserExerciseHistory(UUID userId, Integer size) {
-        List<AggregationOperation> pipeline = new ArrayList<>();
-        pipeline.add(Aggregation.match(Criteria.where("user_id").is(userId)));
-
-        pipeline.addAll(buildLectureJoinAggregation(size));
-
-        Aggregation aggregation = Aggregation.newAggregation(pipeline);
-        AggregationResults<LectureActivity> results = mongoTemplate.aggregate(
-                aggregation,
-                "exercise_histories",
-                LectureActivity.class);
-        return results.getMappedResults();
-    }
-
-    @Override
-    public List<LectureActivity> findRecentLectureByUserSectionHistory(UUID userId, Integer size) {
-        List<AggregationOperation> pipeline = new ArrayList<>();
-        pipeline.add(Aggregation.match(Criteria.where("user_id").is(userId)));
-        pipeline.add(Aggregation.project("lecture_id", "completed_sections"));
-        pipeline.add(Aggregation.unwind("completed_sections"));
-        pipeline.add(Aggregation.project("lecture_id")
-                .and("completed_sections.completed_at").as("completed_at"));
-
-        pipeline.addAll(buildLectureJoinAggregation(size));
-
-        Aggregation aggregation = Aggregation.newAggregation(pipeline);
-        AggregationResults<LectureActivity> results = mongoTemplate.aggregate(
-                aggregation,
-                "lecture_histories",
-                LectureActivity.class);
-        return results.getMappedResults();
-    }
-
-    @Override
     public List<Lecture> findCompleteLecturesWithWrongExercises(UUID userId) {
-        // Match by userId and completed_at ≥ 3 days ago
+        // Match by user_id and completed_at ≥ 3 days ago
         MatchOperation userAndDateMatch = Aggregation.match(
                 new Criteria().andOperator(
                         Criteria.where("user_id").is(userId),
-                        Criteria.where("completed_at").lte(LocalDateTime.now().minusDays(3))
+                        Criteria.where("completed_at")
+                                .lte(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).minusDays(3))
                 )
         );
 
+        // Lookup exercise_histories with nested lookup to filter VERIFIED exercises
         AggregationOperation lookupExercise = context -> new Document("$lookup",
                 new Document("from", "exercise_histories")
                         .append("let", new Document("lectureId", "$lecture_id").append("userId", "$user_id"))
@@ -96,20 +61,25 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                                                         new Document("$eq", Arrays.asList("$user_id", "$$userId"))
                                                 ))
                                         )
+                                ),
+                                // Lookup to join with exercises collection to get status
+                                new Document("$lookup",
+                                        new Document("from", "exercises")
+                                                .append("localField", "exercise_id")
+                                                .append("foreignField", "_id")
+                                                .append("as", "exercise")
+                                ),
+                                new Document("$unwind", "$exercise"),
+                                // status = "VERIFIED"
+                                new Document("$match",
+                                        new Document("exercise.status", "VERIFIED")
                                 )
                         ))
                         .append("as", "exerciseResults")
         );
 
-
         // Unwind exerciseResults
         UnwindOperation unwindExercises = Aggregation.unwind("exerciseResults", true);
-
-        ProjectionOperation projectRenameExerciseFields = Aggregation.project()
-                .andInclude("user_id", "lecture_id", "completed_at", "otherRootFieldsIfAny...") // include root fields you need
-                .and("exerciseResults.progress").as("exerciseResults.progress")
-                .and("exerciseResults.score").as("exerciseResults.score")
-                .and("exerciseResults.completed_at").as("exerciseCompletedAt");
 
         AddFieldsOperation addDefaultScore = Aggregation.addFields()
                 .addFieldWithValue("exerciseScore",
@@ -123,13 +93,22 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                 )
         );
 
-
-        // Lookup lectures by lecture_id
-        LookupOperation lookupLecture = LookupOperation.newLookup()
-                .from("lectures")
-                .localField("lecture_id")
-                .foreignField("_id")
-                .as("lecture");
+        // Lookup lectures by lecture_id with status = "VERIFIED"
+        AggregationOperation lookupLecture = context -> new Document("$lookup",
+                new Document("from", "lectures")
+                        .append("let", new Document("lectureId", "$lecture_id"))
+                        .append("pipeline", Arrays.asList(
+                                new Document("$match",
+                                        new Document("$expr",
+                                                new Document("$and", Arrays.asList(
+                                                        new Document("$eq", Arrays.asList("$_id", "$$lectureId")),
+                                                        new Document("$eq", Arrays.asList("$status", "VERIFIED"))
+                                                ))
+                                        )
+                                )
+                        ))
+                        .append("as", "lecture")
+        );
 
         // Unwind lectures (should be only one)
         UnwindOperation unwindLecture = Aggregation.unwind("lecture");
@@ -159,7 +138,6 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                 replaceRootFinal
         );
 
-
         AggregationResults<Lecture> results = mongoTemplate.aggregate(
                 aggregation, "lecture_histories", Lecture.class
         );
@@ -167,35 +145,27 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
         return results.getMappedResults();
     }
 
-    private List<AggregationOperation> buildLectureJoinAggregation(Integer size) {
-        return Arrays.asList(
-                Aggregation.sort(Sort.Direction.DESC, "completed_at"),
-                Aggregation.group("lecture_id")
-                        .first("completed_at").as("completed_at"),
-                Aggregation.sort(Sort.Direction.DESC, "completed_at"),
-                Aggregation.limit(size),
-                Aggregation.lookup("lectures", "_id", "_id", "lecture"),
-                Aggregation.unwind("lecture"),
-                Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
-                Aggregation.project()
-                        .and("lecture._id").as("lecture_id")
-                        .and("lecture.level_id").as("level_id")
-                        .and("lecture.topic_id").as("topic_id")
-                        .and("lecture.ordinal_number").as("ordinal_number")
-                        .and("lecture.name").as("name")
-                        .and("lecture.description").as("description")
-                        .and("completed_at").as("completed_at")
-                        .and("exercises").size().as("total_exercises")
-        );
-    }
-
     private Aggregation buildLectureAggregation(Criteria matchCriteria) {
         return Aggregation.newAggregation(
                 Aggregation.match(matchCriteria),
-                Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description"),
+                Aggregation.match(Criteria.where("status").is("VERIFIED")),
                 Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
-                Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description")
-                        .and("exercises").size().as("total_exercises")
+                Aggregation.unwind("exercises", true),
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("exercises.status").is("VERIFIED"),
+                        Criteria.where("exercises").is(null)
+                )),
+                // Group by id and get total exercises, if no exercises, set total_exercises to 0
+                Aggregation.group("_id")
+                        .first("name").as("name")
+                        .first("description").as("description")
+                        .first("topic_id").as("topic_id")
+                        .first("level_id").as("level_id")
+                        .first("ordinal_number").as("ordinal_number")
+                        .push("exercises").as("exercises"),
+                Aggregation.project("_id", "name", "description", "topic_id", "level_id", "ordinal_number")
+                        .and("exercises").size().as("total_exercises"),
+                Aggregation.sort(Sort.by(Sort.Order.asc("ordinal_number")))
         );
     }
 

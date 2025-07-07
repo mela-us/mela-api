@@ -15,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document
 public class Summary {
+
     @Field(name = "latest_update")
     private Date latestUpdate;
 

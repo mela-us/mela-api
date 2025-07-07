@@ -17,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Document(collection = "users")
 public class User {
+
     @Id
     @Field(name = "_id")
     private UUID userId; // Mongo stores _id as a String; you can use UUID.toString()

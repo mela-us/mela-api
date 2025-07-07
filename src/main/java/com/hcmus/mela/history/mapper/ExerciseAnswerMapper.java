@@ -15,12 +15,12 @@ public interface ExerciseAnswerMapper {
 
     ExerciseAnswerMapper INSTANCE = Mappers.getMapper(ExerciseAnswerMapper.class);
 
-    ExerciseAnswer convertToExerciseAnswer(ExerciseAnswerDto answerDto);
+    ExerciseAnswer exerciseAnswerDtoToExerciseAnswer(ExerciseAnswerDto answerDto);
 
-    AnswerResultDto convertToAnswerResultDto(ExerciseAnswer answer);
+    AnswerResultDto exerciseAnswerToAnswerResultDto(ExerciseAnswer answer);
 
-    ExerciseAnswerDto convertToExerciseAnswerDto(ExerciseAnswer answer);
+    ExerciseAnswerDto exerciseAnswerToExerciseAnswerDto(ExerciseAnswer answer);
 
-    @Named("convertToExerciseAnswerDtoList")
-    List<ExerciseAnswerDto> convertToExerciseAnswerDtoList(List<ExerciseAnswer> answers);
+    @Named("exerciseAnswersToExerciseAnswerDtos")
+    List<ExerciseAnswerDto> exerciseAnswersToExerciseAnswerDtos(List<ExerciseAnswer> answers);
 }

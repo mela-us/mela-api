@@ -2,10 +2,15 @@ package com.hcmus.mela.user.model;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.PrePersist;
 import lombok.*;
-        import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -48,4 +53,20 @@ public class User {
     @Field("user_role")
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID();
+        }
+        Instant nowInstant = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
+        Date now = Date.from(nowInstant);
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        this.updatedAt = now;
+        if (this.userRole == null) {
+            this.userRole = UserRole.USER;
+        }
+    }
 }

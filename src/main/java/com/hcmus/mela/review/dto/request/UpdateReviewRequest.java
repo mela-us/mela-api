@@ -13,6 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateReviewRequest {
+
     private ReviewType type;
 
     private UUID itemId;

@@ -74,6 +74,17 @@ public class AzureStorageServiceImpl implements StorageService {
         );
     }
 
+    @Override
+    public Map<String, String> getUploadMelaFilePreSignedUrl(String fileName) {
+        String containerName = azureStorageProperties.getContainer().getCommonUpload().getName();
+        String preSignedUrl = generateUploadPreSignedUrl(containerName, fileName);
+        String storedUrl = getStoredUrl(containerName, fileName);
+        return Map.of(
+                "preSignedUrl", preSignedUrl,
+                "storedUrl", storedUrl
+        );
+    }
+
     public String generateUploadPreSignedUrl(String containerName, String blobName) {
         BlobSasPermission permissions = new BlobSasPermission()
                 .setWritePermission(true)

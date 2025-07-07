@@ -7,6 +7,7 @@ import com.hcmus.mela.history.dto.dto.AnswerResultDto;
 import com.hcmus.mela.history.dto.dto.ExerciseHistoryDto;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
+import com.hcmus.mela.history.exception.HistoryException;
 import com.hcmus.mela.history.mapper.ExerciseAnswerMapper;
 import com.hcmus.mela.history.mapper.ExerciseHistoryMapper;
 import com.hcmus.mela.history.model.BestResultByExercise;
@@ -15,13 +16,16 @@ import com.hcmus.mela.history.model.ExerciseHistory;
 import com.hcmus.mela.history.model.ExercisesCountByLecture;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.lecture.dto.dto.LectureDto;
-import com.hcmus.mela.lecture.service.LectureService;
+import com.hcmus.mela.lecture.service.LectureInfoService;
+import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.shared.utils.ProjectConstants;
+import com.hcmus.mela.skills.service.UserSkillService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,27 +35,28 @@ import java.util.stream.Collectors;
 public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
 
     private final ExerciseHistoryRepository exerciseHistoryRepository;
-    private final LectureService lectureService;
+    private final LectureInfoService lectureInfoService;
     private final ExerciseInfoService exerciseInfoService;
     private final ExerciseGradeService exerciseGradeService;
+    private final UserSkillService userSkillService;
 
     @Override
-    public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest exerciseResultRequest) {
+    public ExerciseResultResponse getExerciseResultResponse(UUID userId, ExerciseResultRequest request) {
         List<ExerciseAnswer> exerciseAnswerList = exerciseGradeService.gradeExercise(
-                exerciseResultRequest.getExerciseId(),
-                exerciseResultRequest.getAnswers()
+                request.getExerciseId(),
+                request.getAnswers()
         );
         saveExerciseHistory(
                 userId,
-                exerciseResultRequest.getStartedAt(),
-                exerciseResultRequest.getCompletedAt(),
-                exerciseResultRequest.getExerciseId(),
+                request.getStartedAt(),
+                request.getCompletedAt(),
+                request.getExerciseId(),
                 exerciseAnswerList
         );
         log.info("Exercise result saved successfully for user: {}", userId);
 
         List<AnswerResultDto> answerResults = exerciseAnswerList.stream()
-                .map(ExerciseAnswerMapper.INSTANCE::convertToAnswerResultDto)
+                .map(ExerciseAnswerMapper.INSTANCE::exerciseAnswerToAnswerResultDto)
                 .toList();
         return new ExerciseResultResponse(
                 "Exercise result submit successfully for user: " + userId,
@@ -64,13 +69,21 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
             LocalDateTime completedAt,
             UUID exerciseId,
             List<ExerciseAnswer> answers) {
-        ExerciseDto exerciseInfo = exerciseInfoService.findByExerciseId(exerciseId);
-        LectureDto lectureInfo = lectureService.getLectureById(exerciseInfo.getLectureId());
-
+        ExerciseDto exerciseInfo = exerciseInfoService.findExerciseByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED);
+        if (exerciseInfo == null) {
+            throw new HistoryException("Exercise not found or not verified");
+        }
+        LectureDto lectureInfo = lectureInfoService.findLectureByLectureId(exerciseInfo.getLectureId());
+        if (startedAt == null) {
+            startedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        }
+        if (completedAt == null) {
+            completedAt = LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        }
         Double score = answers.stream()
                 .filter(ExerciseAnswer::getIsCorrect)
                 .count() * 1.0 / answers.size() * 100;
-
+        Long correctAnswers = answers.stream().filter(ExerciseAnswer::getIsCorrect).count();
         ExerciseHistory exerciseHistory = ExerciseHistory.builder()
                 .id(UUID.randomUUID())
                 .lectureId(lectureInfo.getLectureId())
@@ -83,19 +96,22 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
                 .completedAt(completedAt)
                 .answers(answers)
                 .build();
-
         exerciseHistoryRepository.save(exerciseHistory);
+        userSkillService.updateUserSkill(
+                userId,
+                lectureInfo.getLevelId(),
+                lectureInfo.getTopicId(),
+                correctAnswers.intValue(),
+                answers.size() - correctAnswers.intValue());
     }
 
     @Override
     public Map<UUID, Integer> getPassedExerciseCountOfUser(UUID userId) {
         List<ExercisesCountByLecture> exercisesCountByLectureList = exerciseHistoryRepository
                 .countTotalPassExerciseOfUser(userId, ProjectConstants.EXERCISE_PASS_SCORE);
-
         if (exercisesCountByLectureList == null || exercisesCountByLectureList.isEmpty()) {
             return Collections.emptyMap();
         }
-
         return exercisesCountByLectureList.stream()
                 .collect(Collectors.toMap(
                         ExercisesCountByLecture::getLectureId,
@@ -119,6 +135,11 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
         if (exerciseHistories == null || exerciseHistories.isEmpty()) {
             return new ArrayList<>();
         }
-        return exerciseHistories.stream().map(ExerciseHistoryMapper.INSTANCE::converToExerciseHistoryDto).toList();
+        return exerciseHistories.stream().map(ExerciseHistoryMapper.INSTANCE::exerciseHistoryToExerciseHistoryDto).toList();
+    }
+
+    @Override
+    public void deleteAllExerciseHistoryByUserId(UUID userId) {
+        exerciseHistoryRepository.deleteAllByUserId(userId);
     }
 }

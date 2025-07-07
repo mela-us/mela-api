@@ -3,18 +3,18 @@ package com.hcmus.mela.ai.chat.service;
 import com.hcmus.mela.ai.chat.dto.request.CreateConversationRequestDto;
 import com.hcmus.mela.ai.chat.dto.request.MessageRequestDto;
 import com.hcmus.mela.ai.chat.dto.response.AiResponseContent;
-import com.hcmus.mela.ai.chat.dto.response.ConversationMetadataDto;
 import com.hcmus.mela.ai.chat.dto.response.ChatResponseDto;
+import com.hcmus.mela.ai.chat.dto.response.ConversationMetadataDto;
 import com.hcmus.mela.ai.chat.dto.response.MessageResponseDto;
 import com.hcmus.mela.ai.chat.model.*;
 import com.hcmus.mela.ai.chat.repository.ConversationRepository;
+import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
 import com.hcmus.mela.ai.client.config.AiClientProperties;
+import com.hcmus.mela.ai.client.filter.AiResponseFilter;
 import com.hcmus.mela.ai.client.prompts.ChatBotPrompt;
 import com.hcmus.mela.ai.client.webclient.AiWebClient;
-import com.hcmus.mela.ai.client.builder.AiRequestBodyFactory;
-import com.hcmus.mela.ai.client.filter.AiResponseFilter;
-import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.utils.SnakeToCamelConverter;
+import org.hibernate.query.sqm.sql.ConversionException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -52,12 +52,10 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public Object identifyProblem(Message message) {
-
         Object requestBody = aiRequestBodyFactory.createRequestBodyForChatBot(
                 chatBotPrompt.getIdentifyProblem().getInstruction(),
                 List.of(message),
                 chatBotProperties);
-
         return aiWebClient.fetchAiResponse(chatBotProperties, requestBody);
     }
 
@@ -67,18 +65,15 @@ public class ConversationServiceImpl implements ConversationService {
                 chatBotPrompt.getResolveConfusion().formatInstruction(context),
                 messageList,
                 chatBotProperties);
-
         return aiWebClient.fetchAiResponse(chatBotProperties, requestBody);
     }
 
     @Override
     public Object reviewSubmission(List<Message> messageList, String context) {
-
         Object requestBody = aiRequestBodyFactory.createRequestBodyForChatBot(
                 chatBotPrompt.getReviewSubmission().formatInstruction(context),
                 messageList,
                 chatBotProperties);
-
         return aiWebClient.fetchAiResponse(chatBotProperties, requestBody);
     }
 
@@ -88,14 +83,13 @@ public class ConversationServiceImpl implements ConversationService {
                 chatBotPrompt.getProvideSolution().formatInstruction(context),
                 messageList,
                 chatBotProperties);
-
         return aiWebClient.fetchAiResponse(chatBotProperties, requestBody);
     }
 
     @Override
     public ChatResponseDto getSolutionResponse(MessageRequestDto messageRequestDto, UUID conversationId, UUID userId) {
         Conversation conversation = conversationRepository.findByConversationIdAndUserId(conversationId, userId)
-                .orElseThrow(() -> new BadRequestException("Conversation with id " + conversationId + " not found"));
+                .orElseThrow(() -> new ConversionException("Conversation with id " + conversationId + " not found"));
 
         // Create userMessage response
         Date userMessageDate = new Date();
@@ -168,7 +162,7 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public ChatResponseDto getReviewSubmissionResponse(MessageRequestDto messageRequestDto, UUID conversationId, UUID userId) {
         Conversation conversation = conversationRepository.findByConversationIdAndUserId(conversationId, userId)
-                .orElseThrow(() -> new BadRequestException("Conversation with id " + conversationId + " not found"));
+                .orElseThrow(() -> new ConversionException("Conversation with id " + conversationId + " not found"));
 
         // Create userMessage response
         Date userMessageDate = new Date();
@@ -252,7 +246,7 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         // Push the messages if there are any
-        if(messagesToPush != null && !messagesToPush.isEmpty()) {
+        if (messagesToPush != null && !messagesToPush.isEmpty()) {
             update.push("messages").each(messagesToPush.toArray()); // Push all messages at once
         }
 
@@ -262,7 +256,7 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public ChatResponseDto sendMessage(MessageRequestDto messageRequestDto, UUID conversationId, UUID userId) {
         Conversation conversation = conversationRepository.findByConversationIdAndUserId(conversationId, userId)
-                .orElseThrow(() -> new BadRequestException("Conversation with id " + conversationId + " not found"));
+                .orElseThrow(() -> new ConversionException("Conversation with id " + conversationId + " not found"));
 
         // Create userMessage response
         Date userMessageDate = new Date();
@@ -296,9 +290,9 @@ public class ConversationServiceImpl implements ConversationService {
         Summary currentSummary = conversation.getSummary();
         String newContext;
         Date aiMessageDate = null;
-        if(conversationStatus == ConversationStatus.PROBLEM_IDENTIFIED
+        if (conversationStatus == ConversationStatus.PROBLEM_IDENTIFIED
                 || conversationStatus == ConversationStatus.SOLUTION_PROVIDED
-                || conversationStatus == ConversationStatus.SUBMISSION_REVIEWED)  {
+                || conversationStatus == ConversationStatus.SUBMISSION_REVIEWED) {
 
             // Get the list of key messages
             List<Message> messageList = conversationRepository.getKeyMessages(conversationId);
@@ -319,7 +313,7 @@ public class ConversationServiceImpl implements ConversationService {
             }
         }
 
-        if(conversationStatus == ConversationStatus.UNIDENTIFIED) {
+        if (conversationStatus == ConversationStatus.UNIDENTIFIED) {
             // Call AI service to identify problem
             response = identifyProblem(savedUserMessage);
             responseText = aiResponseFilter.getMessage(response);

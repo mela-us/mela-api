@@ -11,6 +11,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class ChatResponseDto {
+
     private UUID conversationId;
 
     private String title;

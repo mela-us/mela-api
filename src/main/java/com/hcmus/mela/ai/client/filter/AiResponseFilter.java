@@ -12,6 +12,7 @@ import java.util.Map;
  */
 @Component
 public class AiResponseFilter {
+
     /**
      * Map of AI providers to their corresponding response body classes.
      * Keys are provider names in lowercase, values are the response body classes.

@@ -3,11 +3,13 @@ package com.hcmus.mela.ai.client.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.List;
 
 @Getter
 @Setter
 public class AzureResponseBody {
+
     private String id;
     private String object;
     private long created;

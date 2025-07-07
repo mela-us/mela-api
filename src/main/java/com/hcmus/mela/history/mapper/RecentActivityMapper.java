@@ -13,5 +13,5 @@ public interface RecentActivityMapper {
     RecentActivityMapper INSTANCE = Mappers.getMapper(RecentActivityMapper.class);
 
     @Mapping(source = "completedAt", target = "date")
-    RecentActivityDto convertToRecentActivityDto(ExerciseHistory exerciseHistory);
+    RecentActivityDto exerciseHistoryToRecentActivityDto(ExerciseHistory exerciseHistory);
 }

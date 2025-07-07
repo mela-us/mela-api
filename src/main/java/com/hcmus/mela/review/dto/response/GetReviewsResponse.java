@@ -1,6 +1,6 @@
 package com.hcmus.mela.review.dto.response;
 
-import com.hcmus.mela.review.dto.ReviewDto;
+import com.hcmus.mela.review.dto.dto.ReviewDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetReviewsResponse {
+
     private String message;
 
     private List<ReviewDto> reviews;

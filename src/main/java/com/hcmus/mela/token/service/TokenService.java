@@ -6,13 +6,14 @@ import com.hcmus.mela.token.dto.response.IncreaseUserTokenResponse;
 import java.util.UUID;
 
 public interface TokenService {
+
     GetUserTokenResponse getUserToken(UUID userId);
+
+    IncreaseUserTokenResponse increaseUserToken(UUID userId, int token);
 
     Integer reduceUserToken(UUID userId, Integer cost);
 
     Boolean validateUserToken(UUID userId);
 
-    IncreaseUserTokenResponse increaseUserToken(UUID userId, int token);
-
-
+    void deleteUserToken(UUID userId);
 }

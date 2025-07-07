@@ -18,7 +18,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AtLeastOneNotEmpty {
     String message() default "At least one field must not be empty";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
+
     String[] fields();
 }

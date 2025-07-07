@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "prompt.chatbot")
 public class ChatBotPrompt {
+
     private IdentifyProblem identifyProblem;
     private ResolveConfusion resolveConfusion;
     private ReviewSubmission reviewSubmission;

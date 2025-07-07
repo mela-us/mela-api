@@ -49,6 +49,10 @@ public class JwtTokenManager {
         return getDecodedJWT(token).getClaim("username").asString();
     }
 
+    public String getRoleFromToken(String token) {
+        return getDecodedJWT(token).getClaim("role").asString();
+    }
+
     public boolean validateToken(String token, String authenticatedUsername) {
         DecodedJWT decodedJWT = getDecodedJWT(token);
         return authenticatedUsername.equals(decodedJWT.getClaim("username").asString())

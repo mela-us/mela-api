@@ -12,5 +12,4 @@ public interface AuthRepository extends MongoRepository<User, UUID> {
     User findByUsername(String username);
 
     boolean existsByUsername(String username);
-
 }

@@ -1,6 +1,6 @@
 package com.hcmus.mela.ai.client.builder;
 
-
+import com.hcmus.mela.ai.chat.model.Message;
 import com.hcmus.mela.ai.client.config.AiFeatureProperties;
 import com.hcmus.mela.ai.client.dto.request.AzureMessage;
 import com.hcmus.mela.ai.client.dto.request.AzureRequestBody;
@@ -19,13 +19,16 @@ import java.util.Map;
  */
 @Component
 public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
+
     @Override
     public AzureRequestBody buildRequestBodyForQuestionHint(String prompt, String textData, List<String> imageUrls, AiFeatureProperties aiFeatureProperties) {
         List<Map<String, Object>> contentList = new ArrayList<>();
 
         // Add text content if provided
         if (textData != null && !textData.isBlank()) {
-            contentList.add(Map.of("type", "text", "text", textData));
+            contentList.add(Map.of(
+                    "type", "text",
+                    "text", textData));
         }
 
         // Add image URLs if provided
@@ -48,11 +51,10 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
     }
 
     @Override
-    public Object buildRequestBodyForChatBot(String prompt, List<com.hcmus.mela.ai.chat.model.Message> message, AiFeatureProperties aiFeatureProperties) {
-
+    public Object buildRequestBodyForChatBot(String prompt, List<Message> message, AiFeatureProperties aiFeatureProperties) {
         List<AzureMessage> inputMessages = new ArrayList<>();
 
-        for (com.hcmus.mela.ai.chat.model.Message msg : message) {
+        for (Message msg : message) {
             String role = msg.getRole();
             List<Map<String, Object>> inputContents = new ArrayList<>();
             Map<String, Object> content = msg.getContent();
@@ -61,13 +63,17 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
             StringBuilder textContentBuilder = new StringBuilder();
             for (Map.Entry<String, Object> entry : content.entrySet()) {
                 if (entry.getKey().equals("image_url")) {
-                    imgContent = Map.of("type", "image_url", "image_url", Map.of("url", entry.getValue()));
+                    imgContent = Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", entry.getValue()));
                     inputContents.add(imgContent);
                 } else {
                     textContentBuilder.append(entry).append("\n");
                 }
             }
-            Map<String, Object> textContent = Map.of("type", "text", "text", textContentBuilder.toString());
+            Map<String, Object> textContent = Map.of(
+                    "type", "text",
+                    "text", textContentBuilder.toString());
             inputContents.add(textContent);
             inputMessages.add(new AzureMessage(role, inputContents));
         }
@@ -86,44 +92,62 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
         List<Map<String, Object>> guideUserMessage = new ArrayList<>();
         List<Map<String, Object>> answerUserMessage = new ArrayList<>();
 
-        questionUserMessage.add(Map.of("type", "text", "text", "Đây là nội dung câu hỏi (có thể gồm text và hình ảnh)."));
+        questionUserMessage.add(Map.of(
+                "type", "text",
+                "text", "Đây là nội dung câu hỏi (có thể gồm text và hình ảnh)."));
         // Add text content if provided
         if (question != null && !question.isBlank()) {
-            questionUserMessage.add(Map.of("type", "text", "text", "Nội dung câu hỏi: " + question));
+            questionUserMessage.add(Map.of(
+                    "type", "text",
+                    "text", "Nội dung câu hỏi: " + question));
         }
         List<String> questionImageUrls = TextUtils.extractImageSources(question);
         // Add image URLs if provided
         if (!questionImageUrls.isEmpty()) {
             for (String imageUrl : questionImageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    questionUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    questionUserMessage.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
 
-        guideUserMessage.add(Map.of("type", "text", "text", "Đây là nội dung hướng dẫn trả lời (có thể gồm text và hình ảnh)."));
+        guideUserMessage.add(Map.of(
+                "type", "text",
+                "text", "Đây là nội dung hướng dẫn trả lời (có thể gồm text và hình ảnh)."));
         if (solution != null && !solution.isBlank()) {
-            guideUserMessage.add(Map.of("type", "text", "text", "Nội dung câu trả lời: " + solution));
+            guideUserMessage.add(Map.of(
+                    "type", "text",
+                    "text", "Nội dung câu trả lời: " + solution));
         }
         List<String> solutionImageUrls = TextUtils.extractImageSources(solution);
         // Add image URLs if provided
         if (!solutionImageUrls.isEmpty()) {
             for (String imageUrl : solutionImageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    guideUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    guideUserMessage.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
 
-        answerUserMessage.add(Map.of("type", "text", "text", "Đây là lời giải học sinh cung cấp (có thể gồm text và hình ảnh)."));
+        answerUserMessage.add(Map.of(
+                "type", "text",
+                "text", "Đây là lời giải học sinh cung cấp (có thể gồm text và hình ảnh)."));
         if (assignmentText != null && !assignmentText.isBlank()) {
-            answerUserMessage.add(Map.of("type", "text", "text", "Dạng text: " + assignmentText));
+            answerUserMessage.add(Map.of(
+                    "type", "text",
+                    "text", "Dạng text: " + assignmentText));
         }
         // Add image URLs if provided
         if (assignmentImageUrls != null && !assignmentImageUrls.isEmpty()) {
             for (String imageUrl : assignmentImageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    answerUserMessage.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    answerUserMessage.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
@@ -146,14 +170,18 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
 
         // Add text content if provided
         if (textData != null && !textData.isBlank()) {
-            contentList.add(Map.of("type", "text", "text", textData));
+            contentList.add(Map.of(
+                    "type", "text",
+                    "text", textData));
         }
 
         // Add image URLs if provided
         if (imageUrls != null && !imageUrls.isEmpty()) {
             for (String imageUrl : imageUrls) {
                 if (imageUrl != null && !imageUrl.isBlank()) {
-                    contentList.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+                    contentList.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", imageUrl.trim())));
                 }
             }
         }
@@ -180,11 +208,15 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
         List<Map<String, Object>> contentList = new ArrayList<>();
 
         if (textData != null && !textData.isBlank()) {
-            contentList.add(Map.of("type", "text", "text", textData));
+            contentList.add(Map.of(
+                    "type", "text",
+                    "text", textData));
         }
 
         if (imageUrl != null && !imageUrl.isBlank()) {
-            contentList.add(Map.of("type", "image_url", "image_url", Map.of("url", imageUrl.trim())));
+            contentList.add(Map.of(
+                    "type", "image_url",
+                    "image_url", Map.of("url", imageUrl.trim())));
         }
 
         if (fileUrl != null && !fileUrl.isBlank()) {
@@ -194,11 +226,15 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
                 PdfExtractor.ExtractedPdf doc = PdfExtractor.extractFromUrl(fileUrl, startPage, endPage);
 
                 if (doc.text != null && !doc.text.isBlank()) {
-                    contentList.add(Map.of("type", "text", "text", doc.text));
+                    contentList.add(Map.of(
+                            "type", "text",
+                            "text", doc.text));
                 }
 
                 for (String imgData : doc.imageBase64) {
-                    contentList.add(Map.of("type", "image_url", "image_url", Map.of("url", imgData)));
+                    contentList.add(Map.of(
+                            "type", "image_url",
+                            "image_url", Map.of("url", imgData)));
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to fetch or extract PDF from: " + fileUrl, e);
@@ -213,6 +249,4 @@ public class AzureRequestBodyBuilder implements AiRequestBodyBuilder {
                 )
         );
     }
-
-
 }

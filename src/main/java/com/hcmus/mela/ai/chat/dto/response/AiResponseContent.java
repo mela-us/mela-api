@@ -17,14 +17,15 @@ import java.util.Map;
 @Getter
 @AllArgsConstructor
 public class AiResponseContent {
+
     private Map<String, Object> responseData;
 
     public static AiResponseContent fromJson(String jsonString) {
         Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-        Type type = new TypeToken<Map<String, Object>>() {}.getType();
+        Type type = new TypeToken<Map<String, Object>>() {
+        }.getType();
         String dataString = LaTeXUtils.normalizeLaTeX(jsonString);
         Map<String, Object> data = gson.fromJson(dataString, type);
-
         return new AiResponseContent(data != null ? data : new HashMap<>());
     }
 

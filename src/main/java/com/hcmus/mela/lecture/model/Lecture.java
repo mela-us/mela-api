@@ -1,5 +1,8 @@
 package com.hcmus.mela.lecture.model;
 
+import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.shared.utils.ProjectConstants;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,4 +42,26 @@ public class Lecture {
 
     @Field("total_exercises")
     private Integer totalExercises;
+
+    @Field(name = "status")
+    private ContentStatus status;
+
+    @Field(name = "created_by")
+    private UUID createdBy;
+
+    @Field(name = "rejected_reason")
+    private String rejectedReason;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.status == null) {
+            this.status = ContentStatus.PENDING;
+        }
+        if (this.createdBy == null) {
+            this.createdBy = ProjectConstants.ADMIN_ID;
+        }
+        if (this.totalExercises != null) {
+            this.totalExercises = null;
+        }
+    }
 }
