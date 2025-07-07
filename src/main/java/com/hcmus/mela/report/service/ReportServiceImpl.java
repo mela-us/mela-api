@@ -3,9 +3,11 @@ package com.hcmus.mela.report.service;
 import com.hcmus.mela.history.model.ExerciseHistory;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.history.repository.TestHistoryRepository;
+import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.repository.LevelRepository;
 import com.hcmus.mela.report.dto.dto.StatDto;
 import com.hcmus.mela.report.dto.response.*;
+import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.topic.repository.TopicRepository;
 import com.hcmus.mela.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,13 +44,12 @@ public class ReportServiceImpl implements ReportService {
 
         // Get time range for the previous month
         ZonedDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
-        ZonedDateTime endOfPreviousMonth = startOfCurrentMonth;
 
         // Convert to Date for MongoDB query
         Date currentMonthStart = Date.from(startOfCurrentMonth.toInstant());
         Date nextMonthStart = Date.from(startOfNextMonth.toInstant());
         Date previousMonthStart = Date.from(startOfPreviousMonth.toInstant());
-        Date previousMonthEnd = Date.from(endOfPreviousMonth.toInstant());
+        Date previousMonthEnd = Date.from(startOfCurrentMonth.toInstant());
 
         // Count new users in the current month
         int currentCount = userRepository.countByCreatedAtBetween(currentMonthStart, nextMonthStart);
@@ -76,13 +77,12 @@ public class ReportServiceImpl implements ReportService {
 
         // Get time range for the previous month
         ZonedDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
-        ZonedDateTime endOfPreviousMonth = startOfCurrentMonth;
 
         // Convert to LocalDateTime for MongoDB query
         LocalDateTime currentMonthStart = startOfCurrentMonth.toLocalDateTime();
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
         LocalDateTime previousMonthStart = startOfPreviousMonth.toLocalDateTime();
-        LocalDateTime previousMonthEnd = endOfPreviousMonth.toLocalDateTime();
+        LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
         // Count completed tests in the current month
         int currentCount = testHistoryRepository.countByCompletedAtBetween(currentMonthStart, nextMonthStart);
@@ -111,13 +111,12 @@ public class ReportServiceImpl implements ReportService {
 
         // Get time range for the previous month
         ZonedDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
-        ZonedDateTime endOfPreviousMonth = startOfCurrentMonth;
 
         // Convert to LocalDateTime for MongoDB query
         LocalDateTime currentMonthStart = startOfCurrentMonth.toLocalDateTime();
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
         LocalDateTime previousMonthStart = startOfPreviousMonth.toLocalDateTime();
-        LocalDateTime previousMonthEnd = endOfPreviousMonth.toLocalDateTime();
+        LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
         // Count completed exercises in the current month
         int currentCount = exerciseHistoryRepository.countByCompletedAtBetween(currentMonthStart, nextMonthStart);
@@ -145,16 +144,15 @@ public class ReportServiceImpl implements ReportService {
 
         // Get time range for the previous month
         ZonedDateTime startOfPreviousMonth = startOfCurrentMonth.minusMonths(1);
-        ZonedDateTime endOfPreviousMonth = startOfCurrentMonth;
 
         // Convert to LocalDateTime for MongoDB query
         LocalDateTime currentMonthStart = startOfCurrentMonth.toLocalDateTime();
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
         LocalDateTime previousMonthStart = startOfPreviousMonth.toLocalDateTime();
-        LocalDateTime previousMonthEnd = endOfPreviousMonth.toLocalDateTime();
+        LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
         // Get exercise history records for the current month
-        List<ExerciseHistory> currentMonthRecords = exerciseHistoryRepository.findByCompletedAtBetween(currentMonthStart, nextMonthStart);
+        List<ExerciseHistory> currentMonthRecords = exerciseHistoryRepository.findAllByCompletedAtBetween(currentMonthStart, nextMonthStart);
 
         // Calculate average time for the current month (in minutes)
         double currentAvgTime = currentMonthRecords.isEmpty() ? 0.0 :
@@ -165,7 +163,7 @@ public class ReportServiceImpl implements ReportService {
                         .orElse(0.0);
 
         // Get exercise history records for the previous month
-        List<ExerciseHistory> previousMonthRecords = exerciseHistoryRepository.findByCompletedAtBetween(previousMonthStart, previousMonthEnd);
+        List<ExerciseHistory> previousMonthRecords = exerciseHistoryRepository.findAllByCompletedAtBetween(previousMonthStart, previousMonthEnd);
 
         // Calculate average time for the previous month (in minutes)
         double previousAvgTime = previousMonthRecords.isEmpty() ? 0.0 :
@@ -198,7 +196,7 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
 
         // Get hourly exercise completion counts
-        List<ExerciseHistoryRepository.HourlyCount> hourlyCounts = exerciseHistoryRepository.countByHourInMonth(currentMonthStart, nextMonthStart);
+        List<ExerciseHistoryRepository.HourlyCount> hourlyCounts = exerciseHistoryRepository.countByCompletedAtBetweenGroupByHour(currentMonthStart, nextMonthStart);
 
         // Initialize list for all 24 hours (0-23)
         List<HourlyExerciseDataResponse.HourlyActivity> hourlyActivities = new ArrayList<>();
@@ -282,15 +280,15 @@ public class ReportServiceImpl implements ReportService {
         List<ExerciseHistoryRepository.LevelTime> levelTimes = exerciseHistoryRepository.averageTimeByLevel(currentMonthStart, nextMonthStart);
 
         // Get all levels to ensure every level is included
-        List<com.hcmus.mela.level.model.Level> allLevels = levelRepository.findAll();
+        List<Level> allLevels = levelRepository.findAll();
         Map<UUID, String> levelIdToName = allLevels.stream()
-                .collect(Collectors.toMap(com.hcmus.mela.level.model.Level::getLevelId, com.hcmus.mela.level.model.Level::getName));
+                .collect(Collectors.toMap(Level::getLevelId, Level::getName));
 
         // Initialize response list
         List<AverageTimeByLevelDataResponse.LevelTime> levelTimeList = new ArrayList<>();
 
         // Process aggregation results
-        for (com.hcmus.mela.level.model.Level level : allLevels) {
+        for (Level level : allLevels) {
             UUID levelId = level.getLevelId();
             String levelName = level.getName();
             int averageMinutes = 0;
@@ -332,16 +330,16 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
 
         // Get completion counts by level and topic
-        List<ExerciseHistoryRepository.LevelTopicCount> levelTopicCounts = exerciseHistoryRepository.countByLevelAndTopic(currentMonthStart, nextMonthStart);
+        List<ExerciseHistoryRepository.LevelTopicCount> levelTopicCounts = exerciseHistoryRepository.countByLevelIdAndTopicId(currentMonthStart, nextMonthStart);
 
         // Get all levels and topics
-        List<com.hcmus.mela.level.model.Level> allLevels = levelRepository.findAll();
-        List<com.hcmus.mela.topic.model.Topic> allTopics = topicRepository.findAll();
+        List<Level> allLevels = levelRepository.findAll();
+        List<Topic> allTopics = topicRepository.findAll();
 
         Map<UUID, String> levelIdToName = allLevels.stream()
-                .collect(Collectors.toMap(com.hcmus.mela.level.model.Level::getLevelId, com.hcmus.mela.level.model.Level::getName));
+                .collect(Collectors.toMap(Level::getLevelId, Level::getName));
         Map<UUID, String> topicIdToName = allTopics.stream()
-                .collect(Collectors.toMap(com.hcmus.mela.topic.model.Topic::getTopicId, com.hcmus.mela.topic.model.Topic::getName));
+                .collect(Collectors.toMap(Topic::getTopicId, Topic::getName));
 
         // Initialize response list
         List<TopicLevelHeatmapDataResponse.LevelTopics> levelTopicsList = new ArrayList<>();
@@ -351,13 +349,13 @@ public class ReportServiceImpl implements ReportService {
                 .collect(Collectors.groupingBy(ExerciseHistoryRepository.LevelTopicCount::getLevelId));
 
         // Process each level
-        for (com.hcmus.mela.level.model.Level level : allLevels) {
+        for (Level level : allLevels) {
             UUID levelId = level.getLevelId();
             String levelName = level.getName();
             List<TopicLevelHeatmapDataResponse.LevelTopics.Topic> topicList = new ArrayList<>();
 
             // Initialize topics with zero counts
-            for (com.hcmus.mela.topic.model.Topic topic : allTopics) {
+            for (Topic topic : allTopics) {
                 topicList.add(new TopicLevelHeatmapDataResponse.LevelTopics.Topic(topic.getName(), 0));
             }
 

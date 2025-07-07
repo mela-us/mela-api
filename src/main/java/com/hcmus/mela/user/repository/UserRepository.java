@@ -18,13 +18,12 @@ public interface UserRepository extends MongoRepository<User, UUID> {
 
     boolean existsByUsername(String username);
 
-    @Query("{ 'createdBy' : ?0 }")
-    @Update("{ '$set' : { 'createdBy' : ?1 } }")
+    @Query("{ 'levelId' : ?0 }")
+    @Update("{ '$set' : { 'levelId' : ?1 } }")
     void updateAllByLevelId(UUID levelId, UUID newLevelId);
 
     List<User> findAllByUserRole(UserRole userRole);
 
-    @Query("{ 'createdAt' : { $gte : ?0, $lt : ?1 } }")
     int countByCreatedAtBetween(Date start, Date end);
 
     @Aggregation(pipeline = {
@@ -33,9 +32,12 @@ public interface UserRepository extends MongoRepository<User, UUID> {
             "{ $project: { year: '$_id.year', month: '$_id.month', count: 1, _id: 0 } }"
     })
     List<MonthlyCount> countByMonthInPeriod(Date start, Date end);
+
     interface MonthlyCount {
         int getYear();
+
         int getMonth();
+
         int getCount();
     }
 }
