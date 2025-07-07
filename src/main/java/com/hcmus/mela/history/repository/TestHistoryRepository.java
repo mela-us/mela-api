@@ -2,7 +2,6 @@ package com.hcmus.mela.history.repository;
 
 import com.hcmus.mela.history.model.TestHistory;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +13,5 @@ public interface TestHistoryRepository extends MongoRepository<TestHistory, UUID
 
     void deleteAllByUserId(UUID userId);
 
-    @Query("{ 'completedAt' : { $gte : ?0, $lt : ?1 } }")
     int countByCompletedAtBetween(LocalDateTime start, LocalDateTime end);
 }
