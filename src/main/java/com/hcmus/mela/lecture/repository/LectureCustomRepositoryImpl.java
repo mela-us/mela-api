@@ -145,45 +145,27 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
         return results.getMappedResults();
     }
 
-    private List<AggregationOperation> buildLectureJoinAggregation(Integer size) {
-        return Arrays.asList(
-                Aggregation.sort(Sort.Direction.DESC, "completed_at"),
-                Aggregation.group("lecture_id")
-                        .first("completed_at").as("completed_at"),
-                Aggregation.sort(Sort.Direction.DESC, "completed_at"),
-                Aggregation.lookup("lectures", "_id", "_id", "lecture"),
-                Aggregation.unwind("lecture"),
-                Aggregation.match(Criteria.where("lecture.status").is("VERIFIED")),
-                Aggregation.limit(size),
-                Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
-                Aggregation.unwind("exercises"),
-                Aggregation.match(Criteria.where("exercises.status").is("VERIFIED")),
-                Aggregation.group("lecture._id", "lecture.level_id", "lecture.topic_id", "lecture.ordinal_number", "lecture.name", "lecture.description", "completed_at")
-                        .push("exercises").as("exercises"),
-                Aggregation.project()
-                        .and("lecture._id").as("lecture_id")
-                        .and("lecture.level_id").as("level_id")
-                        .and("lecture.topic_id").as("topic_id")
-                        .and("lecture.ordinal_number").as("ordinal_number")
-                        .and("lecture.name").as("name")
-                        .and("lecture.description").as("description")
-                        .and("completed_at").as("completed_at")
-                        .and("exercises").size().as("total_exercises")
-        );
-    }
-
     private Aggregation buildLectureAggregation(Criteria matchCriteria) {
         return Aggregation.newAggregation(
                 Aggregation.match(matchCriteria),
                 Aggregation.match(Criteria.where("status").is("VERIFIED")),
-                Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description"),
                 Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
-                Aggregation.unwind("exercises"),
-                Aggregation.match(Criteria.where("exercises.status").is("VERIFIED")),
-                Aggregation.group("_id", "level_id", "topic_id", "ordinal_number", "name", "description")
+                Aggregation.unwind("exercises", true),
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("exercises.status").is("VERIFIED"),
+                        Criteria.where("exercises").is(null)
+                )),
+                // Group by id and get total exercises, if no exercises, set total_exercises to 0
+                Aggregation.group("_id")
+                        .first("name").as("name")
+                        .first("description").as("description")
+                        .first("topic_id").as("topic_id")
+                        .first("level_id").as("level_id")
+                        .first("ordinal_number").as("ordinal_number")
                         .push("exercises").as("exercises"),
-                Aggregation.project("_id", "level_id", "topic_id", "ordinal_number", "name", "description")
-                        .and("exercises").size().as("total_exercises")
+                Aggregation.project("_id", "name", "description", "topic_id", "level_id", "ordinal_number")
+                        .and("exercises").size().as("total_exercises"),
+                Aggregation.sort(Sort.by(Sort.Order.asc("ordinal_number")))
         );
     }
 
