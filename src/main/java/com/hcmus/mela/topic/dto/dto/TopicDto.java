@@ -20,7 +20,7 @@ public class TopicDto {
 
     private UUID createdBy;
 
-    private String rejectReason;
+    private String rejectedReason;
 
     private ContentStatus status;
 }

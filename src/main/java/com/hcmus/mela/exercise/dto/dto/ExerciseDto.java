@@ -27,5 +27,5 @@ public class ExerciseDto {
 
     private UUID createdBy;
 
-    private String rejectReason;
+    private String rejectedReason;
 }
