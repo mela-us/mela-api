@@ -99,7 +99,7 @@ public class ExerciseController {
             description = "Creates a new exercise in the system.")
     public ResponseEntity<CreateExerciseResponse> createExerciseRequest(
             @Valid @RequestBody CreateExerciseRequest request,
-            @RequestHeader("Authorization") String authHeader) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader) {
         log.info("Creating exercise {}", request.getExerciseName());
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);

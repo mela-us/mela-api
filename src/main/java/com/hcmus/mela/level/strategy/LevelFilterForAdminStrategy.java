@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component("LEVEL_ADMIN")
@@ -30,6 +31,7 @@ public class LevelFilterForAdminStrategy implements LevelFilterStrategy {
         return levels.stream()
                 .filter(level -> level.getStatus() != ContentStatus.DELETED)
                 .map(LevelMapper.INSTANCE::levelToLevelDto)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
