@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component("EXERCISE_ADMIN")
@@ -38,6 +39,7 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
                     exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
                     return exerciseDetailDto;
                 })
+                .filter(Objects::nonNull)
                 .toList();
     }
 

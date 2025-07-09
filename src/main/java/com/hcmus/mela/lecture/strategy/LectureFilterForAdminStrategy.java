@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component("LECTURE_ADMIN")
@@ -36,6 +37,7 @@ public class LectureFilterForAdminStrategy implements LectureFilterStrategy {
         return lectures.stream()
                 .filter(lecture -> lecture.getStatus() != ContentStatus.DELETED)
                 .map(LectureMapper.INSTANCE::lectureToLectureDto)
+                .filter(Objects::nonNull)
                 .toList();
     }
 

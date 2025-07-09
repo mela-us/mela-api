@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Component("TOPIC_ADMIN")
@@ -31,6 +32,7 @@ public class TopicFilterForAdminStrategy implements TopicFilterStrategy {
         return topics.stream()
                 .filter(topic -> topic.getStatus() != ContentStatus.DELETED)
                 .map(TopicMapper.INSTANCE::topicToTopicDto)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
