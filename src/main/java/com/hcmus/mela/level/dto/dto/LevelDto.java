@@ -20,7 +20,7 @@ public class LevelDto {
 
     private UUID createdBy;
 
-    private String rejectReason;
+    private String rejectedReason;
 
     private ContentStatus status;
 }

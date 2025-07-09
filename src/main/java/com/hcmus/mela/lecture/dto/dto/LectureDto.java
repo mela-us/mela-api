@@ -31,5 +31,5 @@ public class LectureDto {
 
     private UUID createdBy;
 
-    private String rejectReason;
+    private String rejectedReason;
 }

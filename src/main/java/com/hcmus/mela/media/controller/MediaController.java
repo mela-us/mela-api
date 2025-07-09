@@ -25,9 +25,9 @@ public class MediaController {
             description = "Get pre-signed URL for uploading files to the storage service.")
     public ResponseEntity<GetUploadUrlResponse> getUploadUrl(
             @RequestParam(required = false) String name,
-            @RequestHeader(required = false) String type) {
+            @RequestParam(required = false) String type) {
+        name = UUID.randomUUID().toString().substring(3) + "_" + name;
         UploadType uploadType = UploadType.fromTypeName(type);
-        name = UUID.randomUUID().toString().substring(5) + "_" + name;
         String path = String.format("%s%s", uploadType.getPath(), name);
         Map<String, String> urls = storageService.getUploadMelaFilePreSignedUrl(path);
         return ResponseEntity.ok(new GetUploadUrlResponse(
