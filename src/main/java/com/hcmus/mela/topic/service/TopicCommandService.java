@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface TopicCommandService {
 
-    CreateTopicResponse createTopic(UUID userId, CreateTopicRequest request);
+    CreateTopicResponse createTopic(TopicFilterStrategy strategy, UUID userId, CreateTopicRequest request);
 
     void updateTopic(TopicFilterStrategy strategy, UUID userId, UUID topicId, UpdateTopicRequest request);
 

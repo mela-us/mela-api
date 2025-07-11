@@ -31,7 +31,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
     public GetAllLecturesResponse getAllLectures(LectureFilterStrategy strategy, UUID userId) {
         List<LectureDto> lectures = strategy.getLectures(userId);
         if (lectures.isEmpty()) {
-            return new GetAllLecturesResponse("No lectures found", Collections.emptyList());
+            return new GetAllLecturesResponse("No lectures found in the system", Collections.emptyList());
         }
         return new GetAllLecturesResponse("Get lectures success", lectures);
     }
@@ -69,7 +69,9 @@ public class LectureQueryServiceImpl implements LectureQueryService {
             lecturesByTopicDto.setLectures(lectureStatDetailDtoList);
         }
         lecturesByTopicDtoList = lecturesByTopicDtoList
-                .stream().filter(dto -> !dto.getLectures().isEmpty()).toList();
+                .stream()
+                .filter(dto -> !dto.getLectures().isEmpty())
+                .toList();
 
         return new GetLecturesByLevelResponse(
                 "Get lectures successfully",
@@ -107,7 +109,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
         Lecture lecture = lectureRepository.findByLectureIdAndStatus(lectureId, ContentStatus.VERIFIED).orElse(null);
         if (lecture == null) {
             return new GetLectureSectionsResponse(
-                    "No lecture found with the given id",
+                    "No verified lecture found with the given id",
                     0,
                     null,
                     Collections.emptyList()

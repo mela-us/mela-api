@@ -22,9 +22,9 @@ public class ExerciseStatusServiceImpl implements ExerciseStatusService {
     @Override
     public void denyExercise(UUID exerciseId, String reason) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
         if (exercise.getStatus() == ContentStatus.VERIFIED || exercise.getStatus() == ContentStatus.DELETED) {
-            throw new ExerciseException("Exercise cannot be denied");
+            throw new ExerciseException("Verified or deleted exercise cannot be denied");
         }
         exercise.setRejectedReason(reason);
         exercise.setStatus(ContentStatus.DENIED);
@@ -34,9 +34,9 @@ public class ExerciseStatusServiceImpl implements ExerciseStatusService {
     @Override
     public void approveExercise(UUID exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
         if (exercise.getStatus() == ContentStatus.DELETED) {
-            throw new ExerciseException("Exercise cannot be approved");
+            throw new ExerciseException("Deleted exercise cannot be approved");
         }
         if (!lectureStatusService.isLectureInStatus(exercise.getLectureId(), ContentStatus.VERIFIED)) {
             throw new ExerciseException("Lecture of exercise must be verified before approving exercise");

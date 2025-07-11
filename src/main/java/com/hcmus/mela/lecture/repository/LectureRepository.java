@@ -14,7 +14,11 @@ public interface LectureRepository extends MongoRepository<Lecture, UUID>, Lectu
 
     List<Lecture> findAllByStatus(ContentStatus status);
 
+    List<Lecture> findAllByStatusAndLevelId(ContentStatus status, UUID levelId);
+
     List<Lecture> findAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
+
+    List<Lecture> findAllByStatusAndCreatedByAndLevelId(ContentStatus status, UUID userId, UUID levelId);
 
     Optional<Lecture> findByLectureIdAndCreatedBy(UUID lectureId, UUID creatorId);
 

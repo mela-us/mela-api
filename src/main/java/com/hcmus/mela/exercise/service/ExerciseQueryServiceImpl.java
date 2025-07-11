@@ -114,7 +114,7 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
                 ExerciseResultDto exerciseResultDto = ExerciseResultDto.builder()
                         .status(bestScore >= ProjectConstants.EXERCISE_PASS_SCORE ? ExerciseStatus.PASS : ExerciseStatus.IN_PROGRESS)
                         .totalAnswers(numberOfQuestions)
-                        .totalCorrectAnswers((int) Math.round(numberOfQuestions * bestScore / 100))
+                        .totalCorrectAnswers((int) Math.floor(numberOfQuestions * bestScore / 100))
                         .build();
                 exerciseStatDetailDto.setBestResult(exerciseResultDto);
             } else {

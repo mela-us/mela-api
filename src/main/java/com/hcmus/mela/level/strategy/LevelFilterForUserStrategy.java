@@ -30,6 +30,11 @@ public class LevelFilterForUserStrategy implements LevelFilterStrategy {
     }
 
     @Override
+    public LevelDto createLevel(UUID userId, Level level) {
+        return null;
+    }
+
+    @Override
     public void updateLevel(UUID userId, UUID levelId, UpdateLevelRequest request) {
 
     }

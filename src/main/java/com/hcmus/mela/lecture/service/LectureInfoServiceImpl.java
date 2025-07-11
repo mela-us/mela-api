@@ -5,7 +5,6 @@ import com.hcmus.mela.lecture.mapper.LectureMapper;
 import com.hcmus.mela.lecture.model.Lecture;
 import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.ProjectConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +59,26 @@ public class LectureInfoServiceImpl implements LectureInfoService {
 
     @Override
     public void changeLectureOwnerToAdmin(UUID previousUserId) {
-        lectureRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
+        lectureRepository.updateAllByCreatedBy(previousUserId, null);
+    }
+
+    @Override
+    public UUID getLevelIdOfLecture(UUID lectureId) {
+        Lecture lecture = lectureRepository.findByLectureId(lectureId);
+        if (lecture == null) {
+            return null;
+        }
+        return lecture.getLevelId();
+    }
+
+    @Override
+    public List<UUID> getLectureIdsByLevelId(UUID levelId) {
+        List<Lecture> lectures = lectureRepository.findAllByLevelId(levelId);
+        if (lectures == null || lectures.isEmpty()) {
+            return List.of();
+        }
+        return lectures.stream()
+                .map(Lecture::getLectureId)
+                .toList();
     }
 }

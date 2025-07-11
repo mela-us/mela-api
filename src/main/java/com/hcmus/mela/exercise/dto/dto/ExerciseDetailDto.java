@@ -1,6 +1,7 @@
 package com.hcmus.mela.exercise.dto.dto;
 
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,8 @@ public class ExerciseDetailDto {
     private ContentStatus status;
 
     private UUID createdBy;
+
+    private UserPreviewDto creator;
 
     private String rejectedReason;
 }

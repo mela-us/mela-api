@@ -57,6 +57,6 @@ public class ExerciseInfoServiceImpl implements ExerciseInfoService {
 
     @Override
     public void changeExerciseOwnerToAdmin(UUID previousUserId) {
-        exerciseRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
+        exerciseRepository.updateAllByCreatedBy(previousUserId, null);
     }
 }

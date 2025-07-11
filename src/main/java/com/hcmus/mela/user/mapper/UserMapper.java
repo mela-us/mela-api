@@ -3,6 +3,7 @@ package com.hcmus.mela.user.mapper;
 
 import com.hcmus.mela.user.dto.dto.UserDetailDto;
 import com.hcmus.mela.user.dto.dto.UserDto;
+import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import com.hcmus.mela.user.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
@@ -18,4 +19,6 @@ public interface UserMapper {
     User userDtoToUser(UserDto userDto);
 
     UserDetailDto userToUserDetailDto(User user);
+
+    UserPreviewDto userToUserPreviewDto(User user);
 }
