@@ -3,13 +3,21 @@ package com.hcmus.mela.report.service;
 import com.hcmus.mela.history.model.ExerciseHistory;
 import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 import com.hcmus.mela.history.repository.TestHistoryRepository;
+import com.hcmus.mela.history.service.ExerciseHistoryService;
+import com.hcmus.mela.history.service.TestHistoryService;
+import com.hcmus.mela.level.dto.dto.LevelDto;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.repository.LevelRepository;
+import com.hcmus.mela.level.service.LevelInfoService;
+import com.hcmus.mela.report.dto.dto.AverageTimeStatDto;
 import com.hcmus.mela.report.dto.dto.StatDto;
 import com.hcmus.mela.report.dto.response.*;
+import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.topic.repository.TopicRepository;
+import com.hcmus.mela.topic.service.TopicInfoService;
 import com.hcmus.mela.user.repository.UserRepository;
+import com.hcmus.mela.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,6 +42,12 @@ public class ReportServiceImpl implements ReportService {
     private final LevelRepository levelRepository;
     private final TopicRepository topicRepository;
 
+    private final UserQueryService userQueryService;
+    private final TestHistoryService testHistoryService;
+    private final ExerciseHistoryService exerciseHistoryService;
+    private final LevelInfoService levelInfoService;
+    private final TopicInfoService topicInfoService;
+
     @Override
     public NewUsersStatResponse getNewUsersStat() {
         // Get current time in Asia/Ho_Chi_Minh timezone
@@ -52,10 +66,10 @@ public class ReportServiceImpl implements ReportService {
         Date previousMonthEnd = Date.from(startOfCurrentMonth.toInstant());
 
         // Count new users in the current month
-        int currentCount = userRepository.countByCreatedAtBetween(currentMonthStart, nextMonthStart);
+        Integer currentCount = userQueryService.countUsersCreateBetween(currentMonthStart, nextMonthStart);
 
         // Count new users in the previous month
-        int previousCount = userRepository.countByCreatedAtBetween(previousMonthStart, previousMonthEnd);
+        Integer previousCount = userQueryService.countUsersCreateBetween(previousMonthStart, previousMonthEnd);
 
         // Calculate percentage change
         double percentChange = previousCount == 0 ? 0.0 : ((double) (currentCount - previousCount) / previousCount) * 100;
@@ -85,10 +99,10 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
         // Count completed tests in the current month
-        int currentCount = testHistoryRepository.countByCompletedAtBetween(currentMonthStart, nextMonthStart);
+        int currentCount = testHistoryService.countTestHistoriesCompletedBetween(currentMonthStart, nextMonthStart);
 
         // Count completed tests in the previous month
-        int previousCount = testHistoryRepository.countByCompletedAtBetween(previousMonthStart, previousMonthEnd);
+        int previousCount = testHistoryService.countTestHistoriesCompletedBetween(previousMonthStart, previousMonthEnd);
 
         // Calculate percentage change
         double percentChange = previousCount == 0 ? 0.0 : ((double) (currentCount - previousCount) / previousCount) * 100;
@@ -119,10 +133,10 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
         // Count completed exercises in the current month
-        int currentCount = exerciseHistoryRepository.countByCompletedAtBetween(currentMonthStart, nextMonthStart);
+        int currentCount = exerciseHistoryService.countExerciseHistoriesCompletedBetween(currentMonthStart, nextMonthStart);
 
         // Count completed exercises in the previous month
-        int previousCount = exerciseHistoryRepository.countByCompletedAtBetween(previousMonthStart, previousMonthEnd);
+        int previousCount = exerciseHistoryService.countExerciseHistoriesCompletedBetween(previousMonthStart, previousMonthEnd);
 
         // Calculate percentage change
         double percentChange = previousCount == 0 ? 0.0 : ((double) (currentCount - previousCount) / previousCount) * 100;
@@ -151,33 +165,19 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime previousMonthStart = startOfPreviousMonth.toLocalDateTime();
         LocalDateTime previousMonthEnd = startOfCurrentMonth.toLocalDateTime();
 
-        // Get exercise history records for the current month
-        List<ExerciseHistory> currentMonthRecords = exerciseHistoryRepository.findAllByCompletedAtBetween(currentMonthStart, nextMonthStart);
-
         // Calculate average time for the current month (in minutes)
-        double currentAvgTime = currentMonthRecords.isEmpty() ? 0.0 :
-                currentMonthRecords.stream()
-                        .filter(record -> record.getStartedAt() != null && record.getCompletedAt() != null)
-                        .mapToDouble(record -> Duration.between(record.getStartedAt(), record.getCompletedAt()).toMinutes())
-                        .average()
-                        .orElse(0.0);
-
-        // Get exercise history records for the previous month
-        List<ExerciseHistory> previousMonthRecords = exerciseHistoryRepository.findAllByCompletedAtBetween(previousMonthStart, previousMonthEnd);
+        double currentAvgTime = calculateAverageExerciseTime(currentMonthStart, nextMonthStart);
 
         // Calculate average time for the previous month (in minutes)
-        double previousAvgTime = previousMonthRecords.isEmpty() ? 0.0 :
-                previousMonthRecords.stream()
-                        .filter(record -> record.getStartedAt() != null && record.getCompletedAt() != null)
-                        .mapToDouble(record -> Duration.between(record.getStartedAt(), record.getCompletedAt()).toMinutes())
-                        .average()
-                        .orElse(0.0);
+        double previousAvgTime = calculateAverageExerciseTime(previousMonthStart, previousMonthEnd);
 
         // Calculate percentage change
         double percentChange = previousAvgTime == 0.0 ? 0.0 : ((currentAvgTime - previousAvgTime) / previousAvgTime) * 100;
 
         // Create StatDto with rounded values (cast to int as per JSON structure)
-        StatDto statDto = new StatDto((int) Math.round(currentAvgTime), (int) Math.round(previousAvgTime), Math.round(percentChange * 10.0) / 10.0);
+        AverageTimeStatDto statDto = new AverageTimeStatDto(Math.round(currentAvgTime * 100.0) / 100.0,
+                Math.round(previousAvgTime * 100.0) / 100.0,
+                Math.round(percentChange * 10.0) / 10.0);
 
         // Return response
         return new ExerciseAverageTimeStatResponse("Success getting exercise average time stats", statDto);
@@ -196,7 +196,7 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
 
         // Get hourly exercise completion counts
-        List<ExerciseHistoryRepository.HourlyCount> hourlyCounts = exerciseHistoryRepository.countByCompletedAtBetweenGroupByHour(currentMonthStart, nextMonthStart);
+        List<ExerciseHistoryRepository.HourlyCount> hourlyCounts = exerciseHistoryService.countExerciseHistoriesCompletedBetweenGroupByHour(currentMonthStart, nextMonthStart);
 
         // Initialize list for all 24 hours (0-23)
         List<HourlyExerciseDataResponse.HourlyActivity> hourlyActivities = new ArrayList<>();
@@ -231,7 +231,7 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime endDate = startOfCurrentMonth.plusMonths(1).toLocalDateTime();
 
         // Get monthly user counts
-        List<UserRepository.MonthlyCount> monthlyCounts = userRepository.countByMonthInPeriod(
+        List<UserRepository.MonthlyCount> monthlyCounts = userQueryService.countUsersCreatedBetweenGroupByMonth(
                 java.util.Date.from(startDate.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant()),
                 java.util.Date.from(endDate.atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant())
         );
@@ -277,18 +277,18 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
 
         // Get average time per level
-        List<ExerciseHistoryRepository.LevelTime> levelTimes = exerciseHistoryRepository.averageTimeByLevel(currentMonthStart, nextMonthStart);
+        List<ExerciseHistoryRepository.LevelTime> levelTimes = exerciseHistoryService.getAverageTimeGroupByLevel(currentMonthStart, nextMonthStart);
 
         // Get all levels to ensure every level is included
-        List<Level> allLevels = levelRepository.findAll();
+        List<LevelDto> allLevels = levelInfoService.findAllLevels();
         Map<UUID, String> levelIdToName = allLevels.stream()
-                .collect(Collectors.toMap(Level::getLevelId, Level::getName));
+                .collect(Collectors.toMap(LevelDto::getLevelId, LevelDto::getName));
 
         // Initialize response list
         List<AverageTimeByLevelDataResponse.LevelTime> levelTimeList = new ArrayList<>();
 
         // Process aggregation results
-        for (Level level : allLevels) {
+        for (LevelDto level : allLevels) {
             UUID levelId = level.getLevelId();
             String levelName = level.getName();
             int averageMinutes = 0;
@@ -330,16 +330,16 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime nextMonthStart = startOfNextMonth.toLocalDateTime();
 
         // Get completion counts by level and topic
-        List<ExerciseHistoryRepository.LevelTopicCount> levelTopicCounts = exerciseHistoryRepository.countByLevelIdAndTopicId(currentMonthStart, nextMonthStart);
+        List<ExerciseHistoryRepository.LevelTopicCount> levelTopicCounts = exerciseHistoryService.countExerciseHistoriesCompletedBetweenGroupByTopicAndLevel(currentMonthStart, nextMonthStart);
 
         // Get all levels and topics
-        List<Level> allLevels = levelRepository.findAll();
-        List<Topic> allTopics = topicRepository.findAll();
+        List<LevelDto> allLevels = levelInfoService.findAllLevels();
+        List<TopicDto> allTopics = topicInfoService.findAllTopics();
 
         Map<UUID, String> levelIdToName = allLevels.stream()
-                .collect(Collectors.toMap(Level::getLevelId, Level::getName));
+                .collect(Collectors.toMap(LevelDto::getLevelId, LevelDto::getName));
         Map<UUID, String> topicIdToName = allTopics.stream()
-                .collect(Collectors.toMap(Topic::getTopicId, Topic::getName));
+                .collect(Collectors.toMap(TopicDto::getTopicId, TopicDto::getName));
 
         // Initialize response list
         List<TopicLevelHeatmapDataResponse.LevelTopics> levelTopicsList = new ArrayList<>();
@@ -349,13 +349,13 @@ public class ReportServiceImpl implements ReportService {
                 .collect(Collectors.groupingBy(ExerciseHistoryRepository.LevelTopicCount::getLevelId));
 
         // Process each level
-        for (Level level : allLevels) {
+        for (LevelDto level : allLevels) {
             UUID levelId = level.getLevelId();
             String levelName = level.getName();
             List<TopicLevelHeatmapDataResponse.LevelTopics.Topic> topicList = new ArrayList<>();
 
             // Initialize topics with zero counts
-            for (Topic topic : allTopics) {
+            for (TopicDto topic : allTopics) {
                 topicList.add(new TopicLevelHeatmapDataResponse.LevelTopics.Topic(topic.getName(), 0));
             }
 
@@ -383,5 +383,16 @@ public class ReportServiceImpl implements ReportService {
 
         // Return response
         return new TopicLevelHeatmapDataResponse("Success", levelTopicsList);
+    }
+
+    double calculateAverageExerciseTime(LocalDateTime start, LocalDateTime end) {
+        List<ExerciseHistory> records = exerciseHistoryService.findAllExerciseHistoriesCompletedBetween(start, end);
+
+        // Calculate average time for the previous month (in minutes)
+        return records.isEmpty() ? 0.0 :records.stream()
+                        .filter(record -> record.getStartedAt() != null && record.getCompletedAt() != null)
+                        .mapToDouble(record -> Duration.between(record.getStartedAt(), record.getCompletedAt()).toMinutes())
+                        .average()
+                        .orElse(0.0);
     }
 }
