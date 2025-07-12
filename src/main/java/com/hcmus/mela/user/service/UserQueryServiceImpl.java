@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,5 +32,15 @@ public class UserQueryServiceImpl implements UserQueryService {
     public GetUserDetailResponse getUserInfo(UserFilterStrategy strategy, UUID ownId, UUID getUserId) {
         UserDetailDto userDetailDto = strategy.getUserInfo(ownId, getUserId);
         return new GetUserDetailResponse("Get user info successfully", userDetailDto);
+    }
+
+    @Override
+    public Integer countUsersCreateBetween(Date startDate, Date endDate) {
+        return userRepository.countByCreatedAtBetween(startDate, endDate);
+    }
+
+    @Override
+    public List<UserRepository.MonthlyCount> countUsersCreatedBetweenGroupByMonth(Date startDate, Date endDate) {
+        return userRepository.countByMonthInPeriod(startDate, endDate);
     }
 }

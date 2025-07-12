@@ -4,7 +4,11 @@ import com.hcmus.mela.history.dto.dto.ExerciseHistoryDto;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
 import com.hcmus.mela.history.dto.response.GetUserExerciseStatsResponse;
+import com.hcmus.mela.history.model.ExerciseHistory;
+import com.hcmus.mela.history.repository.ExerciseHistoryCustomRepository;
+import com.hcmus.mela.history.repository.ExerciseHistoryRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,4 +30,14 @@ public interface ExerciseHistoryService {
     Integer countDoneExerciseByExerciseId(UUID exerciseId);
 
     GetUserExerciseStatsResponse getUserExerciseStats(UUID userId);
+
+    List<ExerciseHistory> findAllExerciseHistoriesCompletedBetween(LocalDateTime start, LocalDateTime end);
+
+    Integer countExerciseHistoriesCompletedBetween(LocalDateTime start, LocalDateTime end);
+
+    List<ExerciseHistoryRepository.HourlyCount> countExerciseHistoriesCompletedBetweenGroupByHour(LocalDateTime start, LocalDateTime end);
+
+    List<ExerciseHistoryCustomRepository.LevelTime> getAverageTimeGroupByLevel(LocalDateTime start, LocalDateTime end);
+
+    List<ExerciseHistoryRepository.LevelTopicCount> countExerciseHistoriesCompletedBetweenGroupByTopicAndLevel(LocalDateTime start, LocalDateTime end);
 }
