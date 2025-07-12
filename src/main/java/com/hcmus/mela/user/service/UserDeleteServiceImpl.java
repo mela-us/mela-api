@@ -12,6 +12,8 @@ import com.hcmus.mela.streak.service.StreakService;
 import com.hcmus.mela.suggestion.service.SuggestionService;
 import com.hcmus.mela.token.service.TokenService;
 import com.hcmus.mela.topic.service.TopicInfoService;
+import com.hcmus.mela.user.exception.UserException;
+import com.hcmus.mela.user.model.UserRole;
 import com.hcmus.mela.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,21 +43,28 @@ public class UserDeleteServiceImpl implements UserDeleteService {
 
     @Override
     @Transactional
-    public void deleteUserByUserId(UUID userId) {
-        log.info("Changing content management ownership for user {} to admin (if possible)", userId);
-        topicInfoService.changeTopicOwnerToAdmin(userId);
-        levelInfoService.changeLevelOwnerToAdmin(userId);
-        lectureInfoService.changeLectureOwnerToAdmin(userId);
-        exerciseInfoService.changeExerciseOwnerToAdmin(userId);
-        log.info("Delete study data for user {}", userId);
-        exerciseHistoryService.deleteAllExerciseHistoryByUserId(userId);
-        lectureHistoryService.deleteAllLectureHistoryByUserId(userId);
-        conversationHistoryService.deleteConversationByUserId(userId);
-        suggestionService.deleteSuggestion(userId);
-        reviewService.deleteReview(userId);
-        userSkillService.deleteUserSkillByUserId(userId);
-        tokenService.deleteUserToken(userId);
-        streakService.deleteStreak(userId);
+    public void deleteUserByUserId(UUID userId, UserRole role) {
+        if (role == UserRole.ADMIN) {
+            throw new UserException("Admin user cannot be deleted");
+        }
+        if (role == UserRole.CONTRIBUTOR) {
+            log.info("Changing content management ownership for user {} to admin (if possible)", userId);
+            topicInfoService.changeTopicOwnerToAdmin(userId);
+            levelInfoService.changeLevelOwnerToAdmin(userId);
+            lectureInfoService.changeLectureOwnerToAdmin(userId);
+            exerciseInfoService.changeExerciseOwnerToAdmin(userId);
+        }
+        if (role == UserRole.USER) {
+            log.info("Delete study data for user {}", userId);
+            exerciseHistoryService.deleteAllExerciseHistoryByUserId(userId);
+            lectureHistoryService.deleteAllLectureHistoryByUserId(userId);
+            conversationHistoryService.deleteConversationByUserId(userId);
+            suggestionService.deleteSuggestion(userId);
+            reviewService.deleteReview(userId);
+            userSkillService.deleteUserSkillByUserId(userId);
+            tokenService.deleteUserToken(userId);
+            streakService.deleteStreak(userId);
+        }
         log.info("Delete user with id {}", userId);
         userRepository.deleteById(userId);
     }

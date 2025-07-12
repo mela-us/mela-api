@@ -8,9 +8,9 @@ import com.hcmus.mela.level.mapper.LevelMapper;
 import com.hcmus.mela.level.model.Level;
 import com.hcmus.mela.level.repository.LevelRepository;
 import com.hcmus.mela.level.strategy.LevelFilterStrategy;
-import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -18,16 +18,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LevelCommandServiceImpl implements LevelCommandService {
 
-    private final LevelRepository levelRepository;
-
     @Override
-    public CreateLevelResponse createLevel(UUID userId, CreateLevelRequest request) {
+    public CreateLevelResponse createLevel(LevelFilterStrategy strategy, UUID userId, CreateLevelRequest request) {
         Level level = LevelMapper.INSTANCE.createLevelRequestToLevel(request);
-        level.setLevelId(UUID.randomUUID());
-        level.setCreatedBy(userId);
-        level.setStatus(ContentStatus.PENDING);
-        Level savedLevel = levelRepository.save(level);
-        LevelDto levelDto = LevelMapper.INSTANCE.levelToLevelDto(savedLevel);
+        LevelDto levelDto = strategy.createLevel(userId, level);
         return new CreateLevelResponse("Create level successfully", levelDto);
     }
 
@@ -36,6 +30,7 @@ public class LevelCommandServiceImpl implements LevelCommandService {
         strategy.updateLevel(userId, levelId, request);
     }
 
+    @Transactional
     @Override
     public void deleteLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId) {
         strategy.deleteLevel(userId, levelId);

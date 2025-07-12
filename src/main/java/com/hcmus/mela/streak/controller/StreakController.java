@@ -46,4 +46,14 @@ public class StreakController {
         final UpdateStreakResponse updateStreakResponse = streakService.updateStreak(userId);
         return ResponseEntity.ok(updateStreakResponse);
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @GetMapping("/{userId}")
+    @Operation(tags = "🔥 Streak Service", summary = "Get streak by user ID",
+            description = "Retrieves a user's streak by their user ID. Only accessible by ADMIN and CONTRIBUTOR roles.")
+    public ResponseEntity<GetStreakResponse> getStreakOfUserRequest(@PathVariable UUID userId) {
+        log.info("Getting streak of user {}", userId);
+        final GetStreakResponse response = streakService.getStreak(userId);
+        return ResponseEntity.ok(response);
+    }
 }

@@ -18,9 +18,9 @@ public class TopicStatusServiceImpl implements TopicStatusService {
     @Override
     public void denyTopic(UUID topicId, String reason) {
         Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new TopicException("Topic not found"));
+                .orElseThrow(() -> new TopicException("Topic not found in the system"));
         if (topic.getStatus() == ContentStatus.VERIFIED || topic.getStatus() == ContentStatus.DELETED) {
-            throw new TopicException("Topic cannot be denied");
+            throw new TopicException("Verified or deleted topic cannot be denied");
         }
         topic.setRejectedReason(reason);
         topic.setStatus(ContentStatus.DENIED);
@@ -30,9 +30,9 @@ public class TopicStatusServiceImpl implements TopicStatusService {
     @Override
     public void approveTopic(UUID topicId) {
         Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new TopicException("Topic not found"));
+                .orElseThrow(() -> new TopicException("Topic not found in the system"));
         if (topic.getStatus() == ContentStatus.DELETED) {
-            throw new TopicException("Topic cannot be approved");
+            throw new TopicException("Deleted topic cannot be approved");
         }
         topic.setRejectedReason(null);
         topic.setStatus(ContentStatus.VERIFIED);
@@ -51,7 +51,7 @@ public class TopicStatusServiceImpl implements TopicStatusService {
         if (topic.getStatus() == ContentStatus.VERIFIED) {
             return true;
         }
-        return topic.getStatus() != ContentStatus.DELETED && topic.getCreatedBy().equals(userId);
+        return topic.getStatus() != ContentStatus.DELETED && userId.equals(topic.getCreatedBy());
     }
 
     @Override

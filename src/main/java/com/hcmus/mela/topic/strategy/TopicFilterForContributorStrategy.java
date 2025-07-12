@@ -8,6 +8,7 @@ import com.hcmus.mela.topic.exception.TopicException;
 import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.model.Topic;
 import com.hcmus.mela.topic.repository.TopicRepository;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,52 +20,38 @@ import java.util.UUID;
 public class TopicFilterForContributorStrategy implements TopicFilterStrategy {
 
     private final TopicRepository topicRepository;
-
+    private final UserInfoService userInfoService;
     private final LectureFilterForContributorStrategy lectureFilterStrategy;
 
     @Override
     public List<TopicDto> getTopics(UUID userId) {
         List<Topic> verifiedTopics = topicRepository.findAllByStatus(ContentStatus.VERIFIED);
-        List<Topic> pendingTopics = topicRepository.findAllByStatusAndCreatedBy(ContentStatus.PENDING, userId);
-        List<Topic> deniedTopics = topicRepository.findAllByStatusAndCreatedBy(ContentStatus.DENIED, userId);
-        // Combine all topics
-        verifiedTopics.addAll(pendingTopics);
-        verifiedTopics.addAll(deniedTopics);
         if (verifiedTopics.isEmpty()) {
             return List.of();
         }
         return verifiedTopics.stream()
-                .map(TopicMapper.INSTANCE::topicToTopicDto)
+                .map(topic -> {
+                    TopicDto topicDto = TopicMapper.INSTANCE.topicToTopicDto(topic);
+                    if (topic.getCreatedBy() != null) {
+                        topicDto.setCreator(userInfoService.getUserPreviewDtoByUserId(topic.getCreatedBy()));
+                    }
+                    return topicDto;
+                })
                 .toList();
     }
 
     @Override
+    public TopicDto createTopic(UUID userId, Topic topic) {
+        return null;
+    }
+
+    @Override
     public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request) {
-        Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
-                .orElseThrow(() -> new TopicException("Topic of the contributor not found"));
-        if (topic.getStatus() == ContentStatus.DELETED || topic.getStatus() == ContentStatus.VERIFIED) {
-            throw new TopicException("Contributor cannot update a deleted or verified topic");
-        }
-        if (request.getName() != null && !request.getName().isEmpty()) {
-            topic.setName(request.getName());
-        }
-        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
-            topic.setImageUrl(request.getImageUrl());
-        }
-        topic.setStatus(ContentStatus.PENDING);
-        topic.setRejectedReason(null);
-        topicRepository.save(topic);
+
     }
 
     @Override
     public void deleteTopic(UUID userId, UUID topicId) {
-        Topic topic = topicRepository.findByTopicIdAndCreatedBy(topicId, userId)
-                .orElseThrow(() -> new TopicException("Contributor topic not found"));
-        if (topic.getStatus() == ContentStatus.VERIFIED) {
-            throw new TopicException("Contributor cannot delete a verified topic");
-        }
-        lectureFilterStrategy.deleteLecturesByTopic(userId, topicId);
-        topic.setStatus(ContentStatus.DELETED);
-        topicRepository.save(topic);
+
     }
 }

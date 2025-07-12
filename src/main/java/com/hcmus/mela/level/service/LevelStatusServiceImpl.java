@@ -17,9 +17,9 @@ public class LevelStatusServiceImpl implements LevelStatusService {
 
     @Override
     public void denyLevel(UUID levelId, String reason) {
-        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found"));
+        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found in the system"));
         if (level.getStatus() == ContentStatus.VERIFIED || level.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Level cannot be denied");
+            throw new LevelException("Verified or deleted level cannot be denied");
         }
         level.setRejectedReason(reason);
         level.setStatus(ContentStatus.DENIED);
@@ -28,9 +28,9 @@ public class LevelStatusServiceImpl implements LevelStatusService {
 
     @Override
     public void approveLevel(UUID levelId) {
-        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found"));
+        Level level = levelRepository.findById(levelId).orElseThrow(() -> new LevelException("Level not found in the system"));
         if (level.getStatus() == ContentStatus.DELETED) {
-            throw new LevelException("Level cannot be approved");
+            throw new LevelException("Deleted level cannot be approved");
         }
         level.setRejectedReason(null);
         level.setStatus(ContentStatus.VERIFIED);
@@ -49,7 +49,7 @@ public class LevelStatusServiceImpl implements LevelStatusService {
         if (level.getStatus() == ContentStatus.VERIFIED) {
             return true;
         }
-        return level.getStatus() != ContentStatus.DELETED && level.getCreatedBy().equals(userId);
+        return level.getStatus() != ContentStatus.DELETED && userId.equals(level.getCreatedBy());
     }
 
     @Override

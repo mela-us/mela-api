@@ -19,7 +19,6 @@ import java.util.UUID;
 public class QuestionHelperController {
 
     private final QuestionConfusionService questionConfusionService;
-    private final JwtTokenService jwtTokenService;
 
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/{questionId}")

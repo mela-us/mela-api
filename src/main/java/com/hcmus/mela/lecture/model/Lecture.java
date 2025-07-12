@@ -1,7 +1,6 @@
 package com.hcmus.mela.lecture.model;
 
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.shared.utils.ProjectConstants;
 import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -57,11 +56,11 @@ public class Lecture {
         if (this.status == null) {
             this.status = ContentStatus.PENDING;
         }
-        if (this.createdBy == null) {
-            this.createdBy = ProjectConstants.ADMIN_ID;
-        }
         if (this.totalExercises != null) {
             this.totalExercises = null;
+        }
+        if (this.status == ContentStatus.DENIED && (this.rejectedReason == null || this.rejectedReason.isEmpty())) {
+            this.rejectedReason = "Liên hệ với quản trị viên để biết thêm chi tiết.";
         }
     }
 }

@@ -14,10 +14,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TopicQueryServiceImpl implements TopicQueryService {
 
-    public GetTopicsResponse getTopicsResponse(TopicFilterStrategy topicFilterStrategy, UUID userId) {
-        List<TopicDto> topics = topicFilterStrategy.getTopics(userId);
+    public GetTopicsResponse getTopicsResponse(TopicFilterStrategy strategy, UUID userId) {
+        List<TopicDto> topics = strategy.getTopics(userId);
         if (topics.isEmpty()) {
-            return new GetTopicsResponse("No topics found", 0, Collections.emptyList());
+            return new GetTopicsResponse("No topics found in the system", 0, Collections.emptyList());
         }
         return new GetTopicsResponse("Topics retrieved successfully", topics.size(), topics);
     }

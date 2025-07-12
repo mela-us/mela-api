@@ -30,6 +30,11 @@ public class TopicFilterForUserStrategy implements TopicFilterStrategy {
     }
 
     @Override
+    public TopicDto createTopic(UUID userId, Topic topic) {
+        return null;
+    }
+
+    @Override
     public void updateTopic(UUID userId, UUID topicId, UpdateTopicRequest request) {
 
     }

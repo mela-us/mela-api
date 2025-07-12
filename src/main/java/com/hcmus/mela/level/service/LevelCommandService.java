@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface LevelCommandService {
 
-    CreateLevelResponse createLevel(UUID userId, CreateLevelRequest request);
+    CreateLevelResponse createLevel(LevelFilterStrategy strategy, UUID userId, CreateLevelRequest request);
 
     void updateLevel(LevelFilterStrategy strategy, UUID userId, UUID levelId, UpdateLevelRequest request);
 

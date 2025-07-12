@@ -14,6 +14,8 @@ public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, Exe
 
     Optional<Exercise> findByExerciseIdAndStatus(UUID exerciseId, ContentStatus status);
 
+    Optional<Exercise> findByQuestionsQuestionId(UUID questionId);
+
     Optional<Exercise> findByQuestionsQuestionIdAndStatus(UUID questionId, ContentStatus status);
 
     Optional<Exercise> findByExerciseIdAndCreatedBy(UUID exerciseId, UUID creatorId);
@@ -31,4 +33,10 @@ public interface ExerciseRepository extends MongoRepository<Exercise, UUID>, Exe
     @Query("{ 'createdBy' : ?0 }")
     @Update("{ '$set' : { 'createdBy' : ?1 } }")
     void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
+
+    Integer countAllByCreatedBy(UUID userId);
+
+    List<Exercise> findAllByCreatedBy(UUID userId);
+
+    Integer countAllByStatusAndCreatedBy(ContentStatus status, UUID userId);
 }

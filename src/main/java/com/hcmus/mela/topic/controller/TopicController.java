@@ -39,16 +39,16 @@ public class TopicController {
     @Operation(tags = "🎈 Topic Service", summary = "Get all topics",
             description = "Get all topics existing in the system.")
     public ResponseEntity<GetTopicsResponse> getTopicsRequest(
-            @Valid @RequestHeader("Authorization") String authHeader) {
+            @Parameter(hidden = true) @Valid @RequestHeader("Authorization") String authHeader) {
         log.info("Getting topics in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString().toUpperCase());
         GetTopicsResponse response = topicQueryService.getTopicsResponse(strategy, userId);
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     @Operation(tags = "🎈 Topic Service", summary = "Create a new topic",
             description = "Create a new topic in the system.")
@@ -56,12 +56,14 @@ public class TopicController {
             @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody CreateTopicRequest request) {
         log.info("Creating topic {}", request.getName());
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        CreateTopicResponse response = topicCommandService.createTopic(userId, request);
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString().toUpperCase());
+        CreateTopicResponse response = topicCommandService.createTopic(strategy, userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{topicId}")
     @Operation(tags = "🎈 Topic Service", summary = "Update an existing topic",
             description = "Update an existing topic in the system.")
@@ -77,7 +79,7 @@ public class TopicController {
         return ResponseEntity.ok(new UpdateTopicResponse("Topic updated successfully"));
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{topicId}")
     @Operation(tags = "🎈 Topic Service", summary = "Delete an existing topic",
             description = "Delete an existing topic in the system.")
@@ -101,7 +103,7 @@ public class TopicController {
             @RequestBody DenyTopicRequest request) {
         log.info("Deny topic {}", topicId);
         if (request.getReason() == null || request.getReason().isEmpty()) {
-            request.setReason("Contact the admin for more details.");
+            request.setReason("Liên hệ quản trị viên để biết thêm chi tiết");
         }
         topicStatusService.denyTopic(topicId, request.getReason());
         return ResponseEntity.ok(new DenyTopicResponse("Topic denied successfully"));
