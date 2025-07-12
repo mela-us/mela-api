@@ -1,6 +1,5 @@
 package com.hcmus.mela.report.dto.response;
 
-import com.hcmus.mela.report.dto.dto.AverageTimeStatDto;
 import com.hcmus.mela.report.dto.dto.StatDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,5 +14,5 @@ public class ExerciseAverageTimeStatResponse {
 
     private String message;
 
-    private AverageTimeStatDto data;
+    private StatDto data;
 }

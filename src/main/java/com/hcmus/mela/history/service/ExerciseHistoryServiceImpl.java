@@ -242,29 +242,4 @@ public class ExerciseHistoryServiceImpl implements ExerciseHistoryService {
         userStats.setTotalAnswers(totalAnswers);
         return new GetUserExerciseStatsResponse("User exercise stats retrieved successfully", userStats);
     }
-
-    @Override
-    public List<ExerciseHistory> findAllExerciseHistoriesCompletedBetween(LocalDateTime start, LocalDateTime end) {
-        return exerciseHistoryRepository.findAllByCompletedAtBetween(start, end);
-    }
-
-    @Override
-    public Integer countExerciseHistoriesCompletedBetween(LocalDateTime start, LocalDateTime end) {
-        return exerciseHistoryRepository.countByCompletedAtBetween(start, end);
-    }
-
-    @Override
-    public List<ExerciseHistoryRepository.HourlyCount> countExerciseHistoriesCompletedBetweenGroupByHour(LocalDateTime start, LocalDateTime end) {
-        return exerciseHistoryRepository.countByCompletedAtBetweenGroupByHour(start, end);
-    }
-
-    @Override
-    public List<ExerciseHistoryRepository.LevelTime> getAverageTimeGroupByLevel(LocalDateTime start, LocalDateTime end) {
-        return exerciseHistoryRepository.averageTimeByLevel(start, end);
-    }
-
-    @Override
-    public List<ExerciseHistoryRepository.LevelTopicCount> countExerciseHistoriesCompletedBetweenGroupByTopicAndLevel(LocalDateTime start, LocalDateTime end) {
-        return exerciseHistoryRepository.countExerciseByLevelAndTopic(start, end);
-    }
 }
