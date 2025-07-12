@@ -8,11 +8,8 @@ import com.hcmus.mela.exercise.mapper.ExerciseMapper;
 import com.hcmus.mela.exercise.mapper.QuestionMapper;
 import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
-import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.user.model.User;
-import com.hcmus.mela.user.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,36 +22,22 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
 
     private final ExerciseRepository exerciseRepository;
     private final LectureStatusService lectureStatusService;
-    private final LectureInfoService lectureInfoService;
-    private final UserInfoService userInfoService;
 
     @Override
     public List<ExerciseDetailDto> getExercises(UUID userId) {
-        User user = userInfoService.getUserByUserId(userId);
-        UUID levelId = user.getLevelId();
         List<Exercise> verifiedExercises = exerciseRepository.findAllByStatus(ContentStatus.VERIFIED);
         List<Exercise> pendingExercises = exerciseRepository.findAllByStatusAndCreatedBy(ContentStatus.PENDING, userId);
         List<Exercise> deniedExercises = exerciseRepository.findAllByStatusAndCreatedBy(ContentStatus.DENIED, userId);
+        // Combine all exercises
         verifiedExercises.addAll(pendingExercises);
         verifiedExercises.addAll(deniedExercises);
         if (verifiedExercises.isEmpty()) {
             return List.of();
         }
-        if (levelId != null) {
-            List<UUID> lectureIdsByLevel = lectureInfoService.getLectureIdsByLevelId(levelId);
-            verifiedExercises.removeIf(exercise -> !lectureIdsByLevel.contains(exercise.getLectureId()));
-        }
         return verifiedExercises.stream()
                 .map(exercise -> {
                     ExerciseDetailDto exerciseDetailDto = ExerciseMapper.INSTANCE.exerciseToExerciseDetailDto(exercise);
-                    if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty()) {
-                        exerciseDetailDto.setTotalQuestions(0);
-                    } else {
-                        exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
-                    }
-                    if (exercise.getCreatedBy() != null) {
-                        exerciseDetailDto.setCreator(userInfoService.getUserPreviewDtoByUserId(exercise.getCreatedBy()));
-                    }
+                    exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
                     return exerciseDetailDto;
                 })
                 .toList();
@@ -62,72 +45,46 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
 
     @Override
     public ExerciseDto createExercise(UUID userId, Exercise exercise) {
-        User user = userInfoService.getUserByUserId(userId);
-        UUID levelId = user.getLevelId();
-        if (levelId != null && !levelId.equals(lectureInfoService.getLevelIdOfLecture(exercise.getLectureId()))) {
-            throw new ExerciseException("Exercise does not belong to the contributor's level");
+        if (exercise.getLectureId() == null || lectureStatusService.isLectureAssignableToExercise(userId, exercise.getLectureId())) {
+            throw new ExerciseException("Lecture is not assignable to this exercise");
         }
-        if (!lectureStatusService.isLectureAssignableToExercise(userId, exercise.getLectureId())) {
-            throw new ExerciseException("Lecture must be verified or belong to the contributor");
-        }
-        exercise.setExerciseId(UUID.randomUUID());
-        exercise.setStatus(ContentStatus.PENDING);
-        exercise.setCreatedBy(userId);
         Exercise savedExercise = exerciseRepository.save(exercise);
-        ExerciseDto exerciseDto = ExerciseMapper.INSTANCE.exerciseToExerciseDto(savedExercise);
-        if (exercise.getCreatedBy() != null) {
-            exerciseDto.setCreator(userInfoService.getUserPreviewDtoByUserId(exercise.getCreatedBy()));
-        }
-        return exerciseDto;
+        return ExerciseMapper.INSTANCE.exerciseToExerciseDto(savedExercise);
     }
 
     @Override
     public ExerciseDto getExerciseById(UUID userId, UUID exerciseId) {
-        User user = userInfoService.getUserByUserId(userId);
-        UUID levelId = user.getLevelId();
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
+                .orElseThrow(() -> new ExerciseException("Exercise not found"));
         if (exercise.getStatus() == ContentStatus.DELETED) {
-            throw new ExerciseException("Exercise is deleted and cannot be retrieved");
+            throw new ExerciseException("Exercise has been deleted");
         }
-        if (levelId != null && !levelId.equals(lectureInfoService.getLevelIdOfLecture(exercise.getLectureId()))) {
-            throw new ExerciseException("Exercise does not belong to the contributor's level");
+        if (exercise.getCreatedBy().equals(userId) || exercise.getStatus() == ContentStatus.VERIFIED) {
+            return ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
         }
-        if (exercise.getStatus() == ContentStatus.VERIFIED || userId.equals(exercise.getCreatedBy())) {
-            ExerciseDto exerciseDto = ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
-            if (exercise.getCreatedBy() != null) {
-                exerciseDto.setCreator(userInfoService.getUserPreviewDtoByUserId(exercise.getCreatedBy()));
-            }
-            return exerciseDto;
-        }
-        throw new ExerciseException("Exercise is not verified or does not belong to the contributor");
+        throw new ExerciseException("Contributor cannot view this exercise");
     }
 
     @Override
-    public void updateExercise(UUID userId, UUID exerciseId, UpdateExerciseRequest request) {
-        Exercise exercise = exerciseRepository.findByExerciseIdAndCreatedBy(exerciseId, userId)
-                .orElseThrow(() -> new ExerciseException("Exercise of the contributor not found"));
+    public void updateExercise(UUID userId, UUID exerciseId, UpdateExerciseRequest updateRequest) {
+        Exercise exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ExerciseException("Exercise not found"));
         if (exercise.getStatus() == ContentStatus.DELETED || exercise.getStatus() == ContentStatus.VERIFIED) {
-            throw new ExerciseException("Contributor cannot update a verified or deleted exercise");
+            throw new ExerciseException("Contributor cannot update a deleted or verified exercise");
         }
-        User user = userInfoService.getUserByUserId(userId);
-        UUID levelId = user.getLevelId();
-        if (levelId != null && !levelId.equals(lectureInfoService.getLevelIdOfLecture(request.getLectureId()))) {
-            throw new ExerciseException("Contributor cannot update exercise with a different level");
-        }
-        if (request.getExerciseName() != null && !request.getExerciseName().isEmpty()) {
-            exercise.setExerciseName(request.getExerciseName());
-        }
-        if (request.getOrdinalNumber() != null && request.getOrdinalNumber() > 0) {
-            exercise.setOrdinalNumber(request.getOrdinalNumber());
-        }
-        if (request.getQuestions() != null && !request.getQuestions().isEmpty()) {
-            exercise.setQuestions(request.getQuestions().stream().map(QuestionMapper.INSTANCE::updateQuestionRequestToQuestion).toList());
-        }
-        if (lectureStatusService.isLectureAssignableToExercise(userId, request.getLectureId())) {
-            exercise.setLectureId(request.getLectureId());
+        if (!lectureStatusService.isLectureAssignableToExercise(userId, updateRequest.getLectureId())) {
+            exercise.setLectureId(updateRequest.getLectureId());
         } else {
-            throw new ExerciseException("Lecture must be verified or belong to the contributor");
+            throw new ExerciseException("Lecture is not assignable to this exercise");
+        }
+        if (!updateRequest.getQuestions().isEmpty()) {
+            exercise.setQuestions(updateRequest.getQuestions().stream().map(QuestionMapper.INSTANCE::updateQuestionRequestToQuestion).toList());
+        }
+        if (updateRequest.getExerciseName() != null && !updateRequest.getExerciseName().isEmpty()) {
+            exercise.setExerciseName(updateRequest.getExerciseName());
+        }
+        if (updateRequest.getOrdinalNumber() != null && updateRequest.getOrdinalNumber() > 0) {
+            exercise.setOrdinalNumber(updateRequest.getOrdinalNumber());
         }
         exercise.setStatus(ContentStatus.PENDING);
         exercise.setRejectedReason(null);
@@ -137,12 +94,9 @@ public class ExerciseFilterForContributorStrategy implements ExerciseFilterStrat
     @Override
     public void deleteExercise(UUID userId, UUID exerciseId) {
         Exercise exercise = exerciseRepository.findByExerciseIdAndCreatedBy(exerciseId, userId)
-                .orElseThrow(() -> new ExerciseException("Exercise of the contributor not found"));
+                .orElseThrow(() -> new ExerciseException("Contributor exercise not found"));
         if (exercise.getStatus() == ContentStatus.VERIFIED) {
-            throw new ExerciseException("Contributor cannot delete a verified exercise");
-        }
-        if (exercise.getStatus() == ContentStatus.DELETED) {
-            return;
+            throw new ExerciseException("Cannot delete a verified exercise");
         }
         exercise.setStatus(ContentStatus.DELETED);
         exerciseRepository.save(exercise);

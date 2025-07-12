@@ -32,10 +32,8 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
     @Override
     public List<Lecture> findLecturesByKeyword(String keyword) {
         Criteria criteria = (keyword != null && !keyword.trim().isEmpty())
-                ? new Criteria().orOperator(
-                Criteria.where("name").regex(keyword, "i"),
-                Criteria.where("description").regex(keyword, "i"))
-                : new Criteria();
+                ? Criteria.where("name").regex(keyword, "i")
+                : new Criteria(); // match all
         Aggregation aggregation = buildLectureAggregation(criteria);
         return executeLectureAggregation(aggregation);
     }
@@ -153,16 +151,20 @@ public class LectureCustomRepositoryImpl implements LectureCustomRepository {
                 Aggregation.match(Criteria.where("status").is("VERIFIED")),
                 Aggregation.lookup("exercises", "_id", "lecture_id", "exercises"),
                 Aggregation.unwind("exercises", true),
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("exercises.status").is("VERIFIED"),
+                        Criteria.where("exercises").is(null)
+                )),
+                // Group by id and get total exercises, if no exercises, set total_exercises to 0
                 Aggregation.group("_id")
                         .first("name").as("name")
                         .first("description").as("description")
                         .first("topic_id").as("topic_id")
                         .first("level_id").as("level_id")
                         .first("ordinal_number").as("ordinal_number")
-                        .sum(ConditionalOperators.when(Criteria.where("exercises.status").is("VERIFIED"))
-                                .then(1)
-                                .otherwise(0)).as("total_exercises"),
-                Aggregation.project("_id", "name", "description", "topic_id", "level_id", "ordinal_number", "total_exercises"),
+                        .push("exercises").as("exercises"),
+                Aggregation.project("_id", "name", "description", "topic_id", "level_id", "ordinal_number")
+                        .and("exercises").size().as("total_exercises"),
                 Aggregation.sort(Sort.by(Sort.Order.asc("ordinal_number")))
         );
     }

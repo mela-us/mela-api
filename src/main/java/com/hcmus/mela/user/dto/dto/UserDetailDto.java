@@ -23,7 +23,7 @@ public class UserDetailDto {
 
     private String imageUrl;
 
-    private UUID levelId;
+    private String levelId;
 
     private Date createdAt;
 

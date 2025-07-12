@@ -1,7 +1,6 @@
 package com.hcmus.mela.topic.dto.dto;
 
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import lombok.*;
 
 import java.util.UUID;
@@ -20,8 +19,6 @@ public class TopicDto {
     private String imageUrl;
 
     private UUID createdBy;
-
-    private UserPreviewDto creator;
 
     private String rejectedReason;
 

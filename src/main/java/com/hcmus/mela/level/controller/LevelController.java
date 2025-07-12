@@ -25,8 +25,8 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@Slf4j
 @RequestMapping("/api/levels")
+@Slf4j
 public class LevelController {
 
     private final LevelQueryService levelQueryService;
@@ -48,7 +48,7 @@ public class LevelController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PostMapping
     @Operation(tags = "📈 Level Service", summary = "Create a new level",
             description = "Creates a new level in the system.")
@@ -56,14 +56,12 @@ public class LevelController {
             @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody CreateLevelRequest request) {
         log.info("Creating level {}", request.getName());
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        LevelFilterStrategy strategy = strategies.get("LEVEL_" + userRole.toString());
-        CreateLevelResponse response = levelCommandService.createLevel(strategy, userId, request);
+        CreateLevelResponse response = levelCommandService.createLevel(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @PutMapping("/{levelId}")
     @Operation(tags = "📈 Level Service", summary = "Update an existing level",
             description = "Updates an existing level in the system.")
@@ -79,7 +77,7 @@ public class LevelController {
         return ResponseEntity.ok(new UpdateLevelResponse("Level updated successfully"));
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
     @DeleteMapping("/{levelId}")
     @Operation(tags = "📈 Level Service", summary = "Delete an existing level",
             description = "Deletes an existing level in the system.")
@@ -103,7 +101,7 @@ public class LevelController {
             @RequestBody DenyLevelRequest request) {
         log.info("Deny level {}", levelId);
         if (request.getReason() == null || request.getReason().isEmpty()) {
-            request.setReason("Liên hệ quản trị viên để biết thêm chi tiết");
+            request.setReason("Contact the admin for more details");
         }
         levelStatusService.denyLevel(levelId, request.getReason());
         return ResponseEntity.ok(new DenyLevelResponse("Level denied successfully"));

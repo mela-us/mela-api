@@ -8,7 +8,6 @@ public enum UploadType {
     LECTURE("lectures/"),
     TOPIC("topics/"),
     LEVEL("levels/"),
-    TEST("tests/"),
     COMMON("common/"),
     USER_AVATAR("users/avatars/");
 

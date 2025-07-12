@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface ExerciseQuestionService {
 
-    QuestionResponse findQuestionsByExerciseId(UUID exerciseId);
+    QuestionResponse findQuestionsByExerciseId(UUID exerciseId, UUID userId);
 
     Question findQuestionByQuestionId(UUID questionId);
 

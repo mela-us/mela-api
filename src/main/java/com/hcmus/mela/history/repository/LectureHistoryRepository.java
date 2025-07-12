@@ -37,6 +37,4 @@ public interface LectureHistoryRepository extends MongoRepository<LectureHistory
     List<LectureHistory> findBestProgressHistoriesGroupedByLecture(UUID userId);
 
     void deleteAllByUserId(UUID userId);
-
-    Integer countAllByLectureId(UUID lectureId);
 }

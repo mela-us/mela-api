@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface LevelQueryService {
 
-    GetLevelsResponse getLevelsResponse(LevelFilterStrategy strategy, UUID userId);
+    GetLevelsResponse getLevelsResponse(LevelFilterStrategy levelFilterStrategy, UUID userId);
 }

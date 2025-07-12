@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -68,7 +67,6 @@ public class UserProfileController {
         return ResponseEntity.ok(response);
     }
 
-    @PreAuthorize("hasAuthority('USER')")
     @DeleteMapping(value = "/account")
     @Operation(tags = "👤 User Profile Service", summary = "Delete user profile",
             description = "API endpoint to delete user account.")

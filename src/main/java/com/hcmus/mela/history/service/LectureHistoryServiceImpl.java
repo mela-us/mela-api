@@ -118,9 +118,4 @@ public class LectureHistoryServiceImpl implements LectureHistoryService {
     public void deleteAllLectureHistoryByUserId(UUID userId) {
         lectureHistoryRepository.deleteAllByUserId(userId);
     }
-
-    @Override
-    public Integer countAccessedNumberByLectureId(UUID lectureId) {
-        return lectureHistoryRepository.countAllByLectureId(lectureId);
-    }
 }

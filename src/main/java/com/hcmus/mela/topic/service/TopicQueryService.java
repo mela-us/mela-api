@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface TopicQueryService {
 
-    GetTopicsResponse getTopicsResponse(TopicFilterStrategy strategy, UUID userId);
+    GetTopicsResponse getTopicsResponse(TopicFilterStrategy topicFilterStrategy, UUID userId);
 }

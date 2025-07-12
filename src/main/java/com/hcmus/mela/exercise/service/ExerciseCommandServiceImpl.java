@@ -22,6 +22,9 @@ public class ExerciseCommandServiceImpl implements ExerciseCommandService {
     @Override
     public CreateExerciseResponse createExercise(ExerciseFilterStrategy strategy, UUID userId, CreateExerciseRequest request) {
         Exercise exercise = ExerciseMapper.INSTANCE.createExerciseRequestToExercise(request);
+        exercise.setExerciseId(UUID.randomUUID());
+        exercise.setStatus(ContentStatus.PENDING);
+        exercise.setCreatedBy(userId);
         ExerciseDto exerciseDto = strategy.createExercise(userId, exercise);
         return new CreateExerciseResponse("Create exercise successfully", exerciseDto);
     }

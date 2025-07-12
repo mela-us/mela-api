@@ -15,10 +15,7 @@ import com.hcmus.mela.auth.model.User;
 import com.hcmus.mela.auth.model.UserRole;
 import com.hcmus.mela.auth.repository.AuthRepository;
 import com.hcmus.mela.auth.security.jwt.JwtTokenService;
-import com.hcmus.mela.level.dto.dto.LevelDto;
-import com.hcmus.mela.level.service.LevelInfoService;
 import com.hcmus.mela.shared.cache.RedisService;
-import com.hcmus.mela.shared.type.ContentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,7 +38,6 @@ public class AuthServiceImpl implements AuthService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JwtTokenService jwtTokenService;
     private final RedisService redisService;
-    private final LevelInfoService levelInfoService;
 
     @Override
     public RegistrationResponse getRegistrationResponse(RegistrationRequest registrationRequest) {
@@ -59,11 +55,6 @@ public class AuthServiceImpl implements AuthService {
         user.setUserRole(UserRole.USER);
         user.setCreatedAt(Date.from(ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant()));
         user.setUpdatedAt(user.getCreatedAt());
-        LevelDto level = levelInfoService.findLevelByLevelTitle("Lớp 1");
-        if (level == null || level.getStatus() != ContentStatus.VERIFIED) {
-            level = levelInfoService.findAvailableLevel();
-        }
-        user.setLevelId(level.getLevelId());
         authRepository.save(user);
 
         final String registrationSuccessMessage = String.format("%s registered successfully!", username);

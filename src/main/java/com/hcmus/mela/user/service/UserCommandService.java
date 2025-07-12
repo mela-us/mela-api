@@ -1,6 +1,5 @@
 package com.hcmus.mela.user.service;
 
-import com.hcmus.mela.user.dto.dto.UserDetailDto;
 import com.hcmus.mela.user.dto.request.CreateUserRequest;
 import com.hcmus.mela.user.dto.request.UpdateUserRequest;
 
@@ -12,5 +11,5 @@ public interface UserCommandService {
 
     void deleteUser(UUID userId);
 
-    UserDetailDto createUser(CreateUserRequest request);
+    void createUser(CreateUserRequest request);
 }

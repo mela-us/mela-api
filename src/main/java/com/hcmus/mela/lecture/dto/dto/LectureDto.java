@@ -1,7 +1,6 @@
 package com.hcmus.mela.lecture.dto.dto;
 
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import lombok.*;
 
 import java.util.List;
@@ -31,8 +30,6 @@ public class LectureDto {
     private ContentStatus status;
 
     private UUID createdBy;
-
-    private UserPreviewDto creator;
 
     private String rejectedReason;
 }

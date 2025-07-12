@@ -47,7 +47,8 @@ public class ExerciseHistoryCustomRepositoryImpl implements ExerciseHistoryCusto
                         Criteria.where("user_id").is(userId),
                         Criteria.where("lecture_id").is(lectureId)
                 )),
-                Aggregation.group("exercise_id").max("score").as("score"),
+                Aggregation.sort(Sort.Direction.DESC, "score"),
+                Aggregation.group("exercise_id").first("score").as("score"),
                 Aggregation.project().and("_id").as("exercise_id")
                         .and("score").as("score")
         );

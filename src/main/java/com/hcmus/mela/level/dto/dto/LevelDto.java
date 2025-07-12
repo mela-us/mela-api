@@ -1,8 +1,6 @@
 package com.hcmus.mela.level.dto.dto;
 
 import com.hcmus.mela.shared.type.ContentStatus;
-import com.hcmus.mela.user.dto.dto.UserDto;
-import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import lombok.*;
 
 import java.util.UUID;
@@ -21,8 +19,6 @@ public class LevelDto {
     private String imageUrl;
 
     private UUID createdBy;
-
-    private UserPreviewDto creator;
 
     private String rejectedReason;
 

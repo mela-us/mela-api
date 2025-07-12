@@ -22,6 +22,9 @@ public class LectureCommandServiceImpl implements LectureCommandService {
     @Override
     public CreateLectureResponse createLecture(LectureFilterStrategy strategy, UUID userId, CreateLectureRequest request) {
         Lecture lecture = LectureMapper.INSTANCE.createLectureRequestToLecture(request);
+        lecture.setLectureId(UUID.randomUUID());
+        lecture.setStatus(ContentStatus.PENDING);
+        lecture.setCreatedBy(userId);
         LectureDto lectureDto = strategy.createLecture(userId, lecture);
         return new CreateLectureResponse("Create lecture successfully", lectureDto);
     }

@@ -15,6 +15,5 @@ public class CreateLevelRequest {
     @NotNull(message = "Name cannot be null")
     private String name;
 
-    @NotNull(message = "Image cannot be null")
     private String imageUrl;
 }

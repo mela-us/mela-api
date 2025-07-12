@@ -21,8 +21,4 @@ public interface LectureInfoService {
     List<LectureDto> findLecturesNeedToBeSuggested(UUID userId);
 
     void changeLectureOwnerToAdmin(UUID previousUserId);
-
-    UUID getLevelIdOfLecture(UUID lectureId);
-
-    List<UUID> getLectureIdsByLevelId(UUID levelId);
 }

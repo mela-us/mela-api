@@ -58,10 +58,4 @@ public interface ExerciseHistoryRepository extends MongoRepository<ExerciseHisto
 
         int getCount();
     }
-
-    Integer countAllByLectureId(UUID lectureId);
-
-    Integer countAllByExerciseId(UUID exerciseId);
-
-    List<ExerciseHistory> findAllByUserId(UUID userId);
 }

@@ -24,8 +24,6 @@ public interface UserRepository extends MongoRepository<User, UUID> {
 
     List<User> findAllByUserRole(UserRole userRole);
 
-    List<User> findAllByUserRoleAndLevelId(UserRole userRole, UUID levelId);
-
     int countByCreatedAtBetween(Date start, Date end);
 
     @Aggregation(pipeline = {

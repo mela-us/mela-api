@@ -1,7 +1,6 @@
 package com.hcmus.mela.exercise.service;
 
 import com.hcmus.mela.exercise.dto.response.GetAllExercisesResponse;
-import com.hcmus.mela.exercise.dto.response.GetExerciseContributionResponse;
 import com.hcmus.mela.exercise.dto.response.GetExerciseInfoResponse;
 import com.hcmus.mela.exercise.dto.response.GetExercisesInLectureResponse;
 import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
@@ -15,6 +14,4 @@ public interface ExerciseQueryService {
     GetAllExercisesResponse getAllExercises(ExerciseFilterStrategy strategy, UUID userId);
 
     GetExerciseInfoResponse getExerciseInfoByExerciseId(ExerciseFilterStrategy strategy, UUID userId, UUID exerciseId);
-
-    GetExerciseContributionResponse getExerciseContribution(UUID userId);
 }

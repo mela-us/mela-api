@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -30,9 +29,8 @@ public class CreateUserRequest {
     @JsonFormat(pattern = "dd-MM-yyyy")
     private Date birthday;
 
-    @NotNull(message = "Level id cannot be null")
-    private UUID levelId;
+    private String levelId;
 
     @NotNull(message = "Role cannot be null")
-    private UserRole userRole;
+    private UserRole role;
 }
