@@ -3,10 +3,12 @@ package com.hcmus.mela.user.service;
 import com.hcmus.mela.level.dto.dto.LevelDto;
 import com.hcmus.mela.level.service.LevelInfoService;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.user.dto.dto.UserDetailDto;
 import com.hcmus.mela.user.dto.request.CreateUserRequest;
 import com.hcmus.mela.user.dto.request.UpdateUserRequest;
 import com.hcmus.mela.user.exception.UserException;
 import com.hcmus.mela.user.exception.UserNotFoundException;
+import com.hcmus.mela.user.mapper.UserMapper;
 import com.hcmus.mela.user.model.User;
 import com.hcmus.mela.user.model.UserRole;
 import com.hcmus.mela.user.repository.UserRepository;
@@ -35,7 +37,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     public void updateUser(UUID userId, UpdateUserRequest request) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
-        if (request.getUsername() != null && !request.getUsername().isEmpty()) {
+        if (request.getUsername() != null && !request.getUsername().isEmpty() && !user.getUsername().equals(request.getUsername())) {
             if (userRepository.existsByUsername(request.getUsername())) {
                 throw new UserException("Username already exists " + request.getUsername());
             }
@@ -54,15 +56,14 @@ public class UserCommandServiceImpl implements UserCommandService {
             user.setBirthday(request.getBirthday());
         }
         if (request.getLevelId() != null) {
-            LevelDto level = levelInfoService.findLevelByLevelIdAndStatus(
-                    UUID.fromString(request.getLevelId()), ContentStatus.VERIFIED);
+            LevelDto level = levelInfoService.findLevelByLevelIdAndStatus(request.getLevelId(), ContentStatus.VERIFIED);
             if (level == null) {
                 throw new UserException("Level not found or not verified with id " + request.getLevelId());
             }
             user.setLevelId(level.getLevelId());
         }
-        if (request.getRole() != null) {
-            user.setUserRole(request.getRole());
+        if (request.getUserRole() != null) {
+            user.setUserRole(request.getUserRole());
         }
         Instant nowInstant = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Date now = Date.from(nowInstant);
@@ -72,32 +73,23 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public void createUser(CreateUserRequest request) {
+    public UserDetailDto createUser(CreateUserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserException("Username already exists " + request.getUsername());
         }
-
-        User user = new User();
+        User user = UserMapper.INSTANCE.createUserRequestToUser(request);
         user.setUserId(UUID.randomUUID());
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullname(request.getFullname());
-        user.setImageUrl(request.getImageUrl());
-        user.setBirthday(request.getBirthday());
-        LevelDto level = levelInfoService.findLevelByLevelIdAndStatus(
-                UUID.fromString(request.getLevelId()), ContentStatus.VERIFIED);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        LevelDto level = levelInfoService.findLevelByLevelIdAndStatus(user.getLevelId(), ContentStatus.VERIFIED);
         if (level == null) {
             throw new UserException("Level not found or not verified with id " + request.getLevelId());
         }
-        user.setLevelId(level.getLevelId());
-        user.setUserRole(request.getRole());
-
         Instant nowInstant = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant();
         Date now = Date.from(nowInstant);
         user.setCreatedAt(now);
         user.setUpdatedAt(now);
-
-        userRepository.save(user);
+        User newUser = userRepository.save(user);
+        return UserMapper.INSTANCE.userToUserDetailDto(newUser);
     }
 
     @Override
@@ -107,6 +99,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (user.getUserRole() == UserRole.ADMIN) {
             throw new UserException("Cannot delete admin user");
         }
-        userDeleteService.deleteUserByUserId(user.getUserId());
+        userDeleteService.deleteUserByUserId(user.getUserId(), user.getUserRole());
     }
 }

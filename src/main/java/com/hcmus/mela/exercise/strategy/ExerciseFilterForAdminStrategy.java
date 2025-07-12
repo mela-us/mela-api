@@ -10,11 +10,11 @@ import com.hcmus.mela.exercise.model.Exercise;
 import com.hcmus.mela.exercise.repository.ExerciseRepository;
 import com.hcmus.mela.lecture.service.LectureStatusService;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.user.service.UserInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Component("EXERCISE_ADMIN")
@@ -23,6 +23,7 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
 
     private final ExerciseRepository exerciseRepository;
     private final LectureStatusService lectureStatusService;
+    private final UserInfoService userInfoService;
 
     @Override
     public List<ExerciseDetailDto> getExercises(UUID userId) {
@@ -31,54 +32,75 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
             return List.of();
         }
         return exercises.stream()
+                .filter(exercise -> exercise.getStatus() != ContentStatus.DELETED)
                 .map(exercise -> {
-                    if (exercise.getStatus() == ContentStatus.DELETED) {
-                        return null;
-                    }
                     ExerciseDetailDto exerciseDetailDto = ExerciseMapper.INSTANCE.exerciseToExerciseDetailDto(exercise);
-                    exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
+                    if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty()) {
+                        exerciseDetailDto.setTotalQuestions(0);
+                    } else {
+                        exerciseDetailDto.setTotalQuestions(exercise.getQuestions().size());
+                    }
+                    if (exercise.getCreatedBy() != null) {
+                        exerciseDetailDto.setCreator(userInfoService.getUserPreviewDtoByUserId(exercise.getCreatedBy()));
+                    }
                     return exerciseDetailDto;
                 })
-                .filter(Objects::nonNull)
                 .toList();
     }
 
     @Override
     public ExerciseDto getExerciseById(UUID userId, UUID exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
-        return ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
+                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
+        if (exercise.getStatus() == ContentStatus.DELETED) {
+            throw new ExerciseException("Exercise is deleted and cannot be retrieved");
+        }
+        ExerciseDto exerciseDto = ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
+        if (exercise.getCreatedBy() != null) {
+            exerciseDto.setCreator(userInfoService.getUserPreviewDtoByUserId(exercise.getCreatedBy()));
+        }
+        return exerciseDto;
     }
 
     @Override
     public ExerciseDto createExercise(UUID userId, Exercise exercise) {
-        if (exercise.getLectureId() == null || lectureStatusService.isLectureInStatus(exercise.getLectureId(), ContentStatus.DELETED)) {
-            throw new ExerciseException("Lecture is not assignable to this exercise");
+        if (lectureStatusService.isLectureInStatus(exercise.getLectureId(), ContentStatus.DELETED)) {
+            throw new ExerciseException("Deleted lecture cannot be assigned to exercise");
         }
+        exercise.setExerciseId(UUID.randomUUID());
+        exercise.setStatus(ContentStatus.PENDING);
         Exercise savedExercise = exerciseRepository.save(exercise);
         return ExerciseMapper.INSTANCE.exerciseToExerciseDto(savedExercise);
     }
 
     @Override
-    public void updateExercise(UUID userId, UUID exerciseId, UpdateExerciseRequest updateRequest) {
+    public void updateExercise(UUID userId, UUID exerciseId, UpdateExerciseRequest request) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
         if (exercise.getStatus() == ContentStatus.DELETED) {
             throw new ExerciseException("Cannot update a deleted exercise");
         }
-        if (!lectureStatusService.isLectureInStatus(updateRequest.getLectureId(), ContentStatus.DELETED)) {
-            exercise.setLectureId(updateRequest.getLectureId());
+        if (request.getExerciseName() != null && !request.getExerciseName().isEmpty()) {
+            exercise.setExerciseName(request.getExerciseName());
+        }
+        if (request.getOrdinalNumber() != null && request.getOrdinalNumber() > 0) {
+            exercise.setOrdinalNumber(request.getOrdinalNumber());
+        }
+        if (request.getQuestions() != null && !request.getQuestions().isEmpty()) {
+            exercise.setQuestions(request.getQuestions().stream().map(QuestionMapper.INSTANCE::updateQuestionRequestToQuestion).toList());
+        }
+        if (exercise.getStatus() == ContentStatus.VERIFIED
+                && !lectureStatusService.isLectureInStatus(request.getLectureId(), ContentStatus.VERIFIED)) {
+            throw new ExerciseException("Verified exercise must have a verified lecture");
+        }
+        if (!lectureStatusService.isLectureInStatus(request.getLectureId(), ContentStatus.DELETED)) {
+            exercise.setLectureId(request.getLectureId());
         } else {
-            throw new ExerciseException("Lecture is not assignable to this exercise");
+            throw new ExerciseException("Deleted lecture cannot be assigned to this exercise");
         }
-        if (!updateRequest.getQuestions().isEmpty()) {
-            exercise.setQuestions(updateRequest.getQuestions().stream().map(QuestionMapper.INSTANCE::updateQuestionRequestToQuestion).toList());
-        }
-        if (updateRequest.getExerciseName() != null && !updateRequest.getExerciseName().isEmpty()) {
-            exercise.setExerciseName(updateRequest.getExerciseName());
-        }
-        if (updateRequest.getOrdinalNumber() != null && updateRequest.getOrdinalNumber() > 0) {
-            exercise.setOrdinalNumber(updateRequest.getOrdinalNumber());
+        if (exercise.getStatus() == ContentStatus.DENIED) {
+            exercise.setStatus(ContentStatus.PENDING);
+            exercise.setRejectedReason(null);
         }
         exerciseRepository.save(exercise);
     }
@@ -86,7 +108,10 @@ public class ExerciseFilterForAdminStrategy implements ExerciseFilterStrategy {
     @Override
     public void deleteExercise(UUID userId, UUID exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ExerciseException("Exercise not found"));
+                .orElseThrow(() -> new ExerciseException("Exercise not found in the system"));
+        if (exercise.getStatus() == ContentStatus.DELETED) {
+            return;
+        }
         exercise.setStatus(ContentStatus.DELETED);
         exerciseRepository.save(exercise);
     }

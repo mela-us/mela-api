@@ -10,6 +10,7 @@ import com.hcmus.mela.exercise.service.ExerciseQueryService;
 import com.hcmus.mela.exercise.service.ExerciseQuestionService;
 import com.hcmus.mela.exercise.service.ExerciseStatusService;
 import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
+import com.hcmus.mela.lecture.dto.response.GetLectureContributionResponse;
 import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -55,12 +56,10 @@ public class ExerciseController {
     @GetMapping(value = "/exercises/{exerciseId}")
     @Operation(tags = "💯 Exercise Service", summary = "Get questions in exercise",
             description = "Retrieves a list of questions belonging to an exercise from the system.")
-    public ResponseEntity<QuestionResponse> getQuestions(
-            @PathVariable String exerciseId,
-            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader) {
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+    public ResponseEntity<QuestionResponse> getQuestions(@PathVariable String exerciseId) {
         log.info("Getting questions for exercise {}", exerciseId);
-        final QuestionResponse exerciseResponse = exerciseQuestionService.findQuestionsByExerciseId(UUID.fromString(exerciseId), userId);
+        final QuestionResponse exerciseResponse = exerciseQuestionService
+                .findQuestionsByExerciseId(UUID.fromString(exerciseId));
         return ResponseEntity.ok(exerciseResponse);
     }
 
@@ -73,7 +72,7 @@ public class ExerciseController {
         log.info("Getting exercises in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
+        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString().toUpperCase());
         GetAllExercisesResponse response = exerciseQueryService.getAllExercises(strategy, userId);
         return ResponseEntity.ok(response);
     }
@@ -88,7 +87,7 @@ public class ExerciseController {
         log.info("Getting exercise information of {}", exerciseId);
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString());
+        ExerciseFilterStrategy strategy = strategies.get("EXERCISE_" + userRole.toString().toUpperCase());
         GetExerciseInfoResponse response = exerciseQueryService.getExerciseInfoByExerciseId(strategy, userId, exerciseId);
         return ResponseEntity.ok(response);
     }
@@ -148,7 +147,7 @@ public class ExerciseController {
             @RequestBody DenyExerciseRequest request) {
         log.info("Deny exercise {}", exerciseId);
         if (request.getReason() == null || request.getReason().isEmpty()) {
-            request.setReason("Contact admin for more information");
+            request.setReason("Liên hệ với quản trị viên để biết thêm chi tiết.");
         }
         exerciseStatusService.denyExercise(exerciseId, request.getReason());
         return ResponseEntity.ok(new DenyExerciseResponse("Exercise denied successfully"));
@@ -162,5 +161,16 @@ public class ExerciseController {
         log.info("Approve exercise {}", exerciseId);
         exerciseStatusService.approveExercise(exerciseId);
         return ResponseEntity.ok(new ApproveExerciseResponse("Exercise approved successfully"));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/exercises/{userId}/created")
+    @Operation(tags = "💯 Exercise Service", summary = "Get exercises contribution by user",
+            description = "Retrieves exercises contribution stat created by a specific contributor.")
+    public ResponseEntity<GetExerciseContributionResponse> getExerciseContributionByUserRequest(
+            @PathVariable UUID userId) {
+        log.info("Getting exercises contribution for user {}", userId);
+        GetExerciseContributionResponse response = exerciseQueryService.getExerciseContribution(userId);
+        return ResponseEntity.ok(response);
     }
 }

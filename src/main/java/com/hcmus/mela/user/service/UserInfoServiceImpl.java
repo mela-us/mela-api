@@ -6,6 +6,7 @@ import com.hcmus.mela.level.service.LevelStatusService;
 import com.hcmus.mela.shared.exception.BadRequestException;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.user.dto.dto.UserDto;
+import com.hcmus.mela.user.dto.dto.UserPreviewDto;
 import com.hcmus.mela.user.exception.UserNotFoundException;
 import com.hcmus.mela.user.mapper.UserMapper;
 import com.hcmus.mela.user.model.User;
@@ -34,7 +35,9 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public UserDto getUserDtoByUserId(UUID userId) {
         User user = getUserByUserId(userId);
-        return UserMapper.INSTANCE.userToUserDto(user);
+        UserDto userDto = UserMapper.INSTANCE.userToUserDto(user);
+        userDto.setLevelTitle(levelInfoService.findLevelByLevelId(user.getLevelId()).getName());
+        return userDto;
     }
 
     @Override
@@ -51,5 +54,14 @@ public class UserInfoServiceImpl implements UserInfoService {
     public void updateLevelForAllUser(UUID oldLevelId) {
         LevelDto newLevel = levelInfoService.findAvailableLevel();
         userRepository.updateAllByLevelId(oldLevelId, newLevel.getLevelId());
+    }
+
+    @Override
+    public UserPreviewDto getUserPreviewDtoByUserId(UUID userId) {
+        User user = getUserByUserId(userId);
+        if (user == null) {
+            return null;
+        }
+        return UserMapper.INSTANCE.userToUserPreviewDto(user);
     }
 }

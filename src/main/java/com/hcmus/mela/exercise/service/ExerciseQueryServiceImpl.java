@@ -1,10 +1,8 @@
 package com.hcmus.mela.exercise.service;
 
-import com.hcmus.mela.exercise.dto.dto.ExerciseDetailDto;
-import com.hcmus.mela.exercise.dto.dto.ExerciseDto;
-import com.hcmus.mela.exercise.dto.dto.ExerciseResultDto;
-import com.hcmus.mela.exercise.dto.dto.ExerciseStatDetailDto;
+import com.hcmus.mela.exercise.dto.dto.*;
 import com.hcmus.mela.exercise.dto.response.GetAllExercisesResponse;
+import com.hcmus.mela.exercise.dto.response.GetExerciseContributionResponse;
 import com.hcmus.mela.exercise.dto.response.GetExerciseInfoResponse;
 import com.hcmus.mela.exercise.dto.response.GetExercisesInLectureResponse;
 import com.hcmus.mela.exercise.exception.ExerciseException;
@@ -90,6 +88,33 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
         return new GetExerciseInfoResponse("Get exercise info successfully", exerciseDto);
     }
 
+    @Override
+    public GetExerciseContributionResponse getExerciseContribution(UUID userId) {
+        ContributionDto contributionDto = new ContributionDto();
+        List<Exercise> totalExercises = exerciseRepository.findAllByCreatedBy(userId);
+        contributionDto.setTotalCreatedNumber(totalExercises.size());
+        int totalVerifiedExerciseNumber = 0;
+        int totalQuestionNumber = 0;
+        int totalVerifiedQuestionNumber = 0;
+        int totalAccessedNumber = 0;
+        for (Exercise exercise : totalExercises) {
+            if (exercise.getStatus() == ContentStatus.VERIFIED) {
+                totalVerifiedExerciseNumber++;
+                totalVerifiedQuestionNumber += Optional.ofNullable(exercise.getQuestions()).map(List::size).orElse(0);
+            }
+            totalQuestionNumber += Optional.ofNullable(exercise.getQuestions()).map(List::size).orElse(0);
+            totalAccessedNumber += exerciseHistoryService.countDoneExerciseByExerciseId(exercise.getExerciseId());
+        }
+        contributionDto.setTotalQuestionCreatedNumber(totalQuestionNumber);
+        contributionDto.setVerifiedNumber(totalVerifiedExerciseNumber);
+        contributionDto.setTotalQuestionVerifiedNumber(totalVerifiedQuestionNumber);
+        contributionDto.setAccessedContentNumber(totalAccessedNumber);
+        return new GetExerciseContributionResponse(
+                "Get exercise contribution successfully",
+                contributionDto
+        );
+    }
+
     private List<ExerciseStatDetailDto> mapExercisesToStatDetails(
             List<Exercise> exercises,
             UUID userId,
@@ -114,7 +139,7 @@ public class ExerciseQueryServiceImpl implements ExerciseQueryService {
                 ExerciseResultDto exerciseResultDto = ExerciseResultDto.builder()
                         .status(bestScore >= ProjectConstants.EXERCISE_PASS_SCORE ? ExerciseStatus.PASS : ExerciseStatus.IN_PROGRESS)
                         .totalAnswers(numberOfQuestions)
-                        .totalCorrectAnswers((int) Math.round(numberOfQuestions * bestScore / 100))
+                        .totalCorrectAnswers((int) Math.floor(numberOfQuestions * bestScore / 100))
                         .build();
                 exerciseStatDetailDto.setBestResult(exerciseResultDto);
             } else {

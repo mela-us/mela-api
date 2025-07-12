@@ -61,6 +61,6 @@ public class LevelInfoServiceImpl implements LevelInfoService {
 
     @Override
     public void changeLevelOwnerToAdmin(UUID previousUserId) {
-        levelRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
+        levelRepository.updateAllByCreatedBy(previousUserId, null);
     }
 }

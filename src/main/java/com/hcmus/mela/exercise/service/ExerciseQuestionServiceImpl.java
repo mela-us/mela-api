@@ -24,9 +24,9 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
     private final ExerciseRepository exerciseRepository;
 
     @Override
-    public QuestionResponse findQuestionsByExerciseId(UUID exerciseId, UUID userId) {
+    public QuestionResponse findQuestionsByExerciseId(UUID exerciseId) {
         Exercise exercise = exerciseRepository.findByExerciseIdAndStatus(exerciseId, ContentStatus.VERIFIED)
-                .orElseThrow(() -> new ExerciseException("Exercise not found with id " + exerciseId));
+                .orElseThrow(() -> new ExerciseException("Not found verified exercise with id " + exerciseId));
         ExerciseDto exerciseDto = ExerciseMapper.INSTANCE.exerciseToExerciseDto(exercise);
         List<QuestionDto> questionDtoList = exerciseDto.getQuestions();
         String message = String.format("Found %d questions for exercise with id %s", questionDtoList.size(), exerciseId);
@@ -36,8 +36,8 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
 
     @Override
     public Question findQuestionByQuestionId(UUID questionId) {
-        Exercise exercise = findExerciseByQuestionId(questionId);
-        if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty() || questionId == null) {
+        Exercise exercise = exerciseRepository.findByQuestionsQuestionId(questionId).orElse(null);
+        if (exercise == null || exercise.getQuestions() == null || exercise.getQuestions().isEmpty() || questionId == null) {
             return null;
         }
         if (exercise.getStatus() != ContentStatus.VERIFIED) {
@@ -53,7 +53,7 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
     @Override
     public Exercise findExerciseByQuestionId(UUID questionId) {
         return exerciseRepository.findByQuestionsQuestionIdAndStatus(questionId, ContentStatus.VERIFIED)
-                .orElseThrow(() -> new ExerciseException("Exercise not found for question id: " + questionId));
+                .orElseThrow(() -> new ExerciseException("Exercise not found for question id " + questionId));
     }
 
     @Override

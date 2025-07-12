@@ -1,5 +1,7 @@
 package com.hcmus.mela.user.dto.dto;
 
+import com.hcmus.mela.user.model.User;
+import com.hcmus.mela.user.model.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,5 +24,9 @@ public class UserDto {
 
     private String imageUrl;
 
+    private UUID levelId;
+
     private String levelTitle;
+
+    private UserRole userRole;
 }

@@ -18,16 +18,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TopicCommandServiceImpl implements TopicCommandService {
 
-    private final TopicRepository topicRepository;
-
     @Override
-    public CreateTopicResponse createTopic(UUID userId, CreateTopicRequest request) {
+    public CreateTopicResponse createTopic(TopicFilterStrategy strategy, UUID userId, CreateTopicRequest request) {
         Topic topic = TopicMapper.INSTANCE.createTopicRequestToTopic(request);
-        topic.setTopicId(UUID.randomUUID());
-        topic.setCreatedBy(userId);
-        topic.setStatus(ContentStatus.PENDING);
-        Topic savedTopic = topicRepository.save(topic);
-        TopicDto topicDto = TopicMapper.INSTANCE.topicToTopicDto(savedTopic);
+        TopicDto topicDto = strategy.createTopic(userId, topic);
         return new CreateTopicResponse("Create topic successfully", topicDto);
     }
 

@@ -40,11 +40,11 @@ public class LectureController {
     @Operation(tags = "🎓 Lecture Service", summary = "Get all lectures",
             description = "Retrieves all lectures in the system based on user role.")
     public ResponseEntity<GetAllLecturesResponse> getAllLecturesRequest(
-            @Parameter(hidden = true) @RequestHeader("Authorization") String authorizationHeader) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String authHeader) {
         log.info("Getting lectures in system");
-        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authorizationHeader);
-        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authorizationHeader);
-        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString());
+        UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
+        UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
+        LectureFilterStrategy strategy = strategies.get("LECTURE_" + userRole.toString().toUpperCase());
         GetAllLecturesResponse response = lectureQueryService.getAllLectures(strategy, userId);
         return ResponseEntity.ok(response);
     }
@@ -119,7 +119,7 @@ public class LectureController {
             @RequestBody DenyLectureRequest request) {
         log.info("Deny lecture {}", lectureId);
         if (request.getReason() == null || request.getReason().isEmpty()) {
-            request.setReason("Lecture denied without a specific reason");
+            request.setReason("Liên hệ với quản trị viên để biết thêm chi tiết.");
         }
         lectureStatusService.denyLecture(lectureId, request.getReason());
         return ResponseEntity.ok(new DenyLectureResponse("Lecture denied successfully"));
@@ -170,6 +170,17 @@ public class LectureController {
         log.info("Getting sections for lecture {}", lectureId);
         GetLectureSectionsResponse response = lectureQueryService
                 .getLectureSectionsByLectureId(UUID.fromString(lectureId));
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/{userId}/created")
+    @Operation(tags = "🎓 Lecture Service", summary = "Get lectures contribution by user",
+            description = "Retrieves lectures contribution stat created by a specific contributor.")
+    public ResponseEntity<GetLectureContributionResponse> getLectureContributionByUserRequest(
+            @PathVariable UUID userId) {
+        log.info("Getting lectures contribution for user {}", userId);
+        GetLectureContributionResponse response = lectureQueryService.getLectureContribution(userId);
         return ResponseEntity.ok(response);
     }
 }

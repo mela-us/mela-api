@@ -59,7 +59,7 @@ public class QuestionConfusionServiceImpl implements QuestionConfusionService {
     public QuestionConfusionResponseDto resolveQuestionConfusion(UUID questionId, QuestionConfusionRequestDto requestDto) {
         Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
         if (question == null) {
-            throw new ChatBotException("Question with id " + questionId + " not found");
+            throw new ChatBotException("Question with id " + questionId + " not found or not verified");
         }
 
         StringBuilder textData = new StringBuilder("Đề bài: ").append(question.getContent());

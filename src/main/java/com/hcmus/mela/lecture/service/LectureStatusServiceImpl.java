@@ -22,9 +22,9 @@ public class LectureStatusServiceImpl implements LectureStatusService {
     @Override
     public void denyLecture(UUID lectureId, String reason) {
         Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new LectureException("Lecture not found"));
+                .orElseThrow(() -> new LectureException("Lecture not found in the system"));
         if (lecture.getStatus() == ContentStatus.VERIFIED || lecture.getStatus() == ContentStatus.DELETED) {
-            throw new LectureException("Lecture cannot be denied");
+            throw new LectureException("Verified or deleted lecture cannot be denied");
         }
         lecture.setRejectedReason(reason);
         lecture.setStatus(ContentStatus.DENIED);
@@ -34,9 +34,9 @@ public class LectureStatusServiceImpl implements LectureStatusService {
     @Override
     public void approveLecture(UUID lectureId) {
         Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(() -> new LectureException("Lecture not found"));
+                .orElseThrow(() -> new LectureException("Lecture not found in the system"));
         if (lecture.getStatus() == ContentStatus.DELETED) {
-            throw new LectureException("Lecture cannot be approved");
+            throw new LectureException("Deleted lecture cannot be approved");
         }
         if (!topicStatusService.isTopicInStatus(lecture.getTopicId(), ContentStatus.VERIFIED)) {
             throw new LectureException("Topic of lecture must be verified before approving lecture");
@@ -61,7 +61,7 @@ public class LectureStatusServiceImpl implements LectureStatusService {
         if (lecture.getStatus() == ContentStatus.VERIFIED) {
             return true;
         }
-        return lecture.getStatus() != ContentStatus.DELETED && lecture.getCreatedBy().equals(userId);
+        return lecture.getStatus() != ContentStatus.DELETED && userId.equals(lecture.getCreatedBy());
     }
 
     @Override

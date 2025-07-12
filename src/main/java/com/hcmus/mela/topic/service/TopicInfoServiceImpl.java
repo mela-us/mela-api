@@ -49,6 +49,6 @@ public class TopicInfoServiceImpl implements TopicInfoService {
 
     @Override
     public void changeTopicOwnerToAdmin(UUID previousUserId) {
-        topicRepository.updateAllByCreatedBy(previousUserId, ProjectConstants.ADMIN_ID);
+        topicRepository.updateAllByCreatedBy(previousUserId, null);
     }
 }
