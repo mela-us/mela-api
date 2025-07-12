@@ -36,8 +36,8 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
 
     @Override
     public Question findQuestionByQuestionId(UUID questionId) {
-        Exercise exercise = findExerciseByQuestionId(questionId);
-        if (exercise.getQuestions() == null || exercise.getQuestions().isEmpty() || questionId == null) {
+        Exercise exercise = exerciseRepository.findByQuestionsQuestionId(questionId).orElse(null);
+        if (exercise == null || exercise.getQuestions() == null || exercise.getQuestions().isEmpty() || questionId == null) {
             return null;
         }
         if (exercise.getStatus() != ContentStatus.VERIFIED) {
@@ -53,7 +53,7 @@ public class ExerciseQuestionServiceImpl implements ExerciseQuestionService {
     @Override
     public Exercise findExerciseByQuestionId(UUID questionId) {
         return exerciseRepository.findByQuestionsQuestionIdAndStatus(questionId, ContentStatus.VERIFIED)
-                .orElseThrow(() -> new ExerciseException("Exercise not found for question id: " + questionId));
+                .orElseThrow(() -> new ExerciseException("Exercise not found for question id " + questionId));
     }
 
     @Override

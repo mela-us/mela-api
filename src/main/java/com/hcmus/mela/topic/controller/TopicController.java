@@ -43,7 +43,7 @@ public class TopicController {
         log.info("Getting topics in system");
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString().toUpperCase());
         GetTopicsResponse response = topicQueryService.getTopicsResponse(strategy, userId);
         return ResponseEntity.ok(response);
     }
@@ -58,7 +58,7 @@ public class TopicController {
         log.info("Creating topic {}", request.getName());
         UserRole userRole = jwtTokenService.getRoleFromAuthorizationHeader(authHeader);
         UUID userId = jwtTokenService.getUserIdFromAuthorizationHeader(authHeader);
-        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString());
+        TopicFilterStrategy strategy = strategies.get("TOPIC_" + userRole.toString().toUpperCase());
         CreateTopicResponse response = topicCommandService.createTopic(strategy, userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

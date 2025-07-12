@@ -108,8 +108,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
     public HintResponseDto generateTerms(UUID questionId) {
         Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
         if (question == null) {
-            log.warn("Question with id {} not found", questionId);
-            throw new QuestionHintException("Question not found with id: " + questionId);
+            throw new QuestionHintException("Verified question not found with id " + questionId);
         }
 
         if (question.getTerms() == null || question.getTerms().isEmpty()) {
@@ -149,8 +148,7 @@ public class QuestionHintServiceImpl implements QuestionHintService {
     public HintResponseDto generateGuide(UUID questionId) {
         Question question = exerciseQuestionService.findQuestionByQuestionId(questionId);
         if (question == null) {
-            log.warn("Question with id {} not found", questionId);
-            throw new QuestionHintException("Question not found with id: " + questionId);
+            throw new QuestionHintException("Verified question not found with id " + questionId);
         }
 
         if (question.getGuide() == null || question.getGuide().isEmpty()) {

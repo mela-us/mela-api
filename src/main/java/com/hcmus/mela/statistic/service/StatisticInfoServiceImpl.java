@@ -15,7 +15,6 @@ import com.hcmus.mela.lecture.service.LectureInfoService;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.type.ContentStatus;
 import com.hcmus.mela.statistic.dto.dto.*;
-import com.hcmus.mela.statistic.dto.response.GetStatisticsResponse;
 import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.service.TopicInfoService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StatisticServiceImpl implements StatisticService {
+public class StatisticInfoServiceImpl implements StatisticInfoService {
 
     private final LectureHistoryService lectureHistoryService;
     private final TopicInfoService topicInfoService;
@@ -37,9 +36,8 @@ public class StatisticServiceImpl implements StatisticService {
     private final TestHistoryService testHistoryService;
     private final AsyncCustomService asyncService;
 
-    public GetStatisticsResponse getStatisticByUserIdAndLevelIdAndType(UUID userId, UUID levelId, ActivityType activityType) {
+    public List<ActivityHistoryDto> getActivitiesByUserIdAndLevelIdAndType(UUID userId, UUID levelId, ActivityType activityType) {
         List<ActivityHistoryDto> activityHistoryDtoList = new ArrayList<>();
-
         switch (activityType) {
             case SECTION:
                 activityHistoryDtoList.addAll(getActivityFromLectureHistory(userId, levelId));
@@ -66,11 +64,7 @@ public class StatisticServiceImpl implements StatisticService {
                 break;
         }
         activityHistoryDtoList.sort(Comparator.comparing(ActivityHistoryDto::getLatestDate).reversed());
-
-        return new GetStatisticsResponse(
-                "Get statistic successfully for user " + userId + " and level " + levelId + "!",
-                activityHistoryDtoList.size(),
-                activityHistoryDtoList);
+        return activityHistoryDtoList;
     }
 
     private List<ActivityHistoryDto> getActivityFromLectureHistory(UUID userId, UUID levelId) {

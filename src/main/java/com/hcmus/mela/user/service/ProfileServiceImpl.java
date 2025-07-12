@@ -12,6 +12,7 @@ import com.hcmus.mela.user.exception.UserException;
 import com.hcmus.mela.user.exception.UserNotFoundException;
 import com.hcmus.mela.user.mapper.UserMapper;
 import com.hcmus.mela.user.model.User;
+import com.hcmus.mela.user.model.UserRole;
 import com.hcmus.mela.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,7 @@ public class ProfileServiceImpl implements ProfileService {
         LevelDto level;
         if (user.getLevelId() == null) {
             level = levelInfoService.findLevelByLevelTitle("Lớp 1");
-            if (level == null) {
+            if (level == null || level.getStatus() != ContentStatus.VERIFIED) {
                 level = levelInfoService.findAvailableLevel();
             }
             user.setLevelId(level.getLevelId());
@@ -92,7 +93,7 @@ public class ProfileServiceImpl implements ProfileService {
     public void deleteProfile(UUID userId, DeleteProfileRequest request) {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
-        userDeleteService.deleteUserByUserId(user.getUserId());
+        userDeleteService.deleteUserByUserId(user.getUserId(), UserRole.USER);
         redisService.storeAccessToken(request.getAccessToken());
         redisService.storeRefreshToken(request.getRefreshToken());
     }
