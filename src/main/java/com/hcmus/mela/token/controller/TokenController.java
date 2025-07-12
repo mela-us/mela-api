@@ -48,4 +48,14 @@ public class TokenController {
         IncreaseUserTokenResponse response = tokenService.increaseUserToken(userId, request.getToken());
         return ResponseEntity.ok(response);
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @GetMapping("/{userId}")
+    @Operation(tags = "💰 Token Service", summary = "Get tokens by user id",
+            description = "Retrieves all tokens of the user with given user id")
+    public ResponseEntity<GetUserTokenResponse> getUserTokenOfUserRequest(@PathVariable UUID userId) {
+        log.info("Getting tokens of user {}", userId);
+        GetUserTokenResponse response = tokenService.getUserToken(userId);
+        return ResponseEntity.ok(response);
+    }
 }

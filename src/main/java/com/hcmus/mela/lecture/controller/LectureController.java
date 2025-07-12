@@ -172,4 +172,15 @@ public class LectureController {
                 .getLectureSectionsByLectureId(UUID.fromString(lectureId));
         return ResponseEntity.ok(response);
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/{userId}/created")
+    @Operation(tags = "🎓 Lecture Service", summary = "Get lectures contribution by user",
+            description = "Retrieves lectures contribution stat created by a specific contributor.")
+    public ResponseEntity<GetLectureContributionResponse> getLectureContributionByUserRequest(
+            @PathVariable UUID userId) {
+        log.info("Getting lectures contribution for user {}", userId);
+        GetLectureContributionResponse response = lectureQueryService.getLectureContribution(userId);
+        return ResponseEntity.ok(response);
+    }
 }

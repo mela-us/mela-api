@@ -39,4 +39,14 @@ public interface LectureRepository extends MongoRepository<Lecture, UUID>, Lectu
     @Query("{ 'createdBy' : ?0 }")
     @Update("{ '$set' : { 'createdBy' : ?1 } }")
     void updateAllByCreatedBy(UUID oldCreatedBy, UUID newCreatedBy);
+
+    Integer countAllByCreatedBy(UUID userId);
+
+    Integer countAllByCreatedByAndStatus(UUID userId, ContentStatus status);
+
+    List<Lecture> findAllByCreatedBy(UUID userId);
+
+    Integer countAllByTopicIdAndStatusAndCreatedBy(UUID topicId, ContentStatus status, UUID createdBy);
+
+    Integer countAllByTopicIdAndCreatedBy(UUID topicId, UUID createdBy);
 }

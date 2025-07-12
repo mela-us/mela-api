@@ -1,6 +1,7 @@
 package com.hcmus.mela.lecture.service;
 
 import com.hcmus.mela.history.service.ExerciseHistoryService;
+import com.hcmus.mela.history.service.LectureHistoryService;
 import com.hcmus.mela.lecture.dto.dto.*;
 import com.hcmus.mela.lecture.dto.response.*;
 import com.hcmus.mela.lecture.mapper.LectureMapper;
@@ -10,6 +11,7 @@ import com.hcmus.mela.lecture.repository.LectureRepository;
 import com.hcmus.mela.lecture.strategy.LectureFilterStrategy;
 import com.hcmus.mela.shared.async.AsyncCustomService;
 import com.hcmus.mela.shared.type.ContentStatus;
+import com.hcmus.mela.topic.dto.dto.TopicDto;
 import com.hcmus.mela.topic.mapper.TopicMapper;
 import com.hcmus.mela.topic.service.TopicInfoService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
     private final TopicInfoService topicInfoService;
     private final LectureRepository lectureRepository;
     private final ExerciseHistoryService exerciseHistoryService;
+    private final LectureHistoryService lectureHistoryService;
     private final AsyncCustomService asyncService;
 
     @Override
@@ -134,6 +137,42 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 sectionDtoList.size(),
                 lectureInfo,
                 sectionDtoList
+        );
+    }
+
+    @Override
+    public GetLectureContributionResponse getLectureContribution(UUID userId) {
+        List<TopicDto> topics = topicInfoService.findAllTopicsInStatus(ContentStatus.VERIFIED);
+        List<TopicCount> lecturesCountByTopic = topics.stream().map(topic -> {
+            int totalCount = lectureRepository.countAllByTopicIdAndCreatedBy(topic.getTopicId(), userId);
+            int verifiedCount = lectureRepository.countAllByTopicIdAndStatusAndCreatedBy(
+                    topic.getTopicId(),
+                    ContentStatus.VERIFIED,
+                    userId
+            );
+            return new TopicCount(
+                    topic.getTopicId(),
+                    topic.getName(),
+                    totalCount,
+                    verifiedCount
+            );
+        }).toList();
+        ContributionDto contributionDto = new ContributionDto();
+        contributionDto.setVerifiedNumber(lectureRepository.countAllByCreatedByAndStatus(userId, ContentStatus.VERIFIED));
+        contributionDto.setTotalCreatedNumberCountByTopic(lecturesCountByTopic);
+        List<Lecture> lecturesCreated = lectureRepository.findAllByCreatedBy(userId);
+        contributionDto.setTotalCreatedNumber(lecturesCreated.size());
+        int totalAccessedNumber = 0;
+        for (Lecture lecture : lecturesCreated) {
+            Integer accessedLectureNumber = lectureHistoryService.countAccessedNumberByLectureId(lecture.getLectureId());
+            Integer accessedExerciseNumber = exerciseHistoryService.countDoneExercisesByLectureId(lecture.getLectureId());
+            totalAccessedNumber += Optional.ofNullable(accessedLectureNumber).orElse(0)
+                    + Optional.ofNullable(accessedExerciseNumber).orElse(0);
+        }
+        contributionDto.setAccessedContentNumber(totalAccessedNumber);
+        return new GetLectureContributionResponse(
+                "Get lecture contribution successfully",
+                contributionDto
         );
     }
 

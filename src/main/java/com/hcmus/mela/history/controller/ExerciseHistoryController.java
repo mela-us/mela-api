@@ -4,6 +4,7 @@ import com.hcmus.mela.auth.security.jwt.JwtTokenService;
 import com.hcmus.mela.history.dto.request.ExerciseResultRequest;
 import com.hcmus.mela.history.dto.response.ExerciseResultResponse;
 import com.hcmus.mela.history.dto.response.GetUploadUrlResponse;
+import com.hcmus.mela.history.dto.response.GetUserExerciseStatsResponse;
 import com.hcmus.mela.history.service.ExerciseHistoryService;
 import com.hcmus.mela.shared.storage.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,5 +57,15 @@ public class ExerciseHistoryController {
                 urls.get("preSignedUrl"),
                 urls.get("storedUrl")
         ));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CONTRIBUTOR')")
+    @GetMapping("/{userId}/stats")
+    @Operation(tags = "🧾 History Service", summary = "Get user exercise score",
+            description = "Get the score statistic of all exercises completed by a user.")
+    public ResponseEntity<GetUserExerciseStatsResponse> getUserExerciseStatsRequest(@PathVariable UUID userId) {
+        log.info("Fetching exercise stats for user {}", userId);
+        GetUserExerciseStatsResponse response = exerciseHistoryService.getUserExerciseStats(userId);
+        return ResponseEntity.ok(response);
     }
 }

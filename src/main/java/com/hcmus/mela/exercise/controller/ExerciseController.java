@@ -10,6 +10,7 @@ import com.hcmus.mela.exercise.service.ExerciseQueryService;
 import com.hcmus.mela.exercise.service.ExerciseQuestionService;
 import com.hcmus.mela.exercise.service.ExerciseStatusService;
 import com.hcmus.mela.exercise.strategy.ExerciseFilterStrategy;
+import com.hcmus.mela.lecture.dto.response.GetLectureContributionResponse;
 import com.hcmus.mela.user.model.UserRole;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -160,5 +161,16 @@ public class ExerciseController {
         log.info("Approve exercise {}", exerciseId);
         exerciseStatusService.approveExercise(exerciseId);
         return ResponseEntity.ok(new ApproveExerciseResponse("Exercise approved successfully"));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/exercises/{userId}/created")
+    @Operation(tags = "💯 Exercise Service", summary = "Get exercises contribution by user",
+            description = "Retrieves exercises contribution stat created by a specific contributor.")
+    public ResponseEntity<GetExerciseContributionResponse> getExerciseContributionByUserRequest(
+            @PathVariable UUID userId) {
+        log.info("Getting exercises contribution for user {}", userId);
+        GetExerciseContributionResponse response = exerciseQueryService.getExerciseContribution(userId);
+        return ResponseEntity.ok(response);
     }
 }
