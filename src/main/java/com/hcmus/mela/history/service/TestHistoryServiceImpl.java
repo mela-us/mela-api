@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +62,11 @@ public class TestHistoryServiceImpl implements TestHistoryService {
     @Override
     public void deleteAllTestHistoryByUserId(UUID userId) {
         testHistoryRepository.deleteAllByUserId(userId);
+    }
+
+    @Override
+    public Integer countTestHistoriesCompletedBetween(LocalDateTime startDate, LocalDateTime endDate) {
+        return testHistoryRepository.countByCompletedAtBetween(startDate, endDate);
     }
 
     private void saveTestHistory(UUID userId, LocalDateTime startedAt, LocalDateTime completedAt, List<TestAnswer> answers) {
