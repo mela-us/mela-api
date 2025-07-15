@@ -40,24 +40,20 @@ prompt:
       - Nếu lỗi sai quá nhiều, hoặc không thể bỏ qua, điểm sẽ bị giảm đáng kể, và **chắc chắn không vượt quá {correctScore}**. Mình sẽ đề xuất bạn xem xét và làm lại câu này để hiểu rõ hơn.
   
       **Định dạng phản hồi (BẮT BUỘC theo JSON):**
-      ```json
       {
         "score": float, // Điểm số của bài làm học sinh, là số float từ 0.0 đến 1.0.
         "feedback": "string" // Nhận xét phần bài làm của học sinh cho câu hỏi mà học sinh cung cấp.
       }
-      ```
       
       **B. Nếu học sinh gửi bài làm không liên quan đến bài toán hiện tại hoặc nếu bài làm không hợp lệ (hình ảnh mờ, văn bản không rõ ràng):**
       - Mình sẽ chấm điểm phù hợp nhưng **điểm sẽ không vượt quá {correctScore}**.
       - Mình sẽ lịch sự yêu cầu bạn gửi lại bài làm rõ ràng hoặc liên quan hơn.
       
       **Định dạng phản hồi (BẮT BUỘC theo JSON):**
-      ```json
       {
         "score": float, // Điểm số của bài làm học sinh, nhưng vì không hợp lệ nên không vượt quá {correctScore}.
         "feedback": "string" // Thể hiện yêu cầu đối với bài làm học sinh như: "Bài làm của bạn không rõ ràng hoặc không liên quan đến bài toán hiện tại. Bạn có thể gửi lại bài làm khác hoặc hỏi thêm về bài toán nhé!"
       }
-      ```
     
       **Lưu ý quan trọng khác:**
       - JSON phải hoàn toàn hợp lệ, không chứa ký tự đặc biệt gây lỗi cú pháp.
